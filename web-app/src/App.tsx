@@ -1,9 +1,6 @@
 import { useState } from 'react'
 import {
   makeStyles,
-  tokens,
-  Tab,
-  TabList,
 } from '@fluentui/react-components'
 import {
   Home24Regular,
@@ -19,35 +16,74 @@ import Phase3BusinessContinuity from './components/Phase3BusinessContinuity'
 const useStyles = makeStyles({
   container: {
     display: 'flex',
-    flexDirection: 'column',
     height: '100vh',
-    backgroundColor: tokens.colorNeutralBackground1,
+    backgroundColor: '#f8f9fa',
   },
-  header: {
-    backgroundColor: tokens.colorBrandBackground,
-    color: tokens.colorNeutralForegroundOnBrand,
-    padding: '20px 40px',
-    boxShadow: tokens.shadow8,
+  sidebar: {
+    width: '280px',
+    background: 'linear-gradient(180deg, #667eea 0%, #764ba2 100%)',
+    padding: '32px 24px',
+    display: 'flex',
+    flexDirection: 'column',
+    boxShadow: '4px 0 24px rgba(102, 126, 234, 0.15)',
   },
-  title: {
-    margin: 0,
-    fontSize: '28px',
-    fontWeight: '600',
+  logo: {
+    marginBottom: '48px',
   },
-  subtitle: {
-    margin: '8px 0 0 0',
-    fontSize: '14px',
-    opacity: 0.9,
+  logoTitle: {
+    fontSize: '24px',
+    fontWeight: '700',
+    color: '#ffffff',
+    marginBottom: '4px',
   },
-  navigation: {
-    backgroundColor: tokens.colorNeutralBackground2,
-    padding: '16px 40px',
-    borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
+  logoSubtitle: {
+    fontSize: '13px',
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontWeight: '400',
   },
-  content: {
+  nav: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '8px',
+  },
+  navItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    padding: '14px 16px',
+    borderRadius: '12px',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontSize: '15px',
+    fontWeight: '500',
+    border: 'none',
+    backgroundColor: 'transparent',
+    width: '100%',
+    textAlign: 'left',
+    ':hover': {
+      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+      color: '#ffffff',
+    },
+  },
+  navItemActive: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    color: '#ffffff',
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+  },
+  navIcon: {
+    fontSize: '20px',
+  },
+  mainContent: {
     flex: 1,
     overflow: 'auto',
-    padding: '40px',
+    backgroundColor: '#f8f9fa',
+  },
+  contentWrapper: {
+    padding: '40px 48px',
+    maxWidth: '1400px',
+    margin: '0 auto',
   },
 })
 
@@ -72,36 +108,40 @@ function App() {
     }
   }
 
+  const navItems = [
+    { value: 'home' as TabValue, icon: <Home24Regular />, label: 'Home' },
+    { value: 'phase1' as TabValue, icon: <BookOpen24Regular />, label: 'Phase 1: Prepare' },
+    { value: 'phase2' as TabValue, icon: <ClipboardTaskListLtr24Regular />, label: 'Phase 2: Application Continuity' },
+    { value: 'phase3' as TabValue, icon: <Shield24Regular />, label: 'Phase 3: Business Continuity' },
+  ]
+
   return (
     <div className={styles.container}>
-      <header className={styles.header}>
-        <h1 className={styles.title}>Azure Business Continuity Guide</h1>
-        <p className={styles.subtitle}>
-          A comprehensive resource for BCDR planning and implementation
-        </p>
-      </header>
+      <aside className={styles.sidebar}>
+        <div className={styles.logo}>
+          <div className={styles.logoTitle}>ABC Guide</div>
+          <div className={styles.logoSubtitle}>Business Continuity</div>
+        </div>
 
-      <nav className={styles.navigation}>
-        <TabList
-          selectedValue={selectedTab}
-          onTabSelect={(_, data) => setSelectedTab(data.value as TabValue)}
-        >
-          <Tab icon={<Home24Regular />} value="home">
-            Home
-          </Tab>
-          <Tab icon={<BookOpen24Regular />} value="phase1">
-            Phase 1: Prepare
-          </Tab>
-          <Tab icon={<ClipboardTaskListLtr24Regular />} value="phase2">
-            Phase 2: Application Continuity
-          </Tab>
-          <Tab icon={<Shield24Regular />} value="phase3">
-            Phase 3: Business Continuity
-          </Tab>
-        </TabList>
-      </nav>
+        <nav className={styles.nav}>
+          {navItems.map((item) => (
+            <button
+              key={item.value}
+              className={`${styles.navItem} ${selectedTab === item.value ? styles.navItemActive : ''}`}
+              onClick={() => setSelectedTab(item.value)}
+            >
+              <span className={styles.navIcon}>{item.icon}</span>
+              <span>{item.label}</span>
+            </button>
+          ))}
+        </nav>
+      </aside>
 
-      <main className={styles.content}>{renderContent()}</main>
+      <main className={styles.mainContent}>
+        <div className={styles.contentWrapper}>
+          {renderContent()}
+        </div>
+      </main>
     </div>
   )
 }
