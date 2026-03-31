@@ -8,25 +8,25 @@
 - [x] Task-004: Interactive Phase 2 — Assessment Templates & Before/After Comparisons
 - [x] Task-005: Interactive Phase 3 — Risk Matrix, MBCO Table & Dashboard
 - [x] Task-006: Add Personas page with Role-Task Matrix
+- [x] Task-007: Add searchable Glossary page
 
 ## Current Iteration
 
-- Iteration: 7
+- Iteration: 8
 - Working on: Next task (awaiting assignment)
 
 ## Last Completed
 
-- Task-006: Add Personas page with Role-Task Matrix
+- Task-007: Add searchable Glossary page with BCDR terminology
 - Tests: ✅ Build passing
 - Key decisions:
-  - 8 role cards: App Owner, Architect, Cloud Eng, Ops/SRE, Security, Compliance, Business, QA
-  - Each card: colored icon badge, description, 5 key activities
-  - RACI matrix: 29 deliverables across 5 phase groups (Phase 1, Phase 2 Assess/Implement/Test, Phase 3)
-  - Color-coded RACI cells matching Phase 1 style (#003366 R, #336699 A, #6699CC C, #99CCFF I)
-  - RACI legend at top, deliverable count badge at bottom
-  - Workflow guide: 5-step recommended sequence with phase badges
-  - New nav item with People24Regular icon
-  - All module-level data constants, HTML tables with makeStyles
+  - 29 BCDR terms with abbreviation, full name, and definition
+  - Real-time search filtering on abbreviation, full name, and definition
+  - Alphabetical letter navigation with jump-to-section buttons
+  - Term cards with Badge for abbreviation and Card for layout
+  - FluentUI Input with Search20Regular icon and clear button
+  - "Showing X of Y terms" count below search
+  - BookDatabase24Regular icon in sidebar nav
 
 ## Blockers
 
