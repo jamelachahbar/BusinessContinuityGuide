@@ -11,6 +11,7 @@ import {
   Shield24Regular,
   People24Regular,
   BookDatabase24Regular,
+  LinkMultiple24Regular,
   Navigation24Regular,
   Dismiss24Regular,
   ChevronRight16Regular,
@@ -21,6 +22,7 @@ import Phase2ApplicationContinuity from './components/Phase2ApplicationContinuit
 import Phase3BusinessContinuity from './components/Phase3BusinessContinuity'
 import Personas from './components/Personas'
 import Glossary from './components/Glossary'
+import References from './components/References'
 
 const MOBILE_BREAKPOINT = '768px'
 
@@ -237,7 +239,7 @@ const useStyles = makeStyles({
   },
 })
 
-type TabValue = 'home' | 'phase1' | 'phase2' | 'phase3' | 'personas' | 'glossary'
+type TabValue = 'home' | 'phase1' | 'phase2' | 'phase3' | 'personas' | 'glossary' | 'references'
 
 const PAGE_LABELS: Record<TabValue, string> = {
   home: 'Home',
@@ -246,6 +248,7 @@ const PAGE_LABELS: Record<TabValue, string> = {
   phase3: 'Phase 3: Business Continuity',
   personas: 'Personas',
   glossary: 'Glossary',
+  references: 'References',
 }
 
 function App() {
@@ -278,6 +281,8 @@ function App() {
         return <Personas />
       case 'glossary':
         return <Glossary />
+      case 'references':
+        return <References />
       default:
         return <Home onNavigate={setSelectedTab} />
     }
@@ -290,6 +295,7 @@ function App() {
     { value: 'phase3' as TabValue, icon: <Shield24Regular />, label: 'Phase 3: Business Continuity' },
     { value: 'personas' as TabValue, icon: <People24Regular />, label: 'Personas' },
     { value: 'glossary' as TabValue, icon: <BookDatabase24Regular />, label: 'Glossary' },
+    { value: 'references' as TabValue, icon: <LinkMultiple24Regular />, label: 'References' },
   ]
 
   return (

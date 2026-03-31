@@ -9,24 +9,24 @@
 - [x] Task-005: Interactive Phase 3 — Risk Matrix, MBCO Table & Dashboard
 - [x] Task-006: Add Personas page with Role-Task Matrix
 - [x] Task-007: Add searchable Glossary page
+- [x] Task-008: Add References page with categorized links
 
 ## Current Iteration
 
-- Iteration: 8
+- Iteration: 9
 - Working on: Next task (awaiting assignment)
 
 ## Last Completed
 
-- Task-007: Add searchable Glossary page with BCDR terminology
+- Task-008: Add References page with categorized documentation links
 - Tests: ✅ Build passing
 - Key decisions:
-  - 29 BCDR terms with abbreviation, full name, and definition
-  - Real-time search filtering on abbreviation, full name, and definition
-  - Alphabetical letter navigation with jump-to-section buttons
-  - Term cards with Badge for abbreviation and Card for layout
-  - FluentUI Input with Search20Regular icon and clear button
-  - "Showing X of Y terms" count below search
-  - BookDatabase24Regular icon in sidebar nav
+  - 24 reference links across 7 categories
+  - Categories: Architecture & Reliability, Business Continuity Planning, Disaster Recovery, Monitoring & Operations, Security, Cloud Adoption Framework, Testing & Validation
+  - Card grid layout with colored Badge per category
+  - Open16Regular icon next to each link
+  - All links target="_blank" rel="noopener noreferrer"
+  - LinkMultiple24Regular icon in sidebar nav
 
 ## Blockers
 
