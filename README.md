@@ -1,11 +1,36 @@
 # Introducing the Azure Business Continuity Guide
 
 > [!IMPORTANT]
-> It is recommended to open the ABC Guide Excel Workbook in Desktop View for the best experience!
+> The ABC Guide is now available in two formats:
+> - **Web Version:** Browse the guide interactively in your browser (see [Web Application](#web-application) below)
+> - **Excel Workbook:** Download for offline use with the full interactive workbook experience
 
 **Download Latest Release:** [Azure Business Continuity Guide v0.55](https://github.com/Azure/BusinessContinuityGuide/releases/download/v0.55/ABCG.v0.55.xlsx)
 
 📢 *For a brief overview of how the ABC Guide is structured and how to navigate the content, please see the **[Getting Started](getting-started.md)** page.*
+
+## Web Application
+
+Access the Azure Business Continuity Guide as a modern web application built with React, Vite, and FluentUI. The web version provides:
+
+- 🌐 Browser-based access with no downloads required
+- 📱 Responsive design that works on desktop, tablet, and mobile
+- ⚡ Fast, modern interface with intuitive navigation
+- 🎨 Clean design using Microsoft FluentUI components
+
+### Quick Start
+
+To run the web application locally:
+
+```bash
+cd web-app
+npm install
+npm run dev
+```
+
+Visit `http://localhost:5173` to view the application.
+
+For more details, see the [web-app README](web-app/README.md).
 
 ## What is the Azure Business Continuity Guide (ABC Guide)?
 
