@@ -6,36 +6,27 @@
 - [x] Task-002: Improve UI layout and responsive design (commit: c6545ad)
 - [x] Task-003: Interactive Phase 1 — Criticality Model & Business Commitment Model
 - [x] Task-004: Interactive Phase 2 — Assessment Templates & Before/After Comparisons
+- [x] Task-005: Interactive Phase 3 — Risk Matrix, MBCO Table & Dashboard
 
 ## Current Iteration
 
-- Iteration: 5
-- Working on: Task-005 (Interactive Phase 3 — Risk Matrix, MBCO Table & Dashboard)
+- Iteration: 6
+- Working on: Next task (awaiting assignment)
 
 ## Last Completed
 
-- Task-004: Interactive Phase 2 — Assessment Templates & Before/After Comparisons
+- Task-005: Interactive Phase 3 — Risk Matrix, MBCO Table & Dashboard
 - Tests: ✅ Build passing
 - Key decisions:
-  - 18 sub-sections across Assess (6), Implement (7), Test (5) with Accordion navigation
-  - Requirements & ADR: 15-row categorized table with ✅/❌/⚫ status indicators
-  - Service Map: Component cards showing upstream/downstream dependencies
-  - BIA: Summary metric cards + full metrics table + dependency analysis
-  - Fault Tree (-BCDR/+BCDR): Tree-like visualization with probability/impact badges
-  - Gap Assessment: 10 components with color-coded Met/Partial/Gap status badges
-  - Response Plan by Scope: 6-level hierarchy (Global→Data Integrity) with blue gradient backgrounds
-  - Architecture +BCDR: Same components with NEW badges and blue dotted borders for changes
-  - Cost Comparison: Before/after table with totals and summary ($1,200/month +57% increase)
-  - Metric Comparison: Before/after table with green highlighting for improvements
-  - Contingency Plan: 10-step checklist with checkbox UI
-  - Role Assignment: 8 BCDR roles with responsibility and escalation columns
-  - Test Summary: 9 test types with dates, automation, status, and owners
-  - Continuity Drill: Failover (8 steps) + Failback (8 steps) procedures
-  - UAT: 8 business function test cases with priority badges
-  - Outage Communication: 4 scopes × 3 phases (pre/during/post)
-  - Maintenance: 10 documents with review frequency, owners, approvers
+  - 7 sections in Accordion: BCP Document, Risk Assessment, MBCO Planning, Critical Function Calendar, BIA Portfolio, BCDR Dashboard, Maintain BC
+  - BCP Document: 12-item checklist table with checkbox UI, ISO 22301/NIST SP 800-34 references
+  - Risk Assessment: RISK = IMPACT × PROBABILITY formula display, color-coded 5×5 matrix grid (Critical=red, High=orange, Medium=yellow, Low=green), 10 risk scenarios with computed scores and Badge levels
+  - MBCO Recovery Order: 12-row table with 12 columns (Order, Application, Business Function, Criticality, Window, Env, Location, Upstream/Downstream Deps, Recovery, Origin/Restore Geo), color-coded criticality badges, Azure/On-premises environment badges
+  - Critical Function Calendar: 8 critical business periods with color-coded notes badges + 4 Azure planned maintenance windows
+  - BIA Portfolio Summary: 6 applications with SLO/RTO/RPO/MTD/impact cost metrics, color-coded criticality badges
+  - BCDR Dashboard: 4 summary metric cards (Total Apps, BCDR Coverage, Avg SLO, Next Drill), criticality distribution grid, 6-row test status table with ✅/❌/⚠️ status, 5-entry recent activity log
+  - Maintain BC: 7 documents with review frequency, last/next review dates, owner/approver, status badges (✅ Current, ⚠️ Due Soon, ❌ Overdue)
   - All data as module-level constants, HTML tables with makeStyles, FluentUI components
-  - Links to Microsoft docs (App Insights, VM Insights, WAF reliability testing)
 
 ## Blockers
 
