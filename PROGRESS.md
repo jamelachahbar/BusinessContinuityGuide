@@ -5,20 +5,37 @@
 - [x] Task-001: Bootstrap project from feature branch (commit: 4553ff3)
 - [x] Task-002: Improve UI layout and responsive design (commit: c6545ad)
 - [x] Task-003: Interactive Phase 1 — Criticality Model & Business Commitment Model
+- [x] Task-004: Interactive Phase 2 — Assessment Templates & Before/After Comparisons
+
+## Current Iteration
+
+- Iteration: 5
+- Working on: Task-005 (Interactive Phase 3 — Risk Matrix, MBCO Table & Dashboard)
 
 ## Last Completed
 
-- Task-003: Interactive Phase 1 — Criticality Model & Business Commitment Model
+- Task-004: Interactive Phase 2 — Assessment Templates & Before/After Comparisons
 - Tests: ✅ Build passing
 - Key decisions:
-  - Criticality Model: 10-row data table with colored Badge components per criticality level
-  - Business Commitment Model: 7 expandable Accordion sub-sections (General, Availability, Recoverability, Deployment, Monitoring, Security, Testing), each with data tables using ✅/❌/➖ indicators
-  - Fault Model: 8 failure types with tiered mitigation strategies table
-  - RACI Matrix: 10 tasks × 6 roles with color-coded cells (R=#003366, A=#336699, C=#6699CC, I=#99CCFF)
-  - Application Requirements Template: 20-row categorized table with priority badges
-  - Test Plans Template: 9 test types with descriptions and frequency
-  - All data defined as module-level constants for clean separation
-  - Used HTML tables with makeStyles (no FluentUI DataGrid) per convention
+  - 18 sub-sections across Assess (6), Implement (7), Test (5) with Accordion navigation
+  - Requirements & ADR: 15-row categorized table with ✅/❌/⚫ status indicators
+  - Service Map: Component cards showing upstream/downstream dependencies
+  - BIA: Summary metric cards + full metrics table + dependency analysis
+  - Fault Tree (-BCDR/+BCDR): Tree-like visualization with probability/impact badges
+  - Gap Assessment: 10 components with color-coded Met/Partial/Gap status badges
+  - Response Plan by Scope: 6-level hierarchy (Global→Data Integrity) with blue gradient backgrounds
+  - Architecture +BCDR: Same components with NEW badges and blue dotted borders for changes
+  - Cost Comparison: Before/after table with totals and summary ($1,200/month +57% increase)
+  - Metric Comparison: Before/after table with green highlighting for improvements
+  - Contingency Plan: 10-step checklist with checkbox UI
+  - Role Assignment: 8 BCDR roles with responsibility and escalation columns
+  - Test Summary: 9 test types with dates, automation, status, and owners
+  - Continuity Drill: Failover (8 steps) + Failback (8 steps) procedures
+  - UAT: 8 business function test cases with priority badges
+  - Outage Communication: 4 scopes × 3 phases (pre/during/post)
+  - Maintenance: 10 documents with review frequency, owners, approvers
+  - All data as module-level constants, HTML tables with makeStyles, FluentUI components
+  - Links to Microsoft docs (App Insights, VM Insights, WAF reliability testing)
 
 ## Blockers
 
