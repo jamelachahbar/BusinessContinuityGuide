@@ -3,36 +3,30 @@
 ## Completed
 
 - [x] Task-001: Bootstrap project from feature branch (commit: 4553ff3)
-- [x] Task-002: Improve UI layout and responsive design
-
-## Current Iteration
-
-- Iteration: 2
-- Working on: Task-002 (complete)
+- [x] Task-002: Improve UI layout and responsive design (commit: c6545ad)
+- [x] Task-003: Interactive Phase 1 — Criticality Model & Business Commitment Model
 
 ## Last Completed
 
-- Task-002: Improve UI layout and responsive design
-- Tests: N/A (no test framework configured)
-- Build: ✅ tsc + vite build success (2071 modules)
+- Task-003: Interactive Phase 1 — Criticality Model & Business Commitment Model
+- Tests: ✅ Build passing
 - Key decisions:
-  - Collapsible sidebar on mobile (<768px) with hamburger toggle and overlay
-  - Added breadcrumb header bar showing current page name
-  - Scroll-to-top on page change via useRef + scrollTo
-  - Active nav item has white left-border indicator
-  - Sidebar footer with version info (v0.55)
-  - Cleaned up unused Vite boilerplate from App.css
-  - Improved index.css base reset (*::before, *::after box-sizing)
-  - All styling uses FluentUI makeStyles with @media queries
-  - Used shorthands from @fluentui/react-components for Griffel compatibility
+  - Criticality Model: 10-row data table with colored Badge components per criticality level
+  - Business Commitment Model: 7 expandable Accordion sub-sections (General, Availability, Recoverability, Deployment, Monitoring, Security, Testing), each with data tables using ✅/❌/➖ indicators
+  - Fault Model: 8 failure types with tiered mitigation strategies table
+  - RACI Matrix: 10 tasks × 6 roles with color-coded cells (R=#003366, A=#336699, C=#6699CC, I=#99CCFF)
+  - Application Requirements Template: 20-row categorized table with priority badges
+  - Test Plans Template: 9 test types with descriptions and frequency
+  - All data defined as module-level constants for clean separation
+  - Used HTML tables with makeStyles (no FluentUI DataGrid) per convention
 
 ## Blockers
 
 - None
 
-## Notes for Next Iteration
+## Notes
 
-- Sidebar nav items shortened: "Phase 2: App Continuity" for better fit
-- Navigation uses useCallback for handleNav to close sidebar on mobile after selection
-- FluentUI icons: Navigation24Regular (hamburger), Dismiss24Regular (close), ChevronRight16Regular (breadcrumb separator)
-- Components unchanged: Home, Phase1Prepare, Phase2ApplicationContinuity, Phase3BusinessContinuity
+- PRD updated to emphasize interactive/practical features matching Excel workbook
+- Excel features to replicate: color-coded criticality tiers, ✅/❌/➖ status indicators, expandable sections, RACI matrix, risk formula visual, MBCO recovery order tables
+- All styling uses FluentUI makeStyles — no CSS modules, no Tailwind
+- Unicode characters used for indicators: ✅=\u2705, ❌=\u274C, ➖=\u2796
