@@ -3,22 +3,28 @@
 ## Completed
 
 - [x] Task-001: Bootstrap project from feature branch (commit: 4553ff3)
+- [x] Task-002: Improve UI layout and responsive design
 
 ## Current Iteration
 
-- Iteration: 1
-- Working on: Task-001 (complete)
-- Started: 2026-03-31T00:00:00Z
+- Iteration: 2
+- Working on: Task-002 (complete)
 
 ## Last Completed
 
-- Task-001: Bootstrap project from feature branch
-- Tests: N/A
+- Task-002: Improve UI layout and responsive design
+- Tests: N/A (no test framework configured)
+- Build: ✅ tsc + vite build success (2071 modules)
 - Key decisions:
-  - Created `feature/ui-improvements` from `main`
-  - Merged `origin/claude/create-web-version-excel-worksheet` with `--no-ff`
-  - npm install: 260 packages, 0 vulnerabilities
-  - npm run build: success (tsc + vite, 2071 modules)
+  - Collapsible sidebar on mobile (<768px) with hamburger toggle and overlay
+  - Added breadcrumb header bar showing current page name
+  - Scroll-to-top on page change via useRef + scrollTo
+  - Active nav item has white left-border indicator
+  - Sidebar footer with version info (v0.55)
+  - Cleaned up unused Vite boilerplate from App.css
+  - Improved index.css base reset (*::before, *::after box-sizing)
+  - All styling uses FluentUI makeStyles with @media queries
+  - Used shorthands from @fluentui/react-components for Griffel compatibility
 
 ## Blockers
 
@@ -26,7 +32,7 @@
 
 ## Notes for Next Iteration
 
-- Web app is in `web-app/` with React 19, FluentUI v9, Vite 8, TypeScript
-- Components: Home, Phase1Prepare, Phase2ApplicationContinuity, Phase3BusinessContinuity
-- App shell with sidebar navigation in App.tsx
-- Build output in `web-app/dist/`
+- Sidebar nav items shortened: "Phase 2: App Continuity" for better fit
+- Navigation uses useCallback for handleNav to close sidebar on mobile after selection
+- FluentUI icons: Navigation24Regular (hamburger), Dismiss24Regular (close), ChevronRight16Regular (breadcrumb separator)
+- Components unchanged: Home, Phase1Prepare, Phase2ApplicationContinuity, Phase3BusinessContinuity
