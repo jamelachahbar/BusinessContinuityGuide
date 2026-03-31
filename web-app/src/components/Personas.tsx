@@ -1,3 +1,4 @@
+import { Fragment } from 'react'
 import {
   makeStyles,
   shorthands,
@@ -489,8 +490,8 @@ function Personas() {
             </thead>
             <tbody>
               {raciMatrix.map((group) => (
-                <>
-                  <tr key={group.phase}>
+                <Fragment key={group.phase}>
+                  <tr>
                     <td className={`${styles.td} ${styles.phaseRow}`} colSpan={9}>
                       {group.phase}
                     </td>
@@ -505,7 +506,7 @@ function Personas() {
                       ))}
                     </tr>
                   ))}
-                </>
+                </Fragment>
               ))}
             </tbody>
           </table>

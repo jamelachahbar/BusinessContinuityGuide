@@ -10,23 +10,22 @@
 - [x] Task-006: Add Personas page with Role-Task Matrix
 - [x] Task-007: Add searchable Glossary page
 - [x] Task-008: Add References page with categorized links
+- [x] Task-009: Final polish, build verification, and merge to main
 
 ## Current Iteration
 
 - Iteration: 9
-- Working on: Next task (awaiting assignment)
+- Status: ALL TASKS COMPLETE — merged to main
 
 ## Last Completed
 
-- Task-008: Add References page with categorized documentation links
-- Tests: ✅ Build passing
+- Task-009: Final polish, build verification, and merge to main
+- Tests: ✅ Build passing, TypeScript clean
 - Key decisions:
-  - 24 reference links across 7 categories
-  - Categories: Architecture & Reliability, Business Continuity Planning, Disaster Recovery, Monitoring & Operations, Security, Cloud Adoption Framework, Testing & Validation
-  - Card grid layout with colored Badge per category
-  - Open16Regular icon next to each link
-  - All links target="_blank" rel="noopener noreferrer"
-  - LinkMultiple24Regular icon in sidebar nav
+  - Fixed React fragment key warning in Personas.tsx RACI matrix (replaced `<>` with `<Fragment key={...}>`)
+  - Verified Home.tsx onNavigate type is compatible with App.tsx TabValue
+  - No unused imports found across all components
+  - Build succeeds with no errors
 
 ## Blockers
 
