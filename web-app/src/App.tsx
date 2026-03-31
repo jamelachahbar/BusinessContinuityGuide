@@ -9,6 +9,7 @@ import {
   BookOpen24Regular,
   ClipboardTaskListLtr24Regular,
   Shield24Regular,
+  People24Regular,
   Navigation24Regular,
   Dismiss24Regular,
   ChevronRight16Regular,
@@ -17,6 +18,7 @@ import Home from './components/Home'
 import Phase1Prepare from './components/Phase1Prepare'
 import Phase2ApplicationContinuity from './components/Phase2ApplicationContinuity'
 import Phase3BusinessContinuity from './components/Phase3BusinessContinuity'
+import Personas from './components/Personas'
 
 const MOBILE_BREAKPOINT = '768px'
 
@@ -233,13 +235,14 @@ const useStyles = makeStyles({
   },
 })
 
-type TabValue = 'home' | 'phase1' | 'phase2' | 'phase3'
+type TabValue = 'home' | 'phase1' | 'phase2' | 'phase3' | 'personas'
 
 const PAGE_LABELS: Record<TabValue, string> = {
   home: 'Home',
   phase1: 'Phase 1: Prepare',
   phase2: 'Phase 2: Application Continuity',
   phase3: 'Phase 3: Business Continuity',
+  personas: 'Personas',
 }
 
 function App() {
@@ -268,6 +271,8 @@ function App() {
         return <Phase2ApplicationContinuity />
       case 'phase3':
         return <Phase3BusinessContinuity />
+      case 'personas':
+        return <Personas />
       default:
         return <Home onNavigate={setSelectedTab} />
     }
@@ -278,6 +283,7 @@ function App() {
     { value: 'phase1' as TabValue, icon: <BookOpen24Regular />, label: 'Phase 1: Prepare' },
     { value: 'phase2' as TabValue, icon: <ClipboardTaskListLtr24Regular />, label: 'Phase 2: App Continuity' },
     { value: 'phase3' as TabValue, icon: <Shield24Regular />, label: 'Phase 3: Business Continuity' },
+    { value: 'personas' as TabValue, icon: <People24Regular />, label: 'Personas' },
   ]
 
   return (

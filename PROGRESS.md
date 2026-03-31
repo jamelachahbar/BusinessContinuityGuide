@@ -7,26 +7,26 @@
 - [x] Task-003: Interactive Phase 1 — Criticality Model & Business Commitment Model
 - [x] Task-004: Interactive Phase 2 — Assessment Templates & Before/After Comparisons
 - [x] Task-005: Interactive Phase 3 — Risk Matrix, MBCO Table & Dashboard
+- [x] Task-006: Add Personas page with Role-Task Matrix
 
 ## Current Iteration
 
-- Iteration: 6
+- Iteration: 7
 - Working on: Next task (awaiting assignment)
 
 ## Last Completed
 
-- Task-005: Interactive Phase 3 — Risk Matrix, MBCO Table & Dashboard
+- Task-006: Add Personas page with Role-Task Matrix
 - Tests: ✅ Build passing
 - Key decisions:
-  - 7 sections in Accordion: BCP Document, Risk Assessment, MBCO Planning, Critical Function Calendar, BIA Portfolio, BCDR Dashboard, Maintain BC
-  - BCP Document: 12-item checklist table with checkbox UI, ISO 22301/NIST SP 800-34 references
-  - Risk Assessment: RISK = IMPACT × PROBABILITY formula display, color-coded 5×5 matrix grid (Critical=red, High=orange, Medium=yellow, Low=green), 10 risk scenarios with computed scores and Badge levels
-  - MBCO Recovery Order: 12-row table with 12 columns (Order, Application, Business Function, Criticality, Window, Env, Location, Upstream/Downstream Deps, Recovery, Origin/Restore Geo), color-coded criticality badges, Azure/On-premises environment badges
-  - Critical Function Calendar: 8 critical business periods with color-coded notes badges + 4 Azure planned maintenance windows
-  - BIA Portfolio Summary: 6 applications with SLO/RTO/RPO/MTD/impact cost metrics, color-coded criticality badges
-  - BCDR Dashboard: 4 summary metric cards (Total Apps, BCDR Coverage, Avg SLO, Next Drill), criticality distribution grid, 6-row test status table with ✅/❌/⚠️ status, 5-entry recent activity log
-  - Maintain BC: 7 documents with review frequency, last/next review dates, owner/approver, status badges (✅ Current, ⚠️ Due Soon, ❌ Overdue)
-  - All data as module-level constants, HTML tables with makeStyles, FluentUI components
+  - 8 role cards: App Owner, Architect, Cloud Eng, Ops/SRE, Security, Compliance, Business, QA
+  - Each card: colored icon badge, description, 5 key activities
+  - RACI matrix: 29 deliverables across 5 phase groups (Phase 1, Phase 2 Assess/Implement/Test, Phase 3)
+  - Color-coded RACI cells matching Phase 1 style (#003366 R, #336699 A, #6699CC C, #99CCFF I)
+  - RACI legend at top, deliverable count badge at bottom
+  - Workflow guide: 5-step recommended sequence with phase badges
+  - New nav item with People24Regular icon
+  - All module-level data constants, HTML tables with makeStyles
 
 ## Blockers
 
