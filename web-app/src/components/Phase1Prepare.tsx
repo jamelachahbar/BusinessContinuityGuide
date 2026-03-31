@@ -1,0 +1,739 @@
+import {
+  makeStyles,
+  shorthands,
+  Accordion,
+  AccordionHeader,
+  AccordionItem,
+  AccordionPanel,
+  tokens,
+  Card,
+  Badge,
+} from '@fluentui/react-components'
+
+const useStyles = makeStyles({
+  container: {
+    maxWidth: '1200px',
+    margin: '0 auto',
+  },
+  title: {
+    fontSize: '36px',
+    fontWeight: '600',
+    marginBottom: '16px',
+    color: tokens.colorNeutralForeground1,
+  },
+  description: {
+    fontSize: '16px',
+    color: tokens.colorNeutralForeground2,
+    lineHeight: '1.6',
+    marginBottom: '32px',
+  },
+  section: {
+    marginBottom: '32px',
+  },
+  sectionTitle: {
+    fontSize: '24px',
+    fontWeight: '600',
+    marginBottom: '16px',
+    color: tokens.colorNeutralForeground1,
+  },
+  subsectionDesc: {
+    marginBottom: '16px',
+    lineHeight: '1.6',
+    color: tokens.colorNeutralForeground2,
+  },
+  content: {
+    lineHeight: '1.6',
+    color: tokens.colorNeutralForeground2,
+  },
+  list: {
+    marginLeft: '24px',
+    marginTop: '12px',
+  },
+  card: {
+    marginBottom: '16px',
+    ...shorthands.padding('20px'),
+  },
+  cardTitle: {
+    fontSize: '18px',
+    fontWeight: '600',
+    marginBottom: '12px',
+    color: tokens.colorBrandForeground1,
+  },
+  tableWrap: {
+    overflowX: 'auto',
+    marginBottom: '16px',
+    marginTop: '12px',
+  },
+  table: {
+    width: '100%',
+    borderCollapse: 'collapse',
+    fontSize: '14px',
+    lineHeight: '1.4',
+  },
+  th: {
+    backgroundColor: tokens.colorNeutralBackground3,
+    fontWeight: '600',
+    textAlign: 'left',
+    ...shorthands.padding('10px', '12px'),
+    borderBottomWidth: '2px',
+    borderBottomStyle: 'solid',
+    borderBottomColor: tokens.colorNeutralStroke1,
+    whiteSpace: 'nowrap',
+  },
+  thCenter: {
+    backgroundColor: tokens.colorNeutralBackground3,
+    fontWeight: '600',
+    textAlign: 'center',
+    ...shorthands.padding('10px', '12px'),
+    borderBottomWidth: '2px',
+    borderBottomStyle: 'solid',
+    borderBottomColor: tokens.colorNeutralStroke1,
+  },
+  td: {
+    ...shorthands.padding('10px', '12px'),
+    borderBottomWidth: '1px',
+    borderBottomStyle: 'solid',
+    borderBottomColor: tokens.colorNeutralStroke2,
+    verticalAlign: 'top',
+  },
+  tdCenter: {
+    ...shorthands.padding('10px', '12px'),
+    borderBottomWidth: '1px',
+    borderBottomStyle: 'solid',
+    borderBottomColor: tokens.colorNeutralStroke2,
+    textAlign: 'center',
+    verticalAlign: 'middle',
+  },
+  legend: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    columnGap: '16px',
+    rowGap: '8px',
+    marginBottom: '16px',
+    ...shorthands.padding('12px', '16px'),
+    backgroundColor: tokens.colorNeutralBackground3,
+    ...shorthands.borderRadius('8px'),
+  },
+  legendItem: {
+    display: 'flex',
+    alignItems: 'center',
+    columnGap: '6px',
+    fontSize: '14px',
+  },
+  legendSwatch: {
+    width: '20px',
+    height: '20px',
+    ...shorthands.borderRadius('4px'),
+    display: 'inline-block',
+  },
+  raciR: {
+    backgroundColor: '#003366',
+    color: '#ffffff',
+    fontWeight: '600',
+    textAlign: 'center',
+    ...shorthands.padding('8px'),
+    borderBottomWidth: '1px',
+    borderBottomStyle: 'solid',
+    borderBottomColor: tokens.colorNeutralStroke2,
+  },
+  raciA: {
+    backgroundColor: '#336699',
+    color: '#ffffff',
+    fontWeight: '600',
+    textAlign: 'center',
+    ...shorthands.padding('8px'),
+    borderBottomWidth: '1px',
+    borderBottomStyle: 'solid',
+    borderBottomColor: tokens.colorNeutralStroke2,
+  },
+  raciC: {
+    backgroundColor: '#6699CC',
+    color: '#ffffff',
+    fontWeight: '600',
+    textAlign: 'center',
+    ...shorthands.padding('8px'),
+    borderBottomWidth: '1px',
+    borderBottomStyle: 'solid',
+    borderBottomColor: tokens.colorNeutralStroke2,
+  },
+  raciI: {
+    backgroundColor: '#99CCFF',
+    color: '#1a1a1a',
+    fontWeight: '600',
+    textAlign: 'center',
+    ...shorthands.padding('8px'),
+    borderBottomWidth: '1px',
+    borderBottomStyle: 'solid',
+    borderBottomColor: tokens.colorNeutralStroke2,
+  },
+  raciEmpty: {
+    backgroundColor: tokens.colorNeutralBackground1,
+    textAlign: 'center',
+    ...shorthands.padding('8px'),
+    borderBottomWidth: '1px',
+    borderBottomStyle: 'solid',
+    borderBottomColor: tokens.colorNeutralStroke2,
+  },
+})
+
+/* ────────────────────────────────────────────────────
+   Criticality Model data
+   ──────────────────────────────────────────────────── */
+
+const criticalityData = [
+  { tier: 'Tier 1', criticality: 'Mission Critical', color: '#dc3545', businessView: "Affects the company\u2019s mission and might noticeably affect corporate profit-and-loss statements", financial: 'n/a', brand: true, trust: true, exp: true, injury: false, prod: true },
+  { tier: 'Tier 1', criticality: 'Business Critical', color: '#dc3545', businessView: 'Can lead to financial losses for the organization', financial: '> $250k', brand: true, trust: true, exp: true, injury: false, prod: true },
+  { tier: 'Tier 1', criticality: 'Compliance Critical', color: '#dc3545', businessView: 'In heavily regulated industries, some applications might be critical as part of an effort to maintain compliance requirements', financial: 'n/a', brand: true, trust: true, exp: true, injury: false, prod: true },
+  { tier: 'Tier 1', criticality: 'Safety Critical', color: '#dc3545', businessView: 'When lives or the physical safety of employees and customers is at risk during an outage', financial: 'n/a', brand: true, trust: true, exp: true, injury: true, prod: true },
+  { tier: 'Tier 1', criticality: 'Security Critical', color: '#fd7e14', businessView: 'Some applications might not be mission critical, but outages could result in loss of data or unintended access', financial: 'n/a', brand: true, trust: true, exp: true, injury: false, prod: true },
+  { tier: 'Tier 1', criticality: 'Unit Critical', color: '#fd7e14', businessView: 'Affects the mission of a specific business unit and its profit-and-loss statements', financial: '> $250k', brand: true, trust: true, exp: true, injury: false, prod: true },
+  { tier: 'Tier 2', criticality: 'High', color: '#ffc107', businessView: 'Might not hinder the mission, but affects high-importance processes. Measurable losses can be quantified', financial: '< $250k', brand: false, trust: true, exp: true, injury: false, prod: true },
+  { tier: 'Tier 3', criticality: 'Medium', color: '#28a745', businessView: 'Impact on processes is likely. Losses are low or immeasurable, but brand damage or upstream losses are likely', financial: '< $100k', brand: false, trust: true, exp: true, injury: false, prod: false },
+  { tier: 'Tier 4', criticality: 'Low', color: '#28a745', businessView: "Impact on business processes isn\u2019t measurable. Neither brand damage nor upstream losses are likely. Localized impact on a single team", financial: '< $50k', brand: false, trust: true, exp: true, injury: false, prod: true },
+  { tier: 'Tier 5', criticality: 'Unsupported', color: '#6c757d', businessView: "No business owner, team, or process that\u2019s associated with this application can justify any investment", financial: '$0', brand: false, trust: false, exp: false, injury: false, prod: true },
+]
+
+/* ────────────────────────────────────────────────────
+   Business Commitment Model data (7 sub-sections)
+   ──────────────────────────────────────────────────── */
+
+const bcmHeaders = ['Requirement', 'Tier 1 Enhanced', 'Tier 2 Standard', 'Tier 3 Base', 'Tier 4 Base', 'Tier 5 None']
+
+const generalRows: string[][] = [
+  ['SLA', '99.999%', '99.99%', '99.9%', '99.9%', '\u274C'],
+  ['MTD', '\u2796', '\u2796', '\u274C', '\u274C', '\u274C'],
+  ['RTO', '\u2796', '\u2796', '\u274C', '\u274C', '\u274C'],
+  ['RPO', '\u2796', '\u2796', '\u274C', '\u274C', '\u274C'],
+  ['Test Environment', '\u2705', '\u2705', '\u2705', '\u2796', '\u274C'],
+  ['BCDR Response Plan', '\u2705', '\u2705', '\u2796', '\u2796', '\u274C'],
+  ['BIA', '\u2705', '\u2705', '\u2796', '\u274C', '\u274C'],
+  ['Contingency Plan', '\u2705', '\u2796', '\u274C', '\u274C', '\u274C'],
+  ['Fault Tree Analysis', '\u2705', '\u2796', '\u274C', '\u274C', '\u274C'],
+  ['Outage Communication Plan', '\u2705', '\u2705', '\u2796', '\u274C', '\u274C'],
+  ['Support Hours', '24\u00D77', '16\u00D75', '8\u00D75', '8\u00D75', '\u274C'],
+  ['Cyber Liability Insurance', '\u2705', '\u2796', '\u274C', '\u274C', '\u274C'],
+  ['BCP', '\u2705', '\u2705', '\u2796', '\u274C', '\u274C'],
+]
+
+const availabilityRows: string[][] = [
+  ['Hybrid Connectivity', 'ExpressRoute (redundant)', 'ExpressRoute', 'VPN Gateway', 'VPN Gateway', '\u274C'],
+  ['Network', 'Zone + Geographic redundant', 'Zone redundant', 'Locally redundant', 'Locally redundant', '\u274C'],
+  ['Availability Architecture', 'Active-Active-Active', 'Active-Active', 'Active-Passive', 'Single instance', '\u274C'],
+  ['Application Logic', 'Timeouts, Retry, Circuit Breaker', 'Timeouts, Retry Logic', 'Request Timeouts', 'Best effort', '\u274C'],
+]
+
+const recoverabilityRows: string[][] = [
+  ['Backup Retention', '30+ days, Geo-redundant', '30 days, Zone-redundant', '14 days, Locally redundant', '7 days, Locally redundant', '\u274C'],
+  ['Recovery Architecture', 'Automated failover, Multi-region', 'Automated failover, Single region', 'Manual failover', 'Restore from backup', '\u274C'],
+  ['Cross-Region Replication', '\u2705', '\u2705', '\u2796', '\u274C', '\u274C'],
+]
+
+const deploymentRows: string[][] = [
+  ['Infrastructure as Code', '\u2705', '\u2705', '\u2705', '\u2796', '\u274C'],
+  ['CI/CD Pipeline', '\u2705', '\u2705', '\u2796', '\u2796', '\u274C'],
+  ['Blue-Green / Canary', '\u2705', '\u2796', '\u274C', '\u274C', '\u274C'],
+]
+
+const monitoringRows: string[][] = [
+  ['Metrics Collection', '\u2705', '\u2705', '\u2705', '\u2796', '\u274C'],
+  ['Alerting', '\u2705 P1 Auto-page', '\u2705 P1/P2 Alerts', '\u2705 Basic alerts', '\u2796', '\u274C'],
+  ['Dashboards', '\u2705', '\u2705', '\u2796', '\u274C', '\u274C'],
+  ['Log Analytics', '\u2705 Full telemetry', '\u2705 Key metrics', '\u2796', '\u274C', '\u274C'],
+]
+
+const securityRows: string[][] = [
+  ['DDoS Protection', '\u2705 Standard', '\u2705 Standard', '\u2796 Basic', '\u274C', '\u274C'],
+  ['WAF', '\u2705', '\u2705', '\u2796', '\u274C', '\u274C'],
+  ['Encryption (at rest & transit)', '\u2705 CMK', '\u2705 PMK', '\u2705 PMK', '\u2705 PMK', '\u274C'],
+  ['Access Controls', '\u2705 RBAC + Conditional Access', '\u2705 RBAC', '\u2705 RBAC', '\u2796', '\u274C'],
+]
+
+const testingRows: string[][] = [
+  ['Failover Test', '\u2705 Quarterly', '\u2705 Semi-annually', '\u2796 Annually', '\u274C', '\u274C'],
+  ['Recovery Test', '\u2705 Quarterly', '\u2705 Semi-annually', '\u2796 Annually', '\u274C', '\u274C'],
+  ['Load Test', '\u2705 Monthly', '\u2705 Quarterly', '\u2796', '\u274C', '\u274C'],
+  ['Chaos Test', '\u2705 Monthly', '\u2796 Semi-annually', '\u274C', '\u274C', '\u274C'],
+  ['Penetration Test', '\u2705 Annually', '\u2705 Annually', '\u2796', '\u274C', '\u274C'],
+  ['UAT', '\u2705 Per release', '\u2705 Per release', '\u2705 Per release', '\u2796', '\u274C'],
+  ['Contingency Test', '\u2705 Semi-annually', '\u2796 Annually', '\u274C', '\u274C', '\u274C'],
+]
+
+const bcmSections = [
+  { key: 'general', title: 'General Requirements', description: 'Core BCDR commitments including SLAs, recovery objectives, testing requirements, and planning documentation needed for each criticality tier.', rows: generalRows },
+  { key: 'availability', title: 'Availability Requirements', description: 'Connectivity, network redundancy, availability architecture patterns, and application logic strategies to maintain uptime.', rows: availabilityRows },
+  { key: 'recoverability', title: 'Recoverability Requirements', description: 'Backup retention policies, recovery architecture patterns, and cross-region replication strategies.', rows: recoverabilityRows },
+  { key: 'deployment', title: 'Deployment Requirements', description: 'Infrastructure as Code, CI/CD pipelines, and advanced deployment strategies for consistent and rapid recovery.', rows: deploymentRows },
+  { key: 'monitoring', title: 'Monitoring Requirements', description: 'Metrics collection, alerting, dashboards, and log analytics for proactive issue detection and resolution.', rows: monitoringRows },
+  { key: 'security', title: 'Security Control Requirements', description: 'DDoS protection, WAF, encryption standards, and access control policies to safeguard systems during and after disruptions.', rows: securityRows },
+  { key: 'testing', title: 'Validation & Testing Requirements', description: 'Test types and frequencies per criticality tier to validate continuity readiness.', rows: testingRows },
+]
+
+/* ────────────────────────────────────────────────────
+   Fault Model data
+   ──────────────────────────────────────────────────── */
+
+const faultModelData = [
+  { type: 'Zone Failure', desc: 'An Azure availability zone becomes unavailable', t1: 'Automatic failover to another zone; zone-redundant services', t2: 'Zone-redundant deployment; automatic failover', t3: 'Manual failover; restore from backup' },
+  { type: 'Region Outage', desc: 'An entire Azure region becomes unavailable', t1: 'Active-Active multi-region; automatic traffic rerouting', t2: 'Active-Passive with automated failover to paired region', t3: 'Manual restore from geo-redundant backups' },
+  { type: 'Service Degradation', desc: 'An Azure service is degraded but not unavailable', t1: 'Circuit breakers; automatic fallback to alternative services', t2: 'Retry logic with exponential backoff', t3: 'Manual monitoring and response' },
+  { type: 'Data Corruption', desc: 'Application data is corrupted or accidentally deleted', t1: 'Point-in-time restore; cross-region replicated backups', t2: 'Automated backups with 30-day retention', t3: 'Daily backups with 14-day retention' },
+  { type: 'Network Partition', desc: 'Network connectivity between components is disrupted', t1: 'ExpressRoute with redundant paths; automatic rerouting', t2: 'VPN with failover path', t3: 'Single VPN connection; manual intervention' },
+  { type: 'DNS Failure', desc: 'DNS resolution fails or returns incorrect results', t1: 'Azure Traffic Manager with health probes; low TTL', t2: 'Azure DNS with failover configured', t3: 'Standard DNS; manual update on failure' },
+  { type: 'Configuration Error', desc: 'Misconfiguration causes service disruption', t1: 'IaC with automated rollback; blue-green deployments', t2: 'IaC with CI/CD pipeline validation', t3: 'Manual configuration management' },
+  { type: 'Dependency Failure', desc: 'A downstream service or third-party dependency fails', t1: 'Circuit breaker pattern; fallback services; queue-based load leveling', t2: 'Retry logic; graceful degradation', t3: 'Manual workaround procedures' },
+]
+
+/* ────────────────────────────────────────────────────
+   RACI data
+   ──────────────────────────────────────────────────── */
+
+const raciRoles = ['App Owner', 'Solution Architect', 'Cloud Engineer', 'Operations', 'Security', 'Compliance']
+
+const raciData: { task: string; raci: string[] }[] = [
+  { task: 'Define Criticality Model', raci: ['A', 'R', 'C', 'C', 'I', 'C'] },
+  { task: 'Business Impact Analysis', raci: ['A', 'R', 'C', 'C', 'I', 'C'] },
+  { task: 'Design BCDR Architecture', raci: ['I', 'A', 'R', 'C', 'C', 'I'] },
+  { task: 'Implement DR Solution', raci: ['I', 'C', 'R', 'A', 'C', 'I'] },
+  { task: 'Failover Testing', raci: ['I', 'C', 'R', 'A', 'I', 'I'] },
+  { task: 'Monitoring & Alerting Setup', raci: ['I', 'C', 'R', 'A', 'I', 'I'] },
+  { task: 'Security Controls Review', raci: ['I', 'C', 'C', 'I', 'A', 'R'] },
+  { task: 'BCP Document', raci: ['A', 'C', 'I', 'C', 'C', 'R'] },
+  { task: 'Outage Communication Plan', raci: ['A', 'C', 'I', 'R', 'I', 'I'] },
+  { task: 'Contingency Planning', raci: ['A', 'R', 'C', 'C', 'I', 'C'] },
+]
+
+/* ────────────────────────────────────────────────────
+   Application Requirements data
+   ──────────────────────────────────────────────────── */
+
+const appRequirementsData: [string, string, 'danger' | 'warning' | 'success'][] = [
+  ['Availability', 'Target SLA / uptime percentage', 'danger'],
+  ['Availability', 'Maximum tolerable downtime (MTD)', 'danger'],
+  ['Availability', 'Required availability architecture pattern', 'danger'],
+  ['Recovery', 'Recovery Time Objective (RTO)', 'danger'],
+  ['Recovery', 'Recovery Point Objective (RPO)', 'danger'],
+  ['Recovery', 'Backup retention period and frequency', 'warning'],
+  ['Recovery', 'Cross-region replication requirements', 'warning'],
+  ['Deployment', 'Infrastructure as Code requirements', 'warning'],
+  ['Deployment', 'CI/CD pipeline requirements', 'warning'],
+  ['Deployment', 'Deployment strategy (blue-green, canary)', 'success'],
+  ['Monitoring', 'Key metrics to collect and monitor', 'danger'],
+  ['Monitoring', 'Alerting thresholds and escalation paths', 'danger'],
+  ['Monitoring', 'Dashboard requirements', 'warning'],
+  ['Security', 'DDoS protection requirements', 'danger'],
+  ['Security', 'Encryption requirements (at rest / in transit)', 'danger'],
+  ['Security', 'Access control and authentication requirements', 'danger'],
+  ['Compliance', 'Regulatory and compliance requirements', 'danger'],
+  ['Compliance', 'Data residency and sovereignty constraints', 'warning'],
+  ['Testing', 'Required test types and frequencies', 'warning'],
+  ['Testing', 'Chaos engineering requirements', 'success'],
+]
+
+/* ────────────────────────────────────────────────────
+   Test Plans data
+   ──────────────────────────────────────────────────── */
+
+const testPlansData = [
+  ['Production Redeployment', 'Full redeployment of production environment from IaC to validate infrastructure recovery', 'Quarterly'],
+  ['Failover + Failback', 'Simulate primary region failure and verify automatic or manual failover, then failback to primary', 'Quarterly / Semi-annually'],
+  ['Recovery Test', 'Restore application and data from backups to validate recovery procedures and time', 'Quarterly / Semi-annually'],
+  ['Load Test', 'Simulate expected and peak traffic loads to verify performance under stress', 'Monthly / Quarterly'],
+  ['Chaos Test', 'Introduce controlled failures (kill processes, network latency, disk fill) to test resilience', 'Monthly / Semi-annually'],
+  ['Penetration Test', 'Authorized simulated attack to identify security vulnerabilities', 'Annually'],
+  ['Smoke Test', 'Basic functional tests after deployment to confirm core features work', 'Per deployment'],
+  ['UAT', 'User acceptance testing to validate business functionality meets requirements', 'Per release'],
+  ['Contingency Test', 'Validate contingency plan procedures with stakeholders and operations team', 'Semi-annually / Annually'],
+]
+
+/* ────────────────────────────────────────────────────
+   Component
+   ──────────────────────────────────────────────────── */
+
+function Phase1Prepare() {
+  const styles = useStyles()
+
+  const check = (v: boolean) => (v ? '\u2705' : '\u274C')
+
+  const raciCellClass = (v: string) => {
+    switch (v) {
+      case 'R': return styles.raciR
+      case 'A': return styles.raciA
+      case 'C': return styles.raciC
+      case 'I': return styles.raciI
+      default: return styles.raciEmpty
+    }
+  }
+
+  return (
+    <div className={styles.container}>
+      <h1 className={styles.title}>Phase 1: Prepare</h1>
+      <p className={styles.description}>
+        This phase covers fundamental BCDR concepts and provides structured
+        templates for assessing business continuity. Build your foundation with
+        criticality models, business commitment frameworks, and essential
+        planning artifacts.
+      </p>
+
+      {/* ── Concepts ── */}
+      <div className={styles.section}>
+        <h2 className={styles.sectionTitle}>Concepts</h2>
+        <Accordion collapsible>
+          <AccordionItem value="shared-responsibility">
+            <AccordionHeader>Shared Responsibility Model</AccordionHeader>
+            <AccordionPanel>
+              <div className={styles.content}>
+                Understanding the division of responsibilities between Microsoft
+                and customers for BCDR in Azure. Microsoft manages the
+                underlying infrastructure reliability, while customers are
+                responsible for application-level resilience and data protection.
+                <ul className={styles.list}>
+                  <li><strong>Microsoft&apos;s responsibility:</strong> Physical infrastructure, host OS, network controls, datacenter physical security</li>
+                  <li><strong>Customer&apos;s responsibility:</strong> Data, endpoints, account &amp; access management, application-level resilience</li>
+                  <li><strong>Shared:</strong> Identity &amp; directory infrastructure, application-level controls, network controls (varies by service model)</li>
+                </ul>
+              </div>
+            </AccordionPanel>
+          </AccordionItem>
+
+          <AccordionItem value="design-patterns">
+            <AccordionHeader>Design Patterns</AccordionHeader>
+            <AccordionPanel>
+              <div className={styles.content}>
+                Common architectural patterns for achieving high availability
+                and disaster recovery in Azure:
+                <ul className={styles.list}>
+                  <li><strong>Active-Active:</strong> Multiple instances serve traffic simultaneously across regions or zones</li>
+                  <li><strong>Active-Passive:</strong> Standby instance ready to take over when the primary fails</li>
+                  <li><strong>Multi-region deployment:</strong> Services deployed across Azure region pairs for geographic resilience</li>
+                  <li><strong>Availability zones:</strong> Physically separate locations within a region for zone-level fault isolation</li>
+                  <li><strong>Backup and restore:</strong> Regular backups with tested recovery procedures for data protection</li>
+                </ul>
+              </div>
+            </AccordionPanel>
+          </AccordionItem>
+
+          <AccordionItem value="reliability-tradeoffs">
+            <AccordionHeader>Reliability Trade-offs</AccordionHeader>
+            <AccordionPanel>
+              <div className={styles.content}>
+                Balance business requirements with technical and financial
+                constraints. Every increase in reliability comes with cost and
+                complexity trade-offs:
+                <ul className={styles.list}>
+                  <li><strong>Cost vs. availability:</strong> Moving from 99.9% to 99.999% can increase costs significantly</li>
+                  <li><strong>Performance vs. resilience:</strong> Synchronous replication provides better RPO but adds latency</li>
+                  <li><strong>Complexity vs. recoverability:</strong> Multi-region architectures improve DR but increase operational complexity</li>
+                  <li><strong>RTO/RPO vs. implementation effort:</strong> Near-zero RTO/RPO requires Active-Active patterns and continuous replication</li>
+                </ul>
+              </div>
+            </AccordionPanel>
+          </AccordionItem>
+        </Accordion>
+      </div>
+
+      {/* ── Criticality Model ── */}
+      <div className={styles.section}>
+        <h2 className={styles.sectionTitle}>Criticality Model</h2>
+        <p className={styles.subsectionDesc}>
+          Classify applications based on business impact using a criticality
+          scale. This model helps prioritize investment in BCDR capabilities by
+          directing resources to the most critical systems first.
+        </p>
+        <div className={styles.tableWrap}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th className={styles.th}>Tier</th>
+                <th className={styles.th}>Criticality</th>
+                <th className={styles.th} style={{ whiteSpace: 'normal' }}>Business View</th>
+                <th className={styles.thCenter}>Financial</th>
+                <th className={styles.thCenter}>Brand</th>
+                <th className={styles.thCenter}>Customer Trust</th>
+                <th className={styles.thCenter}>Customer Exp</th>
+                <th className={styles.thCenter}>Injury Risk</th>
+                <th className={styles.thCenter}>Employee Prod</th>
+              </tr>
+            </thead>
+            <tbody>
+              {criticalityData.map((row, i) => (
+                <tr key={i}>
+                  <td className={styles.td}>{row.tier}</td>
+                  <td className={styles.td}>
+                    <Badge
+                      appearance="filled"
+                      style={{
+                        backgroundColor: row.color,
+                        color: row.color === '#ffc107' ? '#1a1a1a' : '#fff',
+                      }}
+                    >
+                      {row.criticality}
+                    </Badge>
+                  </td>
+                  <td className={styles.td}>{row.businessView}</td>
+                  <td className={styles.tdCenter}>{row.financial}</td>
+                  <td className={styles.tdCenter}>{check(row.brand)}</td>
+                  <td className={styles.tdCenter}>{check(row.trust)}</td>
+                  <td className={styles.tdCenter}>{check(row.exp)}</td>
+                  <td className={styles.tdCenter}>{check(row.injury)}</td>
+                  <td className={styles.tdCenter}>{check(row.prod)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* ── Business Commitment Model ── */}
+      <div className={styles.section}>
+        <h2 className={styles.sectionTitle}>Business Commitment Model</h2>
+        <p className={styles.subsectionDesc}>
+          Define commitments for each criticality level across multiple
+          dimensions to ensure comprehensive, tailored BCDR planning. Each
+          sub-section maps requirements per criticality tier.
+        </p>
+        <div className={styles.legend}>
+          <div className={styles.legendItem}>{'\u2705'} Required</div>
+          <div className={styles.legendItem}>{'\u274C'} Not Required</div>
+          <div className={styles.legendItem}>{'\u2796'} As Required</div>
+        </div>
+        <Accordion collapsible multiple>
+          {bcmSections.map((section) => (
+            <AccordionItem key={section.key} value={section.key}>
+              <AccordionHeader>{section.title}</AccordionHeader>
+              <AccordionPanel>
+                <p className={styles.subsectionDesc}>{section.description}</p>
+                <div className={styles.tableWrap}>
+                  <table className={styles.table}>
+                    <thead>
+                      <tr>
+                        {bcmHeaders.map((h, i) => (
+                          <th
+                            key={i}
+                            className={i === 0 ? styles.th : styles.thCenter}
+                          >
+                            {h}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {section.rows.map((row, ri) => (
+                        <tr key={ri}>
+                          {row.map((cell, ci) => (
+                            <td
+                              key={ci}
+                              className={ci === 0 ? styles.td : styles.tdCenter}
+                            >
+                              {cell}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </AccordionPanel>
+            </AccordionItem>
+          ))}
+        </Accordion>
+      </div>
+
+      {/* ── Fault Model & Resilience Strategies ── */}
+      <div className={styles.section}>
+        <h2 className={styles.sectionTitle}>
+          Fault Model &amp; Resilience Strategies
+        </h2>
+        <p className={styles.subsectionDesc}>
+          Define common failure types with pre-approved mitigation strategies
+          for each criticality tier. This simplifies business commitment models
+          and BCDR solution design.
+        </p>
+        <div className={styles.tableWrap}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th className={styles.th}>Failure Type</th>
+                <th className={styles.th} style={{ whiteSpace: 'normal' }}>
+                  Description
+                </th>
+                <th className={styles.th} style={{ whiteSpace: 'normal' }}>
+                  Tier 1 Strategy
+                </th>
+                <th className={styles.th} style={{ whiteSpace: 'normal' }}>
+                  Tier 2 Strategy
+                </th>
+                <th className={styles.th} style={{ whiteSpace: 'normal' }}>
+                  Tier 3\u20135 Strategy
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {faultModelData.map((row, i) => (
+                <tr key={i}>
+                  <td className={styles.td} style={{ fontWeight: 600 }}>
+                    {row.type}
+                  </td>
+                  <td className={styles.td}>{row.desc}</td>
+                  <td className={styles.td}>{row.t1}</td>
+                  <td className={styles.td}>{row.t2}</td>
+                  <td className={styles.td}>{row.t3}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* ── RACI Matrix ── */}
+      <div className={styles.section}>
+        <h2 className={styles.sectionTitle}>RACI Matrix</h2>
+        <p className={styles.subsectionDesc}>
+          Clarify roles and responsibilities for BCDR tasks. Use this template
+          to define both application and organization-level roles.
+        </p>
+        <div className={styles.legend}>
+          <div className={styles.legendItem}>
+            <span
+              className={styles.legendSwatch}
+              style={{ backgroundColor: '#003366' }}
+            />
+            <strong>R</strong> &mdash; Responsible
+          </div>
+          <div className={styles.legendItem}>
+            <span
+              className={styles.legendSwatch}
+              style={{ backgroundColor: '#336699' }}
+            />
+            <strong>A</strong> &mdash; Accountable
+          </div>
+          <div className={styles.legendItem}>
+            <span
+              className={styles.legendSwatch}
+              style={{ backgroundColor: '#6699CC' }}
+            />
+            <strong>C</strong> &mdash; Consulted
+          </div>
+          <div className={styles.legendItem}>
+            <span
+              className={styles.legendSwatch}
+              style={{ backgroundColor: '#99CCFF' }}
+            />
+            <strong>I</strong> &mdash; Informed
+          </div>
+        </div>
+        <div className={styles.tableWrap}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th className={styles.th}>Task</th>
+                {raciRoles.map((role) => (
+                  <th key={role} className={styles.thCenter}>
+                    {role}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {raciData.map((row, i) => (
+                <tr key={i}>
+                  <td className={styles.td} style={{ fontWeight: 600 }}>
+                    {row.task}
+                  </td>
+                  {row.raci.map((val, j) => (
+                    <td key={j} className={raciCellClass(val)}>
+                      {val}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* ── Application Requirements Template ── */}
+      <div className={styles.section}>
+        <h2 className={styles.sectionTitle}>Application Requirements Template</h2>
+        <Card className={styles.card}>
+          <div className={styles.cardTitle}>BCDR Requirements Gathering</div>
+          <div className={styles.content}>
+            Use this template during stakeholder workshops to gather BCDR
+            requirements for each application. Responses feed into the Business
+            Commitment Model and downstream planning templates.
+          </div>
+          <div className={styles.tableWrap}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th className={styles.th}>Category</th>
+                  <th className={styles.th}>Requirement</th>
+                  <th className={styles.thCenter}>Priority</th>
+                </tr>
+              </thead>
+              <tbody>
+                {appRequirementsData.map(([cat, req, pri], i) => (
+                  <tr key={i}>
+                    <td className={styles.td} style={{ fontWeight: 600 }}>
+                      {cat}
+                    </td>
+                    <td className={styles.td}>{req}</td>
+                    <td className={styles.tdCenter}>
+                      <Badge
+                        appearance="filled"
+                        color={pri}
+                      >
+                        {pri === 'danger'
+                          ? 'High'
+                          : pri === 'warning'
+                            ? 'Medium'
+                            : 'Low'}
+                      </Badge>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      </div>
+
+      {/* ── Test Plans Template ── */}
+      <div className={styles.section}>
+        <h2 className={styles.sectionTitle}>Test Plans Template</h2>
+        <Card className={styles.card}>
+          <div className={styles.cardTitle}>BCDR Test Planning</div>
+          <div className={styles.content}>
+            Define testing strategies for each application based on criticality
+            level and business commitment.
+          </div>
+          <div className={styles.tableWrap}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th className={styles.th}>Test Type</th>
+                  <th className={styles.th} style={{ whiteSpace: 'normal' }}>
+                    Description
+                  </th>
+                  <th className={styles.thCenter}>Typical Frequency</th>
+                </tr>
+              </thead>
+              <tbody>
+                {testPlansData.map(([type, desc, freq], i) => (
+                  <tr key={i}>
+                    <td className={styles.td} style={{ fontWeight: 600 }}>
+                      {type}
+                    </td>
+                    <td className={styles.td}>{desc}</td>
+                    <td className={styles.tdCenter}>{freq}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      </div>
+    </div>
+  )
+}
+
+export default Phase1Prepare
