@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import {
-  makeStyles, shorthands, tokens,
+  makeStyles, shorthands, mergeClasses, tokens,
   Button, Input, Badge,
   Dialog, DialogSurface, DialogBody, DialogTitle, DialogContent, DialogActions, DialogTrigger,
 } from '@fluentui/react-components'
@@ -36,6 +36,7 @@ const useStyles = makeStyles({
     ...shorthands.borderRadius('20px'),
     fontSize: '13px',
     fontWeight: '500',
+    color: '#1a202c',
     cursor: 'pointer',
     transitionProperty: 'all',
     transitionDuration: '0.15s',
@@ -45,7 +46,7 @@ const useStyles = makeStyles({
   },
   appChipActive: {
     backgroundColor: '#667eea',
-    color: '#fff',
+    color: '#ffffff',
     ...shorthands.border('1px', 'solid', '#667eea'),
     ':hover': { backgroundColor: '#5a6fd6' },
   },
@@ -88,7 +89,7 @@ export default function AppSelector() {
       {apps.map(app => (
         <span
           key={app.id}
-          className={`${s.appChip} ${app.id === currentApp.id ? s.appChipActive : ''}`}
+          className={mergeClasses(s.appChip, app.id === currentApp.id ? s.appChipActive : undefined)}
           onClick={() => app.id !== currentApp.id && selectApp(app.id)}
         >
           {app.name}

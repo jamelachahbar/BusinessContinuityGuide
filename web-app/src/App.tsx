@@ -502,8 +502,8 @@ function AppContent() {
               <div className={styles.logo}>
                 <BoltLogo className={styles.logoIcon} />
                 <div className={styles.logoTextWrap}>
-                  <div className={styles.logoTitle}>Boltplan- Your own Azure Business Continuity Guide</div>
-                  <div className={styles.logoSub}>Business Continuity</div>
+                  <div className={styles.logoTitle}>Boltplan</div>
+                  <div className={styles.logoSub}>Business Continuity Guide</div>
                 </div>
               </div>
               <button
