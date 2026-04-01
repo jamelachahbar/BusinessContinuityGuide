@@ -18,19 +18,19 @@ const steps = [
   },
   {
     target: '[data-tour="phase1"]',
-    content: 'Define your organizational BCDR framework: criticality model, business commitments, RACI, and test plans. Shared across all applications.',
+    content: 'Define your BCDR framework: criticality model, business commitments, RACI, and test plans. Each solution gets its own data.',
     title: 'Phase 1: Prepare',
     placement: 'right' as const,
   },
   {
     target: '[data-tour="phase2"]',
-    content: 'Per-application continuity: requirements, service map, BIA, gap analysis, cost comparison, failover testing. Use the App Selector to switch between applications.',
-    title: 'Phase 2: Application Continuity',
+    content: 'Per-solution continuity: requirements, service map, BIA, gap analysis, cost comparison, failover testing. Use the Solution Selector to switch between solutions.',
+    title: 'Phase 2: Solution Continuity',
     placement: 'right' as const,
   },
   {
     target: '[data-tour="phase3"]',
-    content: 'Portfolio-wide: BCP checklist, risk matrix, MBCO recovery order, dashboard. Shared across all applications.',
+    content: 'Portfolio-wide: BCP checklist, risk matrix, MBCO recovery order, dashboard. Each solution gets its own data.',
     title: 'Phase 3: Business Continuity',
     placement: 'right' as const,
   },

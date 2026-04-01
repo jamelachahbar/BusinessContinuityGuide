@@ -41,7 +41,7 @@ function saveRegistry(apps: AppEntry[]): void {
 
 const DEFAULT_APP: AppEntry = {
   id: 'default',
-  name: 'Sample Application',
+  name: 'Sample Solution',
   createdAt: new Date().toISOString(),
 }
 

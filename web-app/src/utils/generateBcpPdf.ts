@@ -15,11 +15,11 @@ function getAppPrefix(): string {
 function getAppName(): string {
   const currentAppId = localStorage.getItem('abcg_current-app') ?? 'default'
   const raw = localStorage.getItem('abcg_app-registry')
-  if (!raw) return 'Sample Application'
+  if (!raw) return 'Sample Solution'
   try {
     const apps = JSON.parse(raw) as { id: string; name: string }[]
-    return apps.find(a => a.id === currentAppId)?.name ?? 'Sample Application'
-  } catch { return 'Sample Application' }
+    return apps.find(a => a.id === currentAppId)?.name ?? 'Sample Solution'
+  } catch { return 'Sample Solution' }
 }
 
 /**
@@ -225,11 +225,11 @@ export function generateBcpPdf(): void {
   const sec: string[] = []
 
   // Cover
-  sec.push(`<div class="cover"><div class="cover-bar"></div><h1>Business Continuity Plan</h1><h2>Business Continuity &amp; Disaster Recovery</h2><div class="cover-org">${e(org)}</div><div class="cover-app">Application: ${e(appName)}</div><div class="cover-date">Date: ${date}</div><div class="cover-std">ISO 22301:2019 &mdash; Business Continuity Management Systems</div></div>`)
+  sec.push(`<div class="cover"><div class="cover-bar"></div><h1>Business Continuity Plan</h1><h2>Business Continuity &amp; Disaster Recovery</h2><div class="cover-org">${e(org)}</div><div class="cover-app">Solution: ${e(appName)}</div><div class="cover-date">Date: ${date}</div><div class="cover-std">ISO 22301:2019 &mdash; Business Continuity Management Systems</div></div>`)
 
   // 1. Document Control
   sec.push(`<h1>1. Document Control</h1>`)
-  sec.push(tbl(['Field', 'Value'], [['Organization', e(org)], ['Application', e(appName)], ['Standard', 'ISO 22301:2019'], ['Primary Contact', e(s.primaryContact || 'TBD')], ['Contact Email', e(s.primaryContactEmail || 'TBD')], ['Date', date], ['Classification', 'Confidential']]))
+  sec.push(tbl(['Field', 'Value'], [['Organization', e(org)], ['Solution', e(appName)], ['Standard', 'ISO 22301:2019'], ['Primary Contact', e(s.primaryContact || 'TBD')], ['Contact Email', e(s.primaryContactEmail || 'TBD')], ['Date', date], ['Classification', 'Confidential']]))
 
   // 2. Context (ISO §4)
   sec.push(`<h1>2. Context of the Organization (ISO 22301 &sect;4)</h1>`)

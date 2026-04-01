@@ -84,7 +84,7 @@ export default function AppSelector() {
   return (
     <div className={s.selector}>
       <AppsList20Regular style={{ color: tokens.colorNeutralForeground3 }} />
-      <span className={s.label}>Application:</span>
+      <span className={s.label}>Solution:</span>
 
       {apps.map(app => (
         <span
@@ -100,13 +100,13 @@ export default function AppSelector() {
         {/* Add */}
         <Dialog open={addOpen} onOpenChange={(_, d) => setAddOpen(d.open)}>
           <DialogTrigger disableButtonEnhancement>
-            <Button icon={<Add20Regular />} size="small" appearance="subtle">New App</Button>
+            <Button icon={<Add20Regular />} size="small" appearance="subtle">New Solution</Button>
           </DialogTrigger>
           <DialogSurface>
             <DialogBody>
-              <DialogTitle>Add Application</DialogTitle>
+              <DialogTitle>Add Solution</DialogTitle>
               <DialogContent>
-                <p style={{ marginBottom: '12px' }}>Enter the name of the application you want to create a BCDR plan for.</p>
+                <p style={{ marginBottom: '12px' }}>Enter the name of the solution you want to create a BCDR plan for.</p>
                 <Input
                   value={newName}
                   onChange={(_, d) => setNewName(d.value)}
@@ -130,7 +130,7 @@ export default function AppSelector() {
           </DialogTrigger>
           <DialogSurface>
             <DialogBody>
-              <DialogTitle>Rename Application</DialogTitle>
+              <DialogTitle>Rename Solution</DialogTitle>
               <DialogContent>
                 <Input value={editName} onChange={(_, d) => setEditName(d.value)} style={{ width: '100%' }} onKeyDown={ev => { if (ev.key === 'Enter') handleRename() }} />
               </DialogContent>
@@ -150,9 +150,9 @@ export default function AppSelector() {
             </DialogTrigger>
             <DialogSurface>
               <DialogBody>
-                <DialogTitle>Delete Application?</DialogTitle>
+                <DialogTitle>Delete Solution?</DialogTitle>
                 <DialogContent>
-                  This will permanently delete <strong>{currentApp.name}</strong> and all its Phase 2 data. Phase 1 and Phase 3 data are shared and will not be affected.
+                  This will permanently delete <strong>{currentApp.name}</strong> and all its data.
                 </DialogContent>
                 <DialogActions>
                   <DialogTrigger disableButtonEnhancement><Button appearance="secondary">Cancel</Button></DialogTrigger>
