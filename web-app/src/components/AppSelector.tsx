@@ -19,6 +19,7 @@ const useStyles = makeStyles({
     ...shorthands.borderRadius('8px'),
     marginBottom: '16px',
     flexWrap: 'wrap',
+    fontFamily: tokens.fontFamilyBase,
   },
   label: {
     fontSize: '12px',

@@ -33,7 +33,7 @@ import {
   PanelLeftContract24Regular,
 } from '@fluentui/react-icons'
 import { WorkbenchProvider, useWorkbenchContext } from './context/WorkbenchContext'
-import { AppProvider } from './context/AppContext'
+import { AppProvider, useAppContext } from './context/AppContext'
 import Home from './components/Home'
 import Phase1Prepare from './components/Phase1Prepare'
 import Phase2ApplicationContinuity from './components/Phase2ApplicationContinuity'
@@ -431,6 +431,7 @@ function AppContent() {
   const mainContentRef = useRef<HTMLElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { exportJSON, importJSON, clearAll, hasData } = useWorkbenchContext()
+  const { currentApp } = useAppContext()
 
   useEffect(() => {
     mainContentRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
@@ -501,7 +502,7 @@ function AppContent() {
               <div className={styles.logo}>
                 <BoltLogo className={styles.logoIcon} />
                 <div className={styles.logoTextWrap}>
-                  <div className={styles.logoTitle}>ABC Guide</div>
+                  <div className={styles.logoTitle}>Boltplan- Your own Azure Business Continuity Guide</div>
                   <div className={styles.logoSub}>Business Continuity</div>
                 </div>
               </div>
@@ -554,7 +555,7 @@ function AppContent() {
 
         {/* Footer */}
         <div className={`${styles.sidebarFooter} ${collapsed ? styles.footerHidden : ''}`}>
-          <div className={styles.versionText}>ABC Guide v0.55</div>
+          <div className={styles.versionText}>BoltPlan v1.0</div>
         </div>
       </aside>
 
@@ -570,7 +571,7 @@ function AppContent() {
             <Navigation24Regular />
           </button>
           <div className={styles.breadcrumb}>
-            <span>ABC Guide</span>
+            <span>BoltPlan</span>
             <span className={styles.breadcrumbSep}><ChevronRight16Regular /></span>
             <span className={styles.breadcrumbCurrent}>{PAGE_LABELS[selectedTab]}</span>
           </div>
@@ -605,8 +606,8 @@ function AppContent() {
 
         {/* Content */}
         <main ref={mainContentRef} className={styles.mainContent}>
-          <div className={styles.contentWrapper}>
-            {selectedTab === 'phase2' && <div data-tour="app-selector"><AppSelector /></div>}
+          <div className={styles.contentWrapper} key={currentApp.id}>
+            {selectedTab !== 'home' && <div data-tour="app-selector"><AppSelector /></div>}
             {renderContent()}
           </div>
         </main>

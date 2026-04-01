@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react'
 import { useWorkbenchContext } from '../context/WorkbenchContext'
 
 export function useWorkbenchData<T>(key: string, defaultValue: T): [T, (value: T) => void, () => void] {
-  const { saveData, loadData } = useWorkbenchContext()
+  const { saveData, loadData, storagePrefix } = useWorkbenchContext()
   const [value, setValue] = useState<T>(() => loadData(key, defaultValue))
 
   const setData = useCallback((newValue: T) => {
@@ -12,8 +12,8 @@ export function useWorkbenchData<T>(key: string, defaultValue: T): [T, (value: T
 
   const resetToDefault = useCallback(() => {
     setValue(defaultValue)
-    localStorage.removeItem(`abcg_${key}`)
-  }, [key, defaultValue])
+    localStorage.removeItem(`${storagePrefix}${key}`)
+  }, [key, defaultValue, storagePrefix])
 
   return [value, setData, resetToDefault]
 }

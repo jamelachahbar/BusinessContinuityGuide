@@ -1,17 +1,12 @@
 /**
  * Application Context — manages multiple application workloads.
- *
- * Phase 1 (Prepare) and Phase 3 (Business Continuity) are organizational-level.
- * Phase 2 (Application Continuity) is per-application — each application gets
- * its own set of requirements, BIA, gap assessment, cost, tests, etc.
- *
- * Data is namespaced in localStorage as:
- *   abcg_phase2-{appSlug}-{key}
+ * ALL workbench data is namespaced per application.
  */
 
 import { createContext, useContext, useState, useCallback, type ReactNode } from 'react'
 
-const STORAGE_KEY = 'abcg_app-registry'
+const REGISTRY_KEY = 'abcg_app-registry'
+const CURRENT_KEY = 'abcg_current-app'
 
 export interface AppEntry {
   id: string
@@ -20,20 +15,12 @@ export interface AppEntry {
 }
 
 interface AppContextType {
-  /** All registered applications */
   apps: AppEntry[]
-  /** Currently selected application */
   currentApp: AppEntry
-  /** Select a different application */
   selectApp: (id: string) => void
-  /** Create a new application */
   addApp: (name: string) => void
-  /** Rename an application */
   renameApp: (id: string, name: string) => void
-  /** Delete an application and its data */
   deleteApp: (id: string) => void
-  /** Get the storage key prefix for Phase 2 data */
-  phase2Prefix: string
 }
 
 const AppContext = createContext<AppContextType | null>(null)
@@ -43,13 +30,13 @@ function slugify(name: string): string {
 }
 
 function loadRegistry(): AppEntry[] {
-  const raw = localStorage.getItem(STORAGE_KEY)
+  const raw = localStorage.getItem(REGISTRY_KEY)
   if (!raw) return []
   try { return JSON.parse(raw) as AppEntry[] } catch { return [] }
 }
 
 function saveRegistry(apps: AppEntry[]): void {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(apps))
+  localStorage.setItem(REGISTRY_KEY, JSON.stringify(apps))
 }
 
 const DEFAULT_APP: AppEntry = {
@@ -64,7 +51,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return saved.length > 0 ? saved : [DEFAULT_APP]
   })
   const [currentId, setCurrentId] = useState<string>(() => {
-    const saved = localStorage.getItem('abcg_current-app')
+    const saved = localStorage.getItem(CURRENT_KEY)
     const registry = loadRegistry()
     if (saved && registry.some(a => a.id === saved)) return saved
     return registry[0]?.id ?? 'default'
@@ -74,9 +61,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const selectApp = useCallback((id: string) => {
     setCurrentId(id)
-    localStorage.setItem('abcg_current-app', id)
-    // Force page reload to reset all useWorkbenchData hooks
-    window.location.reload()
+    localStorage.setItem(CURRENT_KEY, id)
   }, [])
 
   const addApp = useCallback((name: string) => {
@@ -85,8 +70,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const updated = [...apps, entry]
     setApps(updated)
     saveRegistry(updated)
-    selectApp(id)
-  }, [apps, selectApp])
+    setCurrentId(id)
+    localStorage.setItem(CURRENT_KEY, id)
+  }, [apps])
 
   const renameApp = useCallback((id: string, name: string) => {
     const updated = apps.map(a => a.id === id ? { ...a, name } : a)
@@ -95,8 +81,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [apps])
 
   const deleteApp = useCallback((id: string) => {
-    // Remove all Phase 2 data for this app
-    const prefix = `abcg_phase2-${id}-`
+    // Remove ALL data for this app
+    const prefix = `abcg_${id}_`
     for (let i = localStorage.length - 1; i >= 0; i--) {
       const key = localStorage.key(i)
       if (key?.startsWith(prefix)) localStorage.removeItem(key)
@@ -105,13 +91,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (updated.length === 0) updated.push(DEFAULT_APP)
     setApps(updated)
     saveRegistry(updated)
-    if (currentId === id) selectApp(updated[0].id)
-  }, [apps, currentId, selectApp])
-
-  const phase2Prefix = `phase2-${currentApp.id}-`
+    if (currentId === id) {
+      setCurrentId(updated[0].id)
+      localStorage.setItem(CURRENT_KEY, updated[0].id)
+    }
+  }, [apps, currentId])
 
   return (
-    <AppContext.Provider value={{ apps, currentApp, selectApp, addApp, renameApp, deleteApp, phase2Prefix }}>
+    <AppContext.Provider value={{ apps, currentApp, selectApp, addApp, renameApp, deleteApp }}>
       {children}
     </AppContext.Provider>
   )

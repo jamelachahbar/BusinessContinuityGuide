@@ -7,13 +7,17 @@
 
 import type { AppSettings } from '../components/Settings'
 
-const P = 'abcg_'
+function getAppPrefix(): string {
+  const currentAppId = localStorage.getItem('abcg_current-app') ?? 'default'
+  return `abcg_${currentAppId}_`
+}
 
 /**
- * Load from localStorage. If not found, returns the fallback (which should
- * be the same default data the component uses).
+ * Load from localStorage with current app prefix.
+ * Falls back to the provided default data.
  */
 function ld<T>(k: string, fallback: T): T {
+  const P = getAppPrefix()
   const r = localStorage.getItem(`${P}${k}`)
   if (!r) return fallback
   try { return JSON.parse(r) } catch { return fallback }
