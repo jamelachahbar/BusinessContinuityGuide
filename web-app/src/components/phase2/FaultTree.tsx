@@ -274,8 +274,28 @@ export default function FaultTree() {
       )}
 
       <div className={st.hint}>
-        Use standard FTA symbols: rectangles for events, circles for basic events (root causes), diamonds for undeveloped events, and OR/AND gates for logic.
-        FMEA scores (S x O x D = RPN) auto-calculate below the diagram, sorted by risk priority.
+        <strong>How to use Fault Tree Analysis (IEC 61025)</strong>
+        <ol style={{ marginTop: 6, marginBottom: 0, paddingLeft: 18, display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <li><strong>Define the Top Event</strong> (red rectangle) -- the undesired outcome, e.g. "Application Unavailable". This is already included by default.</li>
+          <li><strong>Add logic gates</strong> below the top event:
+            <ul style={{ marginTop: 2, paddingLeft: 16 }}>
+              <li><strong>OR Gate</strong> (purple circle) -- the output occurs if <em>any one</em> input occurs. Use when multiple independent causes can each trigger the failure.</li>
+              <li><strong>AND Gate</strong> (navy circle) -- the output occurs only when <em>all</em> inputs occur simultaneously. Use when multiple conditions must combine.</li>
+            </ul>
+          </li>
+          <li><strong>Add Intermediate Events</strong> (orange rectangle) -- failure categories that contribute to the top event, e.g. "Infrastructure Failure", "Application Failure".</li>
+          <li><strong>Add Basic Events</strong> (blue circle) -- root causes that cannot be decomposed further, e.g. "AZ Outage", "DDoS Attack".</li>
+          <li><strong>Connect nodes</strong> by dragging from the bottom handle of a parent to the top handle of a child. Arrows show the failure cascade direction (cause flows upward).</li>
+          <li><strong>Optional nodes:</strong>
+            <ul style={{ marginTop: 2, paddingLeft: 16 }}>
+              <li><strong>Undeveloped Event</strong> (yellow diamond) -- a failure mode that needs further analysis in the future.</li>
+              <li><strong>House Event</strong> (green) -- an external condition expected to occur (e.g. "Peak traffic period").</li>
+              <li><strong>Mitigation</strong> (green) -- a control or countermeasure applied to reduce a failure's probability.</li>
+            </ul>
+          </li>
+          <li><strong>FMEA scoring</strong> (optional): Set Severity (1-5), Occurrence (1-5), and Detection (1-5) for intermediate and basic events. The RPN (Risk Priority Number = S x O x D) auto-calculates in the table below, sorted by highest risk.</li>
+          <li><strong>Export:</strong> Use CSV to export the node list with FMEA scores, or PNG to save the diagram as an image.</li>
+        </ol>
       </div>
     </div>
   )
