@@ -27,6 +27,8 @@ import {
   ArrowUpload24Regular,
   Print24Regular,
   Delete24Regular,
+  Settings24Regular,
+  TableSimple24Regular,
 } from '@fluentui/react-icons'
 import { WorkbenchProvider, useWorkbenchContext } from './context/WorkbenchContext'
 import Home from './components/Home'
@@ -36,6 +38,8 @@ import Phase3BusinessContinuity from './components/Phase3BusinessContinuity'
 import Personas from './components/Personas'
 import Glossary from './components/Glossary'
 import References from './components/References'
+import Settings from './components/Settings'
+import { exportAllPhasesToCsv } from './utils/exportAllCsv'
 
 const MOBILE_BREAKPOINT = '768px'
 
@@ -272,7 +276,7 @@ const useStyles = makeStyles({
   },
 })
 
-type TabValue = 'home' | 'phase1' | 'phase2' | 'phase3' | 'personas' | 'glossary' | 'references'
+type TabValue = 'home' | 'phase1' | 'phase2' | 'phase3' | 'personas' | 'glossary' | 'references' | 'settings'
 
 const PAGE_LABELS: Record<TabValue, string> = {
   home: 'Home',
@@ -282,6 +286,7 @@ const PAGE_LABELS: Record<TabValue, string> = {
   personas: 'Personas',
   glossary: 'Glossary',
   references: 'References',
+  settings: 'Settings',
 }
 
 function AppContent() {
@@ -336,6 +341,8 @@ function AppContent() {
         return <Glossary />
       case 'references':
         return <References />
+      case 'settings':
+        return <Settings />
       default:
         return <Home onNavigate={setSelectedTab} />
     }
@@ -349,6 +356,7 @@ function AppContent() {
     { value: 'personas' as TabValue, icon: <People24Regular />, label: 'Personas' },
     { value: 'glossary' as TabValue, icon: <BookDatabase24Regular />, label: 'Glossary' },
     { value: 'references' as TabValue, icon: <LinkMultiple24Regular />, label: 'References' },
+    { value: 'settings' as TabValue, icon: <Settings24Regular />, label: 'Settings' },
   ]
 
   return (
@@ -417,6 +425,14 @@ function AppContent() {
         {/* Workbench toolbar */}
         <div className={styles.toolbar} data-no-print>
           <div className={styles.toolbarSpacer} />
+          <Button
+            appearance="subtle"
+            size="small"
+            icon={<TableSimple24Regular />}
+            onClick={exportAllPhasesToCsv}
+          >
+            Export CSV
+          </Button>
           <Button
             appearance="subtle"
             size="small"
