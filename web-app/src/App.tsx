@@ -115,8 +115,9 @@ const useStyles = makeStyles({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    ...shorthands.padding('20px', '16px', '16px', '16px'),
+    ...shorthands.padding('20px', '12px', '16px', '12px'),
     minHeight: '64px',
+    overflow: 'hidden',
   },
   logo: {
     display: 'flex',
@@ -124,6 +125,7 @@ const useStyles = makeStyles({
     gap: '10px',
     overflow: 'hidden',
     whiteSpace: 'nowrap',
+    minWidth: 0,
   },
   logoIcon: {
     width: '28px',
@@ -132,12 +134,14 @@ const useStyles = makeStyles({
   },
   logoTextWrap: {
     overflow: 'hidden',
-    transitionProperty: 'opacity, width',
+    transitionProperty: 'opacity, max-width',
     transitionDuration: TRANSITION,
+    maxWidth: '160px',
   },
   logoTextHidden: {
     opacity: 0,
-    width: '0px',
+    maxWidth: '0px',
+    overflow: 'hidden',
   },
   logoTitle: {
     fontSize: '18px',
@@ -245,12 +249,14 @@ const useStyles = makeStyles({
   },
   navLabel: {
     overflow: 'hidden',
-    transitionProperty: 'opacity, width',
+    transitionProperty: 'opacity, max-width',
     transitionDuration: TRANSITION,
+    maxWidth: '180px',
   },
   navLabelHidden: {
     opacity: 0,
-    width: '0px',
+    maxWidth: '0px',
+    overflow: 'hidden',
   },
 
   /* ── Footer ── */

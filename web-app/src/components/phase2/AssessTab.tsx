@@ -11,6 +11,8 @@ import {
   Card,
   Badge,
   Button,
+  Input,
+  Select,
 } from '@fluentui/react-components'
 import {
   Checkmark16Filled,
@@ -281,31 +283,113 @@ function GapStatusBadge({ gap, onClick }: { gap: GapStatus; onClick?: () => void
 const CHART_COLORS = { met: '#28a745', partial: '#ffc107', gap: '#dc3545' }
 
 /* ────────────────────────────────────────────────────
-   Service Map Flow — draggable, connectable
+   Service Map Flow — fully editable: add, remove, rename, drag, connect
    ──────────────────────────────────────────────────── */
 
-function ServiceMapFlow() {
-  const [nodes, , onNodesChange] = useNodesState(serviceMapNodes)
+const nodeTypeOptions = Object.keys(nodeColors)
+
+interface ServiceMapFlowProps {
+  styles: ReturnType<typeof useStyles>
+}
+
+function ServiceMapFlow({ styles }: ServiceMapFlowProps) {
+  const [nodes, setNodes, onNodesChange] = useNodesState(serviceMapNodes)
   const [edges, setEdges, onEdgesChange] = useEdgesState(serviceMapEdges)
+  const [newName, setNewName] = useState('')
+  const [newType, setNewType] = useState('Compute')
 
   const onConnect = useCallback(
     (params: Connection) => setEdges((eds) => addEdge(params, eds)),
     [setEdges],
   )
 
+  const addNode = useCallback(() => {
+    if (!newName.trim()) return
+    const id = `node-${Date.now()}`
+    // Place new node at a visible position offset from existing
+    const x = 100 + Math.random() * 600
+    const y = 100 + Math.random() * 300
+    const node = makeNode(id, newName.trim(), newType, x, y)
+    setNodes((nds) => [...nds, node])
+    setNewName('')
+  }, [newName, newType, setNodes])
+
+  const removeNode = useCallback((nodeId: string) => {
+    setNodes((nds) => nds.filter(n => n.id !== nodeId))
+    setEdges((eds) => eds.filter(e => e.source !== nodeId && e.target !== nodeId))
+  }, [setNodes, setEdges])
+
+  const resetMap = useCallback(() => {
+    setNodes(serviceMapNodes)
+    setEdges(serviceMapEdges)
+  }, [setNodes, setEdges])
+
   return (
-    <ReactFlow
-      nodes={nodes}
-      edges={edges}
-      onNodesChange={onNodesChange}
-      onEdgesChange={onEdgesChange}
-      onConnect={onConnect}
-      fitView
-      attributionPosition="bottom-left"
-    >
-      <Controls />
-      <Background gap={16} size={1} />
-    </ReactFlow>
+    <>
+      {/* Add node controls */}
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <span style={{ fontSize: '12px', fontWeight: 500, color: tokens.colorNeutralForeground3 }}>Service Name</span>
+          <Input
+            size="small"
+            placeholder="e.g. Azure Cosmos DB"
+            value={newName}
+            onChange={(_, d) => setNewName(d.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') addNode() }}
+            style={{ minWidth: '200px' }}
+          />
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <span style={{ fontSize: '12px', fontWeight: 500, color: tokens.colorNeutralForeground3 }}>Category</span>
+          <Select size="small" value={newType} onChange={(_, d) => setNewType(d.value)}>
+            {nodeTypeOptions.map(t => <option key={t} value={t}>{t}</option>)}
+          </Select>
+        </div>
+        <Button icon={<Add20Regular />} size="small" appearance="primary" onClick={addNode} disabled={!newName.trim()}>
+          Add Node
+        </Button>
+        <Button icon={<ArrowReset20Regular />} size="small" appearance="subtle" onClick={resetMap}>
+          Reset Map
+        </Button>
+      </div>
+
+      {/* Node list for quick delete */}
+      {nodes.length > 0 && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '12px' }}>
+          {nodes.map(n => (
+            <Badge
+              key={n.id}
+              appearance="outline"
+              size="small"
+              style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+              onClick={() => removeNode(n.id)}
+            >
+              {n.data.label as string} <Dismiss16Filled style={{ fontSize: '10px', color: '#dc3545' }} />
+            </Badge>
+          ))}
+        </div>
+      )}
+
+      <div className={styles.flowContainer}>
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onConnect={onConnect}
+          fitView
+          attributionPosition="bottom-left"
+        >
+          <Controls />
+          <Background gap={16} size={1} />
+        </ReactFlow>
+      </div>
+      <div className={styles.note}>
+        <strong>How to use:</strong> Add services using the form above. Drag nodes to arrange them.
+        Drag from a node edge to another node to create a dependency connection.
+        Click the &times; on any badge above to remove a node and its connections. Click Reset to restore the example map.
+      </div>
+    </>
   )
 }
 
@@ -478,7 +562,7 @@ export default function AssessTab() {
         <AccordionHeader>2. Service Map</AccordionHeader>
         <AccordionPanel>
           <p className={styles.subsectionDesc}>
-            Interactive dependency diagram of all application components. Drag nodes to rearrange, scroll to zoom, and use the controls to fit the view.
+            Build your application's dependency diagram. Add your own services, drag to arrange, and connect them to map dependencies.
           </p>
           <div className={styles.legend}>
             {Object.entries(nodeColors).map(([type, c]) => (
@@ -488,13 +572,7 @@ export default function AssessTab() {
               </div>
             ))}
           </div>
-          <div className={styles.flowContainer}>
-            <ServiceMapFlow />
-          </div>
-          <div className={styles.note}>
-            <strong>Tip:</strong> Enable Application Insights to automatically discover runtime dependencies.
-            Use Azure Resource Graph queries to enumerate infrastructure dependencies.
-          </div>
+          <ServiceMapFlow styles={styles} />
         </AccordionPanel>
       </AccordionItem>
 
