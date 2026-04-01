@@ -4,6 +4,7 @@ import {
   tokens,
   shorthands,
   Button,
+  Tooltip,
   Dialog,
   DialogSurface,
   DialogBody,
@@ -29,6 +30,8 @@ import {
   Delete24Regular,
   Settings24Regular,
   TableSimple24Regular,
+  PanelLeftContract24Regular,
+  PanelLeftExpand24Regular,
 } from '@fluentui/react-icons'
 import { WorkbenchProvider, useWorkbenchContext } from './context/WorkbenchContext'
 import Home from './components/Home'
@@ -40,19 +43,32 @@ import Glossary from './components/Glossary'
 import References from './components/References'
 import Settings from './components/Settings'
 import { exportAllPhasesToCsv } from './utils/exportAllCsv'
+import { generateBcpPdf } from './utils/generateBcpPdf'
 
-const MOBILE_BREAKPOINT = '768px'
+/* ═══════════════════════════════════════════════════════
+   Design constants
+   ═══════════════════════════════════════════════════════ */
+
+const SIDEBAR_W = 240
+const SIDEBAR_COLLAPSED_W = 68
+const MOBILE_BP = '768px'
+const TRANSITION = '0.25s cubic-bezier(0.4, 0, 0.2, 1)'
+
+/* ═══════════════════════════════════════════════════════
+   Styles
+   ═══════════════════════════════════════════════════════ */
 
 const useStyles = makeStyles({
-  container: {
+  root: {
     display: 'flex',
     height: '100vh',
     backgroundColor: '#f8f9fa',
   },
-  /* --- Sidebar overlay (mobile only) --- */
+
+  /* ── Mobile overlay ── */
   overlay: {
     display: 'none',
-    [`@media (max-width: ${MOBILE_BREAKPOINT})`]: {
+    [`@media (max-width: ${MOBILE_BP})`]: {
       display: 'block',
       position: 'fixed',
       inset: '0',
@@ -60,20 +76,20 @@ const useStyles = makeStyles({
       zIndex: 99,
     },
   },
-  overlayHidden: {
-    display: 'none',
-  },
-  /* --- Sidebar --- */
+
+  /* ── Sidebar ── */
   sidebar: {
-    width: '280px',
-    minWidth: '280px',
+    width: `${SIDEBAR_W}px`,
+    minWidth: `${SIDEBAR_W}px`,
     background: 'linear-gradient(180deg, #667eea 0%, #764ba2 100%)',
-    ...shorthands.padding('32px', '24px'),
     display: 'flex',
     flexDirection: 'column',
     boxShadow: '4px 0 24px rgba(102, 126, 234, 0.15)',
     zIndex: 100,
-    [`@media (max-width: ${MOBILE_BREAKPOINT})`]: {
+    transitionProperty: 'width, min-width',
+    transitionDuration: TRANSITION,
+    overflowX: 'hidden',
+    [`@media (max-width: ${MOBILE_BP})`]: {
       position: 'fixed',
       top: '0',
       left: '0',
@@ -84,144 +100,217 @@ const useStyles = makeStyles({
       transitionTimingFunction: 'ease',
     },
   },
-  sidebarOpen: {
-    [`@media (max-width: ${MOBILE_BREAKPOINT})`]: {
+  sidebarCollapsed: {
+    width: `${SIDEBAR_COLLAPSED_W}px`,
+    minWidth: `${SIDEBAR_COLLAPSED_W}px`,
+  },
+  sidebarMobileOpen: {
+    [`@media (max-width: ${MOBILE_BP})`]: {
       transform: 'translateX(0)',
     },
   },
+
+  /* ── Sidebar header ── */
   sidebarHeader: {
     display: 'flex',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: '48px',
+    ...shorthands.padding('20px', '16px', '16px', '16px'),
+    minHeight: '64px',
   },
-  logo: {},
+  logo: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    overflow: 'hidden',
+    whiteSpace: 'nowrap',
+  },
+  logoIcon: {
+    width: '28px',
+    height: '28px',
+    flexShrink: 0,
+  },
+  logoTextWrap: {
+    overflow: 'hidden',
+    transitionProperty: 'opacity, width',
+    transitionDuration: TRANSITION,
+  },
+  logoTextHidden: {
+    opacity: 0,
+    width: '0px',
+  },
   logoTitle: {
-    fontSize: '24px',
+    fontSize: '18px',
     fontWeight: '700',
     color: '#ffffff',
-    marginBottom: '4px',
+    lineHeight: '1.2',
   },
-  logoSubtitle: {
-    fontSize: '13px',
-    color: 'rgba(255, 255, 255, 0.8)',
+  logoSub: {
+    fontSize: '11px',
+    color: 'rgba(255, 255, 255, 0.7)',
     fontWeight: '400',
   },
-  closeSidebar: {
+  collapseBtn: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '32px',
+    height: '32px',
+    ...shorthands.borderRadius('8px'),
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    color: '#ffffff',
+    ...shorthands.border('none'),
+    cursor: 'pointer',
+    flexShrink: 0,
+    ':hover': { backgroundColor: 'rgba(255, 255, 255, 0.2)' },
+    [`@media (max-width: ${MOBILE_BP})`]: { display: 'none' },
+  },
+  closeMobile: {
     display: 'none',
-    [`@media (max-width: ${MOBILE_BREAKPOINT})`]: {
+    [`@media (max-width: ${MOBILE_BP})`]: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      width: '32px',
+      height: '32px',
+      ...shorthands.borderRadius('8px'),
+      backgroundColor: 'rgba(255, 255, 255, 0.15)',
+      color: '#ffffff',
+      ...shorthands.border('none'),
+      cursor: 'pointer',
+      ':hover': { backgroundColor: 'rgba(255, 255, 255, 0.25)' },
+    },
+  },
+
+  /* ── Nav section label ── */
+  navSection: {
+    fontSize: '11px',
+    fontWeight: '600',
+    color: 'rgba(255, 255, 255, 0.45)',
+    textTransform: 'uppercase',
+    letterSpacing: '0.8px',
+    ...shorthands.padding('16px', '16px', '6px', '16px'),
+    overflow: 'hidden',
+    whiteSpace: 'nowrap',
+    transitionProperty: 'opacity',
+    transitionDuration: TRANSITION,
+  },
+  navSectionHidden: {
+    opacity: 0,
+  },
+
+  /* ── Nav items ── */
+  nav: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '2px',
+    ...shorthands.padding('0', '8px'),
+    overflowY: 'auto',
+    overflowX: 'hidden',
+  },
+  navItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    ...shorthands.padding('10px', '12px'),
+    ...shorthands.borderRadius('10px'),
+    cursor: 'pointer',
+    transitionProperty: 'all',
+    transitionDuration: '0.15s',
+    color: 'rgba(255, 255, 255, 0.7)',
+    fontSize: '14px',
+    fontWeight: '500',
+    ...shorthands.border('none'),
+    backgroundColor: 'transparent',
+    width: '100%',
+    textAlign: 'left' as const,
+    overflow: 'hidden',
+    whiteSpace: 'nowrap',
+    ':hover': {
+      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+      color: '#ffffff',
+    },
+  },
+  navItemActive: {
+    backgroundColor: 'rgba(255, 255, 255, 0.18)',
+    color: '#ffffff',
+    fontWeight: '600',
+  },
+  navIcon: {
+    fontSize: '20px',
+    display: 'flex',
+    alignItems: 'center',
+    flexShrink: 0,
+  },
+  navLabel: {
+    overflow: 'hidden',
+    transitionProperty: 'opacity, width',
+    transitionDuration: TRANSITION,
+  },
+  navLabelHidden: {
+    opacity: 0,
+    width: '0px',
+  },
+
+  /* ── Footer ── */
+  sidebarFooter: {
+    ...shorthands.padding('12px', '16px'),
+    borderTopWidth: '1px',
+    borderTopStyle: 'solid',
+    borderTopColor: 'rgba(255, 255, 255, 0.12)',
+    overflow: 'hidden',
+    whiteSpace: 'nowrap',
+    transitionProperty: 'opacity',
+    transitionDuration: TRANSITION,
+  },
+  footerHidden: { opacity: 0 },
+  versionText: {
+    fontSize: '11px',
+    color: 'rgba(255, 255, 255, 0.4)',
+    textAlign: 'center' as const,
+  },
+
+  /* ── Main wrapper ── */
+  main: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'hidden',
+    minWidth: '0',
+    transitionProperty: 'margin-left',
+    transitionDuration: TRANSITION,
+  },
+
+  /* ── Top bar ── */
+  topBar: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    ...shorthands.padding('12px', '32px'),
+    backgroundColor: '#ffffff',
+    borderBottomWidth: '1px',
+    borderBottomStyle: 'solid',
+    borderBottomColor: '#e2e8f0',
+    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
+    [`@media (max-width: ${MOBILE_BP})`]: {
+      ...shorthands.padding('12px', '16px'),
+    },
+  },
+  hamburger: {
+    display: 'none',
+    [`@media (max-width: ${MOBILE_BP})`]: {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       width: '36px',
       height: '36px',
       ...shorthands.borderRadius('8px'),
-      backgroundColor: 'rgba(255, 255, 255, 0.15)',
-      color: '#ffffff',
-      ...shorthands.border('none'),
-      cursor: 'pointer',
-      ':hover': {
-        backgroundColor: 'rgba(255, 255, 255, 0.25)',
-      },
-    },
-  },
-  nav: {
-    flex: 1,
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '6px',
-  },
-  navItem: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    ...shorthands.padding('14px', '16px'),
-    ...shorthands.borderRadius('12px'),
-    cursor: 'pointer',
-    transitionProperty: 'all',
-    transitionDuration: '0.2s',
-    transitionTimingFunction: 'ease',
-    color: 'rgba(255, 255, 255, 0.75)',
-    fontSize: '15px',
-    fontWeight: '500',
-    ...shorthands.border('none'),
-    backgroundColor: 'transparent',
-    width: '100%',
-    textAlign: 'left' as const,
-    borderLeftWidth: '3px',
-    borderLeftStyle: 'solid',
-    borderLeftColor: 'transparent',
-    ':hover': {
-      backgroundColor: 'rgba(255, 255, 255, 0.1)',
-      color: '#ffffff',
-      borderLeftColor: 'rgba(255, 255, 255, 0.4)',
-    },
-  },
-  navItemActive: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    color: '#ffffff',
-    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-    borderLeftColor: '#ffffff',
-    fontWeight: '600',
-    ':hover': {
-      borderLeftColor: '#ffffff',
-    },
-  },
-  navIcon: {
-    fontSize: '20px',
-    display: 'flex',
-    alignItems: 'center',
-  },
-  sidebarFooter: {
-    ...shorthands.padding('16px', '0', '0', '0'),
-    borderTopWidth: '1px',
-    borderTopStyle: 'solid',
-    borderTopColor: 'rgba(255, 255, 255, 0.15)',
-    marginTop: '16px',
-  },
-  versionText: {
-    fontSize: '12px',
-    color: 'rgba(255, 255, 255, 0.5)',
-    textAlign: 'center' as const,
-  },
-  /* --- Main content area --- */
-  mainWrapper: {
-    flex: 1,
-    display: 'flex',
-    flexDirection: 'column',
-    overflow: 'hidden',
-    minWidth: '0',
-  },
-  topBar: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    ...shorthands.padding('16px', '48px'),
-    backgroundColor: '#ffffff',
-    borderBottomWidth: '1px',
-    borderBottomStyle: 'solid',
-    borderBottomColor: '#e2e8f0',
-    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
-    [`@media (max-width: ${MOBILE_BREAKPOINT})`]: {
-      ...shorthands.padding('12px', '16px'),
-    },
-  },
-  hamburger: {
-    display: 'none',
-    [`@media (max-width: ${MOBILE_BREAKPOINT})`]: {
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      width: '40px',
-      height: '40px',
-      ...shorthands.borderRadius('10px'),
       backgroundColor: 'transparent',
       color: tokens.colorNeutralForeground1,
       ...shorthands.border('1px', 'solid', '#e2e8f0'),
       cursor: 'pointer',
-      ':hover': {
-        backgroundColor: '#f1f5f9',
-      },
+      ':hover': { backgroundColor: '#f1f5f9' },
     },
   },
   breadcrumb: {
@@ -230,8 +319,9 @@ const useStyles = makeStyles({
     gap: '6px',
     fontSize: '14px',
     color: '#718096',
+    flex: 1,
   },
-  breadcrumbSeparator: {
+  breadcrumbSep: {
     display: 'flex',
     alignItems: 'center',
     color: '#a0aec0',
@@ -239,7 +329,12 @@ const useStyles = makeStyles({
   breadcrumbCurrent: {
     color: '#1a202c',
     fontWeight: '600',
-    fontSize: '16px',
+    fontSize: '15px',
+  },
+  toolbarActions: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '4px',
   },
   mainContent: {
     flex: 1,
@@ -247,34 +342,21 @@ const useStyles = makeStyles({
     backgroundColor: '#f8f9fa',
   },
   contentWrapper: {
-    ...shorthands.padding('40px', '48px'),
+    ...shorthands.padding('32px', '32px'),
     maxWidth: '1400px',
     ...shorthands.margin('0', 'auto'),
-    [`@media (max-width: ${MOBILE_BREAKPOINT})`]: {
-      ...shorthands.padding('24px', '16px'),
+    [`@media (max-width: ${MOBILE_BP})`]: {
+      ...shorthands.padding('20px', '16px'),
     },
-  },
-  toolbar: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    ...shorthands.padding('6px', '48px'),
-    backgroundColor: '#f1f5f9',
-    borderBottomWidth: '1px',
-    borderBottomStyle: 'solid',
-    borderBottomColor: '#e2e8f0',
-    [`@media (max-width: ${MOBILE_BREAKPOINT})`]: {
-      ...shorthands.padding('6px', '16px'),
-      flexWrap: 'wrap',
-    },
-  },
-  toolbarSpacer: {
-    flex: 1,
   },
   hiddenInput: {
     display: 'none',
   },
 })
+
+/* ═══════════════════════════════════════════════════════
+   App types
+   ═══════════════════════════════════════════════════════ */
 
 type TabValue = 'home' | 'phase1' | 'phase2' | 'phase3' | 'personas' | 'glossary' | 'references' | 'settings'
 
@@ -289,34 +371,72 @@ const PAGE_LABELS: Record<TabValue, string> = {
   settings: 'Settings',
 }
 
+/* Nav items with section grouping */
+const NAV_SECTIONS: { label: string; items: { value: TabValue; icon: React.ReactNode; label: string }[] }[] = [
+  {
+    label: 'Menu',
+    items: [
+      { value: 'home',     icon: <Home24Regular />,                   label: 'Dashboard' },
+      { value: 'phase1',   icon: <BookOpen24Regular />,               label: 'Phase 1: Prepare' },
+      { value: 'phase2',   icon: <ClipboardTaskListLtr24Regular />,   label: 'Phase 2: App Continuity' },
+      { value: 'phase3',   icon: <Shield24Regular />,                 label: 'Phase 3: Business' },
+      { value: 'personas', icon: <People24Regular />,                 label: 'Personas' },
+    ],
+  },
+  {
+    label: 'Resources',
+    items: [
+      { value: 'glossary',   icon: <BookDatabase24Regular />,   label: 'Glossary' },
+      { value: 'references', icon: <LinkMultiple24Regular />,   label: 'References' },
+    ],
+  },
+  {
+    label: 'General',
+    items: [
+      { value: 'settings', icon: <Settings24Regular />, label: 'Settings' },
+    ],
+  },
+]
+
+/* ═══════════════════════════════════════════════════════
+   Lightning bolt logo component
+   ═══════════════════════════════════════════════════════ */
+
+function BoltLogo({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 48 46" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path fill="#ffffff" d="M25.946 44.938c-.664.845-2.021.375-2.021-.698V33.937a2.26 2.26 0 0 0-2.262-2.262H10.287c-.92 0-1.456-1.04-.92-1.788l7.48-10.471c1.07-1.497 0-3.578-1.842-3.578H1.237c-.92 0-1.456-1.04-.92-1.788L10.013.474c.214-.297.556-.474.92-.474h28.894c.92 0 1.456 1.04.92 1.788l-7.48 10.471c-1.07 1.498 0 3.579 1.842 3.579h11.377c.943 0 1.473 1.088.89 1.83L25.947 44.94z"/>
+    </svg>
+  )
+}
+
+/* ═══════════════════════════════════════════════════════
+   App Content
+   ═══════════════════════════════════════════════════════ */
+
 function AppContent() {
   const styles = useStyles()
   const [selectedTab, setSelectedTab] = useState<TabValue>('home')
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [mobileOpen, setMobileOpen] = useState(false)
   const [clearDialogOpen, setClearDialogOpen] = useState(false)
   const mainContentRef = useRef<HTMLElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { exportJSON, importJSON, clearAll, hasData } = useWorkbenchContext()
 
-  // Scroll to top on page change
   useEffect(() => {
     mainContentRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
   }, [selectedTab])
 
   const handleNav = useCallback((tab: TabValue) => {
     setSelectedTab(tab)
-    setSidebarOpen(false)
+    setMobileOpen(false)
   }, [])
 
   const handleImport = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-    try {
-      await importJSON(file)
-    } catch (err) {
-      console.error('Import failed:', err)
-    }
-    // Reset so the same file can be re-imported
+    try { await importJSON(file) } catch (err) { console.error('Import failed:', err) }
     e.target.value = ''
   }, [importJSON])
 
@@ -325,174 +445,150 @@ function AppContent() {
     setClearDialogOpen(false)
   }, [clearAll])
 
+  const collapsed = sidebarCollapsed
+  const hideText = collapsed ? styles.navLabelHidden : ''
+  const hideLogoText = collapsed ? styles.logoTextHidden : ''
+
   const renderContent = () => {
     switch (selectedTab) {
-      case 'home':
-        return <Home onNavigate={setSelectedTab} />
-      case 'phase1':
-        return <Phase1Prepare />
-      case 'phase2':
-        return <Phase2ApplicationContinuity />
-      case 'phase3':
-        return <Phase3BusinessContinuity />
-      case 'personas':
-        return <Personas />
-      case 'glossary':
-        return <Glossary />
-      case 'references':
-        return <References />
-      case 'settings':
-        return <Settings />
-      default:
-        return <Home onNavigate={setSelectedTab} />
+      case 'home': return <Home onNavigate={setSelectedTab} />
+      case 'phase1': return <Phase1Prepare />
+      case 'phase2': return <Phase2ApplicationContinuity />
+      case 'phase3': return <Phase3BusinessContinuity />
+      case 'personas': return <Personas />
+      case 'glossary': return <Glossary />
+      case 'references': return <References />
+      case 'settings': return <Settings />
+      default: return <Home onNavigate={setSelectedTab} />
     }
   }
 
-  const navItems = [
-    { value: 'home' as TabValue, icon: <Home24Regular />, label: 'Home' },
-    { value: 'phase1' as TabValue, icon: <BookOpen24Regular />, label: 'Phase 1: Prepare' },
-    { value: 'phase2' as TabValue, icon: <ClipboardTaskListLtr24Regular />, label: 'Phase 2: App Continuity' },
-    { value: 'phase3' as TabValue, icon: <Shield24Regular />, label: 'Phase 3: Business Continuity' },
-    { value: 'personas' as TabValue, icon: <People24Regular />, label: 'Personas' },
-    { value: 'glossary' as TabValue, icon: <BookDatabase24Regular />, label: 'Glossary' },
-    { value: 'references' as TabValue, icon: <LinkMultiple24Regular />, label: 'References' },
-    { value: 'settings' as TabValue, icon: <Settings24Regular />, label: 'Settings' },
-  ]
-
   return (
-    <div className={styles.container}>
+    <div className={styles.root}>
       {/* Mobile overlay */}
-      {sidebarOpen && (
-        <div
-          className={styles.overlay}
-          onClick={() => setSidebarOpen(false)}
-          aria-hidden
-        />
+      {mobileOpen && (
+        <div className={styles.overlay} onClick={() => setMobileOpen(false)} aria-hidden />
       )}
 
-      {/* Sidebar */}
-      <aside className={`${styles.sidebar} ${sidebarOpen ? styles.sidebarOpen : ''}`} data-no-print>
+      {/* ── Sidebar ── */}
+      <aside
+        className={`${styles.sidebar} ${collapsed ? styles.sidebarCollapsed : ''} ${mobileOpen ? styles.sidebarMobileOpen : ''}`}
+        data-no-print
+      >
+        {/* Header */}
         <div className={styles.sidebarHeader}>
           <div className={styles.logo}>
-            <div className={styles.logoTitle}>ABC Guide</div>
-            <div className={styles.logoSubtitle}>Business Continuity</div>
+            <BoltLogo className={styles.logoIcon} />
+            <div className={`${styles.logoTextWrap} ${hideLogoText}`}>
+              <div className={styles.logoTitle}>ABC Guide</div>
+              <div className={styles.logoSub}>Business Continuity</div>
+            </div>
           </div>
           <button
-            className={styles.closeSidebar}
-            onClick={() => setSidebarOpen(false)}
+            className={styles.collapseBtn}
+            onClick={() => setSidebarCollapsed(!collapsed)}
+            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            {collapsed ? <PanelLeftExpand24Regular /> : <PanelLeftContract24Regular />}
+          </button>
+          <button
+            className={styles.closeMobile}
+            onClick={() => setMobileOpen(false)}
             aria-label="Close menu"
           >
             <Dismiss24Regular />
           </button>
         </div>
 
+        {/* Navigation */}
         <nav className={styles.nav}>
-          {navItems.map((item) => (
-            <button
-              key={item.value}
-              className={`${styles.navItem} ${selectedTab === item.value ? styles.navItemActive : ''}`}
-              onClick={() => handleNav(item.value)}
-            >
-              <span className={styles.navIcon}>{item.icon}</span>
-              <span>{item.label}</span>
-            </button>
+          {NAV_SECTIONS.map((section) => (
+            <div key={section.label}>
+              <div className={`${styles.navSection} ${collapsed ? styles.navSectionHidden : ''}`}>
+                {section.label}
+              </div>
+              {section.items.map((item) => {
+                const btn = (
+                  <button
+                    key={item.value}
+                    className={`${styles.navItem} ${selectedTab === item.value ? styles.navItemActive : ''}`}
+                    onClick={() => handleNav(item.value)}
+                  >
+                    <span className={styles.navIcon}>{item.icon}</span>
+                    <span className={`${styles.navLabel} ${hideText}`}>{item.label}</span>
+                  </button>
+                )
+                return collapsed ? (
+                  <Tooltip key={item.value} content={item.label} relationship="label" positioning="after">
+                    {btn}
+                  </Tooltip>
+                ) : btn
+              })}
+            </div>
           ))}
         </nav>
 
-        <div className={styles.sidebarFooter}>
+        {/* Footer */}
+        <div className={`${styles.sidebarFooter} ${collapsed ? styles.footerHidden : ''}`}>
           <div className={styles.versionText}>ABC Guide v0.55</div>
         </div>
       </aside>
 
-      {/* Main content */}
-      <div className={styles.mainWrapper}>
+      {/* ── Main ── */}
+      <div className={styles.main}>
+        {/* Top bar with breadcrumb + actions */}
         <header className={styles.topBar} data-no-print>
           <button
             className={styles.hamburger}
-            onClick={() => setSidebarOpen(true)}
+            onClick={() => setMobileOpen(true)}
             aria-label="Open menu"
-            data-no-print
           >
             <Navigation24Regular />
           </button>
           <div className={styles.breadcrumb}>
             <span>ABC Guide</span>
-            <span className={styles.breadcrumbSeparator}><ChevronRight16Regular /></span>
+            <span className={styles.breadcrumbSep}><ChevronRight16Regular /></span>
             <span className={styles.breadcrumbCurrent}>{PAGE_LABELS[selectedTab]}</span>
+          </div>
+          <div className={styles.toolbarActions}>
+            <Tooltip content="Export all phases to CSV" relationship="description">
+              <Button appearance="subtle" size="small" icon={<TableSimple24Regular />} onClick={exportAllPhasesToCsv} />
+            </Tooltip>
+            <Tooltip content="Export ISO 22301 BCP (PDF)" relationship="description">
+              <Button appearance="subtle" size="small" icon={<Print24Regular />} onClick={generateBcpPdf} />
+            </Tooltip>
+            <Tooltip content="Export workbench data (JSON)" relationship="description">
+              <Button appearance="subtle" size="small" icon={<ArrowDownload24Regular />} onClick={exportJSON} disabled={!hasData} />
+            </Tooltip>
+            <Tooltip content="Import workbench data" relationship="description">
+              <Button appearance="subtle" size="small" icon={<ArrowUpload24Regular />} onClick={() => fileInputRef.current?.click()} />
+            </Tooltip>
+            <input ref={fileInputRef} type="file" accept=".json" className={styles.hiddenInput} onChange={handleImport} />
+            <Dialog open={clearDialogOpen} onOpenChange={(_, d) => setClearDialogOpen(d.open)}>
+              <DialogTrigger disableButtonEnhancement>
+                <Tooltip content="Clear all saved data" relationship="description">
+                  <Button appearance="subtle" size="small" icon={<Delete24Regular />} disabled={!hasData} />
+                </Tooltip>
+              </DialogTrigger>
+              <DialogSurface>
+                <DialogBody>
+                  <DialogTitle>Clear All Workbench Data?</DialogTitle>
+                  <DialogContent>
+                    This will permanently remove all saved workbench data from your browser. This action cannot be undone.
+                  </DialogContent>
+                  <DialogActions>
+                    <DialogTrigger disableButtonEnhancement>
+                      <Button appearance="secondary">Cancel</Button>
+                    </DialogTrigger>
+                    <Button appearance="primary" onClick={handleClear}>Clear All</Button>
+                  </DialogActions>
+                </DialogBody>
+              </DialogSurface>
+            </Dialog>
           </div>
         </header>
 
-        {/* Workbench toolbar */}
-        <div className={styles.toolbar} data-no-print>
-          <div className={styles.toolbarSpacer} />
-          <Button
-            appearance="subtle"
-            size="small"
-            icon={<TableSimple24Regular />}
-            onClick={exportAllPhasesToCsv}
-          >
-            Export CSV
-          </Button>
-          <Button
-            appearance="subtle"
-            size="small"
-            icon={<Print24Regular />}
-            onClick={() => window.print()}
-          >
-            Export PDF
-          </Button>
-          <Button
-            appearance="subtle"
-            size="small"
-            icon={<ArrowDownload24Regular />}
-            onClick={exportJSON}
-            disabled={!hasData}
-          >
-            Export Data
-          </Button>
-          <Button
-            appearance="subtle"
-            size="small"
-            icon={<ArrowUpload24Regular />}
-            onClick={() => fileInputRef.current?.click()}
-          >
-            Import Data
-          </Button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".json"
-            className={styles.hiddenInput}
-            onChange={handleImport}
-          />
-          <Dialog open={clearDialogOpen} onOpenChange={(_, d) => setClearDialogOpen(d.open)}>
-            <DialogTrigger disableButtonEnhancement>
-              <Button
-                appearance="subtle"
-                size="small"
-                icon={<Delete24Regular />}
-                disabled={!hasData}
-              >
-                Clear Data
-              </Button>
-            </DialogTrigger>
-            <DialogSurface>
-              <DialogBody>
-                <DialogTitle>Clear All Workbench Data?</DialogTitle>
-                <DialogContent>
-                  This will permanently remove all saved workbench data from your browser. This action cannot be undone.
-                </DialogContent>
-                <DialogActions>
-                  <DialogTrigger disableButtonEnhancement>
-                    <Button appearance="secondary">Cancel</Button>
-                  </DialogTrigger>
-                  <Button appearance="primary" onClick={handleClear}>Clear All</Button>
-                </DialogActions>
-              </DialogBody>
-            </DialogSurface>
-          </Dialog>
-        </div>
-
+        {/* Content */}
         <main ref={mainContentRef} className={styles.mainContent}>
           <div className={styles.contentWrapper}>
             {renderContent()}
@@ -503,12 +599,14 @@ function AppContent() {
   )
 }
 
-function App() {
+/* ═══════════════════════════════════════════════════════
+   App root
+   ═══════════════════════════════════════════════════════ */
+
+export default function App() {
   return (
     <WorkbenchProvider>
       <AppContent />
     </WorkbenchProvider>
   )
 }
-
-export default App

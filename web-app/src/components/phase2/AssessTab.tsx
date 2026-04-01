@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import {
   makeStyles,
   shorthands,
@@ -21,7 +21,7 @@ import {
   ArrowReset20Regular,
   ArrowDownload20Regular,
 } from '@fluentui/react-icons'
-import ReactFlow, { Controls, Background } from 'reactflow'
+import ReactFlow, { Controls, Background, useNodesState, useEdgesState, addEdge, type Connection } from 'reactflow'
 import 'reactflow/dist/style.css'
 import type { Node, Edge } from 'reactflow'
 import {
@@ -281,6 +281,35 @@ function GapStatusBadge({ gap, onClick }: { gap: GapStatus; onClick?: () => void
 const CHART_COLORS = { met: '#28a745', partial: '#ffc107', gap: '#dc3545' }
 
 /* ────────────────────────────────────────────────────
+   Service Map Flow — draggable, connectable
+   ──────────────────────────────────────────────────── */
+
+function ServiceMapFlow() {
+  const [nodes, , onNodesChange] = useNodesState(serviceMapNodes)
+  const [edges, setEdges, onEdgesChange] = useEdgesState(serviceMapEdges)
+
+  const onConnect = useCallback(
+    (params: Connection) => setEdges((eds) => addEdge(params, eds)),
+    [setEdges],
+  )
+
+  return (
+    <ReactFlow
+      nodes={nodes}
+      edges={edges}
+      onNodesChange={onNodesChange}
+      onEdgesChange={onEdgesChange}
+      onConnect={onConnect}
+      fitView
+      attributionPosition="bottom-left"
+    >
+      <Controls />
+      <Background gap={16} size={1} />
+    </ReactFlow>
+  )
+}
+
+/* ────────────────────────────────────────────────────
    Component
    ──────────────────────────────────────────────────── */
 
@@ -460,15 +489,7 @@ export default function AssessTab() {
             ))}
           </div>
           <div className={styles.flowContainer}>
-            <ReactFlow
-              nodes={serviceMapNodes}
-              edges={serviceMapEdges}
-              fitView
-              attributionPosition="bottom-left"
-            >
-              <Controls />
-              <Background gap={16} size={1} />
-            </ReactFlow>
+            <ServiceMapFlow />
           </div>
           <div className={styles.note}>
             <strong>Tip:</strong> Enable Application Insights to automatically discover runtime dependencies.
