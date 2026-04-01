@@ -570,24 +570,14 @@ function AppContent() {
             <span className={styles.breadcrumbCurrent}>{PAGE_LABELS[selectedTab]}</span>
           </div>
           <div className={styles.toolbarActions}>
-            <Tooltip content="Export all phases to CSV" relationship="description">
-              <Button appearance="subtle" size="small" icon={<TableSimple24Regular />} onClick={exportAllPhasesToCsv} />
-            </Tooltip>
-            <Tooltip content="Export ISO 22301 BCP (PDF)" relationship="description">
-              <Button appearance="subtle" size="small" icon={<Print24Regular />} onClick={generateBcpPdf} />
-            </Tooltip>
-            <Tooltip content="Export workbench data (JSON)" relationship="description">
-              <Button appearance="subtle" size="small" icon={<ArrowDownload24Regular />} onClick={exportJSON} disabled={!hasData} />
-            </Tooltip>
-            <Tooltip content="Import workbench data" relationship="description">
-              <Button appearance="subtle" size="small" icon={<ArrowUpload24Regular />} onClick={() => fileInputRef.current?.click()} />
-            </Tooltip>
+            <Button appearance="subtle" size="small" icon={<TableSimple24Regular />} onClick={exportAllPhasesToCsv}>CSV</Button>
+            <Button appearance="subtle" size="small" icon={<Print24Regular />} onClick={generateBcpPdf}>PDF</Button>
+            <Button appearance="subtle" size="small" icon={<ArrowDownload24Regular />} onClick={exportJSON} disabled={!hasData}>Export</Button>
+            <Button appearance="subtle" size="small" icon={<ArrowUpload24Regular />} onClick={() => fileInputRef.current?.click()}>Import</Button>
             <input ref={fileInputRef} type="file" accept=".json" className={styles.hiddenInput} onChange={handleImport} />
             <Dialog open={clearDialogOpen} onOpenChange={(_, d) => setClearDialogOpen(d.open)}>
               <DialogTrigger disableButtonEnhancement>
-                <Tooltip content="Clear all saved data" relationship="description">
-                  <Button appearance="subtle" size="small" icon={<Delete24Regular />} disabled={!hasData} />
-                </Tooltip>
+                <Button appearance="subtle" size="small" icon={<Delete24Regular />} disabled={!hasData}>Clear</Button>
               </DialogTrigger>
               <DialogSurface>
                 <DialogBody>
