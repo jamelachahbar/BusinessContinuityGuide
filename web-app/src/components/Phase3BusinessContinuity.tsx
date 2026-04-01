@@ -11,6 +11,7 @@ import {
 import { useWorkbenchData } from '../hooks/useWorkbenchData'
 import { downloadCsv, objectsToCsvSheet } from '../utils/csvExport'
 import { getCriticalityColor } from '../utils/criticality'
+import HelpIcon from './HelpIcon'
 
 /* ═══════ Styles ═══════ */
 const useStyles = makeStyles({
@@ -249,7 +250,18 @@ export default function Phase3BusinessContinuity() {
           {/* 2. Risk Assessment */}
           <div className={s.section}>
             <div className={s.hdr}>
-              <h3 className={s.sTitle}>2. Business Risk Assessment</h3>
+              <h3 className={s.sTitle}>
+                2. Business Risk Assessment
+                <HelpIcon title="Risk Assessment">
+                  Identify threats and evaluate their likelihood and impact.
+                  <ul style={{ margin: '6px 0 0 14px', fontSize: '12px' }}>
+                    <li><strong>Impact</strong> (1-5): Severity of the disruption</li>
+                    <li><strong>Probability</strong> (1-5): Likelihood of occurrence</li>
+                    <li><strong>Score</strong> = Impact x Probability</li>
+                    <li>Critical (20-25), High (15-19), Medium (8-14), Low (1-7)</li>
+                  </ul>
+                </HelpIcon>
+              </h3>
               <div style={{ display: 'flex', gap: '6px' }}>
                 <Button icon={<Add20Regular />} size="small" onClick={() => setRisks([...risks, { category: '', description: '', impact: 3, probability: 3 }])}>Add</Button>
                 <Button icon={<ArrowReset20Regular />} size="small" appearance="subtle" onClick={resetRisks}>Reset</Button>

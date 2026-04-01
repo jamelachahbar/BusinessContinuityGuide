@@ -29,6 +29,7 @@ import { useWorkbenchData } from '../../hooks/useWorkbenchData'
 import { downloadCsv, objectsToCsvSheet } from '../../utils/csvExport'
 import ServiceMap from './ServiceMap'
 import FaultTree from './FaultTree'
+import HelpIcon from '../HelpIcon'
 
 /* ────────────────────────────────────────────────────
    Styles
@@ -470,7 +471,19 @@ export default function AssessTab() {
 
       {/* ── 4. Fault Tree Analysis (-BCDR) ── */}
       <AccordionItem value="fta-before">
-        <AccordionHeader>4. Fault Tree Analysis (&minus;BCDR)</AccordionHeader>
+        <AccordionHeader>
+          4. Fault Tree Analysis (&minus;BCDR)
+          <HelpIcon title="Fault Tree Analysis (FTA)">
+            A top-down method (IEC 61025) to identify how component failures cause system unavailability.
+            <ul style={{ margin: '6px 0 0 14px', fontSize: '12px' }}>
+              <li><strong>Top Event</strong> (red): The undesired outcome</li>
+              <li><strong>OR Gate</strong>: Any input triggers output</li>
+              <li><strong>AND Gate</strong>: All inputs needed</li>
+              <li><strong>Basic Event</strong> (blue circle): Root cause</li>
+              <li><strong>FMEA</strong>: Severity x Occurrence x Detection = RPN</li>
+            </ul>
+          </HelpIcon>
+        </AccordionHeader>
         <AccordionPanel>
           <p className={styles.subsectionDesc}>
             Top-down failure analysis before BCDR improvements. Build your fault tree by adding

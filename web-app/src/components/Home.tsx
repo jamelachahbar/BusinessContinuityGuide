@@ -15,7 +15,10 @@ import {
   ShieldCheckmark24Regular,
   DataTrending24Regular,
   ClipboardTask24Regular,
+  Checkmark16Filled,
+  Circle16Regular,
 } from '@fluentui/react-icons'
+import { useAppContext } from '../context/AppContext'
 
 const useStyles = makeStyles({
   container: {
@@ -96,6 +99,57 @@ const useStyles = makeStyles({
   },
   metricTag: {
     marginTop: '8px',
+  },
+  progressCard: {
+    background: 'white',
+    ...shorthands.borderRadius('16px'),
+    ...shorthands.padding('24px'),
+    ...shorthands.border('1px', 'solid', '#e2e8f0'),
+    boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+    marginBottom: '32px',
+  },
+  progressHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: '16px',
+  },
+  progressTitle: {
+    fontSize: '18px',
+    fontWeight: '700',
+    color: '#1a202c',
+  },
+  progressBar: {
+    height: '8px',
+    ...shorthands.borderRadius('4px'),
+    backgroundColor: '#e2e8f0',
+    marginBottom: '20px',
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    ...shorthands.borderRadius('4px'),
+    background: 'linear-gradient(90deg, #667eea 0%, #764ba2 100%)',
+    transitionProperty: 'width',
+    transitionDuration: '0.5s',
+  },
+  stepList: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '8px',
+  },
+  step: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    fontSize: '14px',
+    color: '#718096',
+  },
+  stepDone: {
+    color: '#1a202c',
+  },
+  stepIcon: {
+    flexShrink: 0,
   },
   sectionTitle: {
     fontSize: '20px',
@@ -235,11 +289,34 @@ const useStyles = makeStyles({
 })
 
 interface HomeProps {
-  onNavigate: (tab: 'home' | 'phase1' | 'phase2' | 'phase3') => void
+  onNavigate: (tab: 'home' | 'phase1' | 'phase2' | 'phase3' | 'settings') => void
 }
 
 function Home({ onNavigate }: HomeProps) {
   const styles = useStyles()
+  const { currentApp } = useAppContext()
+
+  // Check which sections have data in localStorage for the current app
+  const prefix = `abcg_${currentApp.id}_`
+  const has = (key: string) => localStorage.getItem(`${prefix}${key}`) !== null
+
+  const progressSteps = [
+    { label: 'Configure Settings (org name, workload)', done: has('settings'), phase: 'settings' as const },
+    { label: 'Define Criticality Model', done: has('phase1_criticalityModel'), phase: 'phase1' as const },
+    { label: 'Document Requirements & ADR', done: has('phase2-requirements'), phase: 'phase2' as const },
+    { label: 'Build Service Map', done: has('phase2-fta-before-nodes'), phase: 'phase2' as const },
+    { label: 'Complete Business Impact Analysis', done: has('phase2-bia-metrics'), phase: 'phase2' as const },
+    { label: 'Run Gap Assessment', done: has('phase2-gap-assessment'), phase: 'phase2' as const },
+    { label: 'Design BCDR Architecture', done: has('phase2-continuity-design'), phase: 'phase2' as const },
+    { label: 'Compare Costs (-BCDR vs +BCDR)', done: has('phase2-cost-comparison'), phase: 'phase2' as const },
+    { label: 'Assign Roles', done: has('phase2-role-assignment'), phase: 'phase2' as const },
+    { label: 'Plan Tests & Drills', done: has('phase2-test-summary'), phase: 'phase2' as const },
+    { label: 'Complete BCP Checklist', done: has('phase3-bcp-checklist'), phase: 'phase3' as const },
+    { label: 'Assess Business Risks', done: has('phase3-risk-scenarios'), phase: 'phase3' as const },
+    { label: 'Define MBCO Recovery Order', done: has('phase3-mbco'), phase: 'phase3' as const },
+  ]
+  const doneCount = progressSteps.filter(s => s.done).length
+  const progressPct = Math.round((doneCount / progressSteps.length) * 100)
 
   return (
     <div className={styles.container}>
@@ -288,6 +365,36 @@ function Home({ onNavigate }: HomeProps) {
           <div className={styles.metricTag}>
             <Badge appearance="tint" color="success" size="small">CSV &middot; PDF &middot; JSON</Badge>
           </div>
+        </div>
+      </div>
+
+      {/* Getting Started progress */}
+      <div className={styles.progressCard}>
+        <div className={styles.progressHeader}>
+          <div className={styles.progressTitle}>Getting Started</div>
+          <Badge appearance="filled" color={progressPct === 100 ? 'success' : 'brand'} size="small">
+            {doneCount}/{progressSteps.length} complete ({progressPct}%)
+          </Badge>
+        </div>
+        <div className={styles.progressBar}>
+          <div className={styles.progressFill} style={{ width: `${progressPct}%` }} />
+        </div>
+        <div className={styles.stepList}>
+          {progressSteps.map((step, i) => (
+            <div
+              key={i}
+              className={`${styles.step} ${step.done ? styles.stepDone : ''}`}
+              style={{ cursor: 'pointer' }}
+              onClick={() => onNavigate(step.phase)}
+            >
+              <span className={styles.stepIcon}>
+                {step.done
+                  ? <Checkmark16Filled style={{ color: '#28a745' }} />
+                  : <Circle16Regular style={{ color: '#e2e8f0' }} />}
+              </span>
+              <span style={step.done ? { textDecoration: 'line-through', opacity: 0.6 } : undefined}>{step.label}</span>
+            </div>
+          ))}
         </div>
       </div>
 
