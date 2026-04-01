@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import {
   makeStyles,
   shorthands,
@@ -8,7 +9,16 @@ import {
   tokens,
   Card,
   Badge,
+  TabList,
+  Tab,
+  type SelectTabData,
+  type SelectTabEvent,
 } from '@fluentui/react-components'
+import {
+  Checkmark16Filled,
+  Dismiss16Filled,
+  Subtract16Filled,
+} from '@fluentui/react-icons'
 
 const useStyles = makeStyles({
   container: {
@@ -26,6 +36,9 @@ const useStyles = makeStyles({
     color: tokens.colorNeutralForeground2,
     lineHeight: '1.6',
     marginBottom: '32px',
+  },
+  tabContent: {
+    paddingTop: '24px',
   },
   section: {
     marginBottom: '32px',
@@ -298,22 +311,24 @@ const useStyles = makeStyles({
    1. Requirements & Architecture Decision Record
    ──────────────────────────────────────────────────── */
 
-const requirementsData: { category: string; requirement: string; status: string; adr: string }[] = [
-  { category: 'Availability', requirement: 'Multi-region deployment', status: '\u2705', adr: 'Active-passive with Azure Traffic Manager' },
-  { category: 'Availability', requirement: 'Zone redundancy', status: '\u2705', adr: 'All services deployed across 3 AZs' },
-  { category: 'Availability', requirement: 'Load balancing', status: '\u2705', adr: 'Azure Application Gateway with WAF v2' },
-  { category: 'Recovery', requirement: 'RTO < 4 hours', status: '\u2705', adr: 'Automated failover achieves ~15 min RTO' },
-  { category: 'Recovery', requirement: 'RPO < 1 hour', status: '\u2705', adr: 'Continuous replication configured' },
-  { category: 'Recovery', requirement: 'Geo-redundant backups', status: '\u2705', adr: 'GRS storage with 30-day retention' },
-  { category: 'Deployment', requirement: 'Infrastructure as Code', status: '\u2705', adr: 'Bicep templates in source control' },
-  { category: 'Deployment', requirement: 'Blue-green deployments', status: '\u274C', adr: 'Not required \u2014 canary rollout sufficient' },
-  { category: 'Monitoring', requirement: 'Application Insights APM', status: '\u2705', adr: 'Full APM configured with custom dashboards' },
-  { category: 'Monitoring', requirement: 'Centralized logging', status: '\u2705', adr: 'Log Analytics workspace with 90-day retention' },
-  { category: 'Security', requirement: 'DDoS Protection', status: '\u2705', adr: 'Standard tier enabled on VNet' },
-  { category: 'Security', requirement: 'WAF policy', status: '\u2705', adr: 'OWASP 3.2 rule set on Application Gateway' },
-  { category: 'Compliance', requirement: 'Data residency', status: '\u2705', adr: 'Australia East + Australia Southeast' },
-  { category: 'Compliance', requirement: 'SOC 2 Type II', status: '\u26AB', adr: 'N/A \u2014 not in regulatory scope' },
-  { category: 'Testing', requirement: 'Quarterly failover drills', status: '\u2705', adr: 'Automated failover test pipeline configured' },
+type RequirementStatus = 'required' | 'not-required' | 'na'
+
+const requirementsData: { category: string; requirement: string; status: RequirementStatus; adr: string }[] = [
+  { category: 'Availability', requirement: 'Multi-region deployment', status: 'required', adr: 'Active-passive with Azure Traffic Manager' },
+  { category: 'Availability', requirement: 'Zone redundancy', status: 'required', adr: 'All services deployed across 3 AZs' },
+  { category: 'Availability', requirement: 'Load balancing', status: 'required', adr: 'Azure Application Gateway with WAF v2' },
+  { category: 'Recovery', requirement: 'RTO < 4 hours', status: 'required', adr: 'Automated failover achieves ~15 min RTO' },
+  { category: 'Recovery', requirement: 'RPO < 1 hour', status: 'required', adr: 'Continuous replication configured' },
+  { category: 'Recovery', requirement: 'Geo-redundant backups', status: 'required', adr: 'GRS storage with 30-day retention' },
+  { category: 'Deployment', requirement: 'Infrastructure as Code', status: 'required', adr: 'Bicep templates in source control' },
+  { category: 'Deployment', requirement: 'Blue-green deployments', status: 'not-required', adr: 'Not required \u2014 canary rollout sufficient' },
+  { category: 'Monitoring', requirement: 'Application Insights APM', status: 'required', adr: 'Full APM configured with custom dashboards' },
+  { category: 'Monitoring', requirement: 'Centralized logging', status: 'required', adr: 'Log Analytics workspace with 90-day retention' },
+  { category: 'Security', requirement: 'DDoS Protection', status: 'required', adr: 'Standard tier enabled on VNet' },
+  { category: 'Security', requirement: 'WAF policy', status: 'required', adr: 'OWASP 3.2 rule set on Application Gateway' },
+  { category: 'Compliance', requirement: 'Data residency', status: 'required', adr: 'Australia East + Australia Southeast' },
+  { category: 'Compliance', requirement: 'SOC 2 Type II', status: 'na', adr: 'N/A \u2014 not in regulatory scope' },
+  { category: 'Testing', requirement: 'Quarterly failover drills', status: 'required', adr: 'Automated failover test pipeline configured' },
 ]
 
 /* ────────────────────────────────────────────────────
@@ -383,9 +398,9 @@ const gapAssessmentData: { component: string; category: string; sla: string; ha:
 
 const gapBadge = (gap: 'met' | 'partial' | 'gap') => {
   switch (gap) {
-    case 'met': return { label: '\u2705 Met', color: '#28a745' }
-    case 'partial': return { label: '\u26A0\uFE0F Partial', color: '#ffc107' }
-    case 'gap': return { label: '\u274C Gap', color: '#dc3545' }
+    case 'met': return { label: 'Met', color: '#28a745' }
+    case 'partial': return { label: 'Partial', color: '#ffc107' }
+    case 'gap': return { label: 'Gap', color: '#dc3545' }
   }
 }
 
@@ -555,15 +570,15 @@ const roleAssignmentData: { role: string; name: string; team: string; responsibi
    ──────────────────────────────────────────────────── */
 
 const testSummaryData: { type: string; frequency: string; lastTest: string; nextTest: string; automated: string; status: string; owner: string }[] = [
-  { type: 'Region Failover', frequency: 'Quarterly', lastTest: '2026-01-15', nextTest: '2026-04-15', automated: 'Partial', status: '\u2705 Passed', owner: 'Infrastructure Lead' },
-  { type: 'Zone Failover', frequency: 'Monthly', lastTest: '2026-03-01', nextTest: '2026-04-01', automated: 'Yes', status: '\u2705 Passed', owner: 'Infrastructure Lead' },
-  { type: 'Database Recovery', frequency: 'Quarterly', lastTest: '2026-02-10', nextTest: '2026-05-10', automated: 'Partial', status: '\u2705 Passed', owner: 'DBA / Data Lead' },
-  { type: 'Backup Restore', frequency: 'Monthly', lastTest: '2026-03-05', nextTest: '2026-04-05', automated: 'Yes', status: '\u2705 Passed', owner: 'Infrastructure Lead' },
-  { type: 'Load Test', frequency: 'Monthly', lastTest: '2026-03-10', nextTest: '2026-04-10', automated: 'Yes', status: '\u26A0\uFE0F Degraded', owner: 'QA / Validation' },
-  { type: 'Chaos Test', frequency: 'Quarterly', lastTest: '2026-01-20', nextTest: '2026-04-20', automated: 'Yes', status: '\u2705 Passed', owner: 'SRE Team' },
-  { type: 'Penetration Test', frequency: 'Annually', lastTest: '2025-11-01', nextTest: '2026-11-01', automated: 'No', status: '\u2705 Passed', owner: 'Security Lead' },
-  { type: 'UAT', frequency: 'Per Release', lastTest: '2026-03-15', nextTest: 'Next release', automated: 'No', status: '\u2705 Passed', owner: 'QA / Validation' },
-  { type: 'Contingency Drill', frequency: 'Semi-annually', lastTest: '2025-12-01', nextTest: '2026-06-01', automated: 'No', status: '\u2705 Passed', owner: 'Business Liaison' },
+  { type: 'Region Failover', frequency: 'Quarterly', lastTest: '2026-01-15', nextTest: '2026-04-15', automated: 'Partial', status: 'Passed', owner: 'Infrastructure Lead' },
+  { type: 'Zone Failover', frequency: 'Monthly', lastTest: '2026-03-01', nextTest: '2026-04-01', automated: 'Yes', status: 'Passed', owner: 'Infrastructure Lead' },
+  { type: 'Database Recovery', frequency: 'Quarterly', lastTest: '2026-02-10', nextTest: '2026-05-10', automated: 'Partial', status: 'Passed', owner: 'DBA / Data Lead' },
+  { type: 'Backup Restore', frequency: 'Monthly', lastTest: '2026-03-05', nextTest: '2026-04-05', automated: 'Yes', status: 'Passed', owner: 'Infrastructure Lead' },
+  { type: 'Load Test', frequency: 'Monthly', lastTest: '2026-03-10', nextTest: '2026-04-10', automated: 'Yes', status: 'Degraded', owner: 'QA / Validation' },
+  { type: 'Chaos Test', frequency: 'Quarterly', lastTest: '2026-01-20', nextTest: '2026-04-20', automated: 'Yes', status: 'Passed', owner: 'SRE Team' },
+  { type: 'Penetration Test', frequency: 'Annually', lastTest: '2025-11-01', nextTest: '2026-11-01', automated: 'No', status: 'Passed', owner: 'Security Lead' },
+  { type: 'UAT', frequency: 'Per Release', lastTest: '2026-03-15', nextTest: 'Next release', automated: 'No', status: 'Passed', owner: 'QA / Validation' },
+  { type: 'Contingency Drill', frequency: 'Semi-annually', lastTest: '2025-12-01', nextTest: '2026-06-01', automated: 'No', status: 'Passed', owner: 'Business Liaison' },
 ]
 
 /* ────────────────────────────────────────────────────
@@ -656,11 +671,32 @@ const maintenanceData: { document: string; frequency: string; nextReview: string
 ]
 
 /* ────────────────────────────────────────────────────
+   Status rendering helpers
+   ──────────────────────────────────────────────────── */
+
+function GapStatusBadge({ gap }: { gap: 'met' | 'partial' | 'gap' }) {
+  const badge = gapBadge(gap)
+  const Icon = gap === 'met' ? Checkmark16Filled : gap === 'gap' ? Dismiss16Filled : Subtract16Filled
+  return (
+    <Badge appearance="filled" style={{ backgroundColor: badge.color, color: badge.color === '#ffc107' ? '#1a1a1a' : '#ffffff' }}>
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+        <Icon style={{ fontSize: '12px' }} /> {badge.label}
+      </span>
+    </Badge>
+  )
+}
+
+/* ────────────────────────────────────────────────────
    Component
    ──────────────────────────────────────────────────── */
 
 function Phase2ApplicationContinuity() {
   const styles = useStyles()
+
+  const [selectedTab, setSelectedTab] = useState<string>('assess')
+  const onTabSelect = (_ev: SelectTabEvent, data: SelectTabData) => {
+    setSelectedTab(data.value as string)
+  }
 
   const totalCurrent = costComparisonData.reduce((s, r) => s + r.currentCost, 0)
   const totalBcdr = costComparisonData.reduce((s, r) => s + r.bcdrCost, 0)
@@ -695,203 +731,207 @@ function Phase2ApplicationContinuity() {
         </div>
       </div>
 
-      {/* ================================================================
-          ASSESS SECTION
-          ================================================================ */}
-      <div className={styles.section}>
-        <h2 className={styles.sectionTitle}>
-          <Badge appearance="filled" color="informative">Assess</Badge>
-          Assessment Activities
-        </h2>
+      <TabList selectedValue={selectedTab} onTabSelect={onTabSelect}>
+        <Tab value="assess">Assess</Tab>
+        <Tab value="implement">Implement</Tab>
+        <Tab value="test">Test</Tab>
+      </TabList>
 
-        <Accordion collapsible multiple>
-          {/* ── 1. Requirements & ADR ── */}
-          <AccordionItem value="requirements-adr">
-            <AccordionHeader>1. Requirements &amp; Architecture Decision Record</AccordionHeader>
-            <AccordionPanel>
-              <p className={styles.subsectionDesc}>
-                Document BCDR requirements for each application and capture
-                architecture decisions with rationale. Use stakeholder workshops
-                to populate this template.
-              </p>
-              <div className={styles.legend}>
-                <div className={styles.legendItem}>{'\u2705'} Required</div>
-                <div className={styles.legendItem}>{'\u274C'} Not Required</div>
-                <div className={styles.legendItem}>{'\u26AB'} N/A</div>
-              </div>
-              <div className={styles.tableWrap}>
-                <table className={styles.table}>
-                  <thead>
-                    <tr>
-                      <th className={styles.th}>Category</th>
-                      <th className={styles.th}>Requirement</th>
-                      <th className={styles.thCenter}>Status</th>
-                      <th className={styles.thWrap}>Architecture Decision Record</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {requirementsData.map((row, i) => (
-                      <tr key={i}>
-                        <td className={styles.td} style={{ fontWeight: 600 }}>{row.category}</td>
-                        <td className={styles.td}>{row.requirement}</td>
-                        <td className={styles.tdCenter}>{row.status}</td>
-                        <td className={styles.td}>{row.adr}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </AccordionPanel>
-          </AccordionItem>
-
-          {/* ── 2. Service Map ── */}
-          <AccordionItem value="service-map">
-            <AccordionHeader>2. Service Map</AccordionHeader>
-            <AccordionPanel>
-              <p className={styles.subsectionDesc}>
-                Visualize application components and their dependencies. Use{' '}
-                <a className={styles.link} href="https://learn.microsoft.com/en-us/azure/azure-monitor/app/app-map" target="_blank" rel="noopener noreferrer">Application Insights Application Map</a>{' '}
-                and{' '}
-                <a className={styles.link} href="https://learn.microsoft.com/en-us/azure/azure-monitor/vm/vminsights-maps" target="_blank" rel="noopener noreferrer">VM Insights Service Map</a>{' '}
-                for automated dependency discovery.
-              </p>
-              {serviceMapData.map((svc, i) => (
-                <div key={i} className={styles.serviceMapComponent}>
-                  <div>
-                    <div className={styles.serviceMapName}>{svc.name}</div>
-                    <div className={styles.serviceMapDeps}>
-                      <Badge appearance="outline" color="informative" size="small">{svc.type}</Badge>
-                    </div>
-                  </div>
-                  <div className={styles.serviceMapDeps}>
-                    <strong>Upstream:</strong> {svc.upstream} &nbsp;|&nbsp; <strong>Downstream:</strong> {svc.downstream}
-                  </div>
+      <div className={styles.tabContent}>
+        {/* ================================================================
+            ASSESS TAB
+            ================================================================ */}
+        {selectedTab === 'assess' && (
+          <Accordion collapsible multiple>
+            {/* ── 1. Requirements & ADR ── */}
+            <AccordionItem value="requirements-adr">
+              <AccordionHeader>1. Requirements &amp; Architecture Decision Record</AccordionHeader>
+              <AccordionPanel>
+                <p className={styles.subsectionDesc}>
+                  Document BCDR requirements for each application and capture
+                  architecture decisions with rationale. Use stakeholder workshops
+                  to populate this template.
+                </p>
+                <div className={styles.legend}>
+                  <div className={styles.legendItem}><Checkmark16Filled style={{color: '#28a745'}} /> Required</div>
+                  <div className={styles.legendItem}><Dismiss16Filled style={{color: '#dc3545'}} /> Not Required</div>
+                  <div className={styles.legendItem}><Subtract16Filled style={{color: '#6c757d'}} /> N/A</div>
                 </div>
-              ))}
-              <div className={styles.note}>
-                <strong>Tip:</strong> Enable Application Insights to automatically discover runtime dependencies.
-                Use Azure Resource Graph queries to enumerate infrastructure dependencies.
-                See{' '}
-                <a className={styles.link} href="https://learn.microsoft.com/en-us/azure/azure-monitor/app/app-insights-overview" target="_blank" rel="noopener noreferrer">Application Insights overview</a>{' '}
-                for setup guidance.
-              </div>
-            </AccordionPanel>
-          </AccordionItem>
-
-          {/* ── 3. Business Impact Analysis ── */}
-          <AccordionItem value="bia">
-            <AccordionHeader>3. Business Impact Analysis (BIA)</AccordionHeader>
-            <AccordionPanel>
-              <p className={styles.subsectionDesc}>
-                Quantify the impact of application downtime to prioritize
-                recovery investments and set objectives.
-              </p>
-              <div className={styles.summaryGrid}>
-                {biaMetrics.slice(0, 4).map((m, i) => (
-                  <div key={i} className={styles.summaryCard}>
-                    <div className={styles.summaryValue}>{m.value}</div>
-                    <div className={styles.summaryLabel}>{m.metric}</div>
-                  </div>
-                ))}
-              </div>
-              <div className={styles.tableWrap}>
-                <table className={styles.table}>
-                  <thead>
-                    <tr>
-                      <th className={styles.th}>Metric</th>
-                      <th className={styles.thCenter}>Value</th>
-                      <th className={styles.thWrap}>Notes</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {biaMetrics.map((row, i) => (
-                      <tr key={i}>
-                        <td className={styles.td} style={{ fontWeight: 600 }}>{row.metric}</td>
-                        <td className={styles.tdCenter}><strong>{row.value}</strong></td>
-                        <td className={styles.td}>{row.notes}</td>
+                <div className={styles.tableWrap}>
+                  <table className={styles.table}>
+                    <thead>
+                      <tr>
+                        <th className={styles.th}>Category</th>
+                        <th className={styles.th}>Requirement</th>
+                        <th className={styles.thCenter}>Status</th>
+                        <th className={styles.thWrap}>Architecture Decision Record</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {requirementsData.map((row, i) => (
+                        <tr key={i}>
+                          <td className={styles.td} style={{ fontWeight: 600 }}>{row.category}</td>
+                          <td className={styles.td}>{row.requirement}</td>
+                          <td className={styles.tdCenter}>
+                            {row.status === 'required' && <Checkmark16Filled style={{color: '#28a745'}} />}
+                            {row.status === 'not-required' && <Dismiss16Filled style={{color: '#dc3545'}} />}
+                            {row.status === 'na' && <Badge appearance="outline" color="informative" size="small">N/A</Badge>}
+                          </td>
+                          <td className={styles.td}>{row.adr}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </AccordionPanel>
+            </AccordionItem>
 
-              <h4 style={{ marginTop: '20px', marginBottom: '12px' }}>Dependency Analysis</h4>
-              {biaDependencies.map((dep, i) => (
-                <Card key={i} className={styles.card}>
-                  <div className={styles.cardTitle}>{dep.direction} Dependencies</div>
-                  <ul className={styles.list}>
-                    {dep.items.map((item, j) => (
-                      <li key={j}>{item}</li>
-                    ))}
-                  </ul>
-                </Card>
-              ))}
-            </AccordionPanel>
-          </AccordionItem>
-
-          {/* ── 4. Fault Tree Analysis (-BCDR) ── */}
-          <AccordionItem value="fta-before">
-            <AccordionHeader>4. Fault Tree Analysis (\u2212BCDR)</AccordionHeader>
-            <AccordionPanel>
-              <p className={styles.subsectionDesc}>
-                Top-down failure analysis before BCDR improvements. Identifies
-                how component failures contribute to application unavailability.
-              </p>
-              <div className={styles.faultTreeRoot}>
-                Top Event: Application Unavailable
-              </div>
-              <div className={styles.faultTreeBranch}>
-                {faultTreeBefore.map((branch, i) => (
-                  <div key={i}>
-                    <div className={styles.faultTreeNode}>
-                      <strong>{branch.category}</strong>
-                      <span style={{ marginLeft: '12px' }}>
-                        <Badge appearance="filled" style={{ backgroundColor: branch.probability === 'Medium' ? '#ffc107' : '#fd7e14', color: '#1a1a1a', marginRight: '6px' }}>
-                          P: {branch.probability}
-                        </Badge>
-                        <Badge appearance="filled" style={{ backgroundColor: branch.impact === 'Critical' ? '#dc3545' : '#fd7e14', color: '#ffffff' }}>
-                          I: {branch.impact}
-                        </Badge>
-                      </span>
+            {/* ── 2. Service Map ── */}
+            <AccordionItem value="service-map">
+              <AccordionHeader>2. Service Map</AccordionHeader>
+              <AccordionPanel>
+                <p className={styles.subsectionDesc}>
+                  Visualize application components and their dependencies. Use{' '}
+                  <a className={styles.link} href="https://learn.microsoft.com/en-us/azure/azure-monitor/app/app-map" target="_blank" rel="noopener noreferrer">Application Insights Application Map</a>{' '}
+                  and{' '}
+                  <a className={styles.link} href="https://learn.microsoft.com/en-us/azure/azure-monitor/vm/vminsights-maps" target="_blank" rel="noopener noreferrer">VM Insights Service Map</a>{' '}
+                  for automated dependency discovery.
+                </p>
+                {serviceMapData.map((svc, i) => (
+                  <div key={i} className={styles.serviceMapComponent}>
+                    <div>
+                      <div className={styles.serviceMapName}>{svc.name}</div>
+                      <div className={styles.serviceMapDeps}>
+                        <Badge appearance="outline" color="informative" size="small">{svc.type}</Badge>
+                      </div>
                     </div>
-                    {branch.causes.map((cause, j) => (
-                      <div key={j} className={styles.faultTreeLeaf}>{cause}</div>
-                    ))}
+                    <div className={styles.serviceMapDeps}>
+                      <strong>Upstream:</strong> {svc.upstream} &nbsp;|&nbsp; <strong>Downstream:</strong> {svc.downstream}
+                    </div>
                   </div>
                 ))}
-              </div>
-            </AccordionPanel>
-          </AccordionItem>
+                <div className={styles.note}>
+                  <strong>Tip:</strong> Enable Application Insights to automatically discover runtime dependencies.
+                  Use Azure Resource Graph queries to enumerate infrastructure dependencies.
+                  See{' '}
+                  <a className={styles.link} href="https://learn.microsoft.com/en-us/azure/azure-monitor/app/app-insights-overview" target="_blank" rel="noopener noreferrer">Application Insights overview</a>{' '}
+                  for setup guidance.
+                </div>
+              </AccordionPanel>
+            </AccordionItem>
 
-          {/* ── 5. Architecture Gap Assessment (-BCDR) ── */}
-          <AccordionItem value="gap-assessment">
-            <AccordionHeader>5. Architecture | Continuity Gap Assessment (\u2212BCDR)</AccordionHeader>
-            <AccordionPanel>
-              <p className={styles.subsectionDesc}>
-                Assess each component&apos;s current HA and DR configuration against
-                requirements. Gaps indicate where BCDR improvements are needed.
-              </p>
-              <div className={styles.legend}>
-                <div className={styles.legendItem}>{'\u2705'} Met &mdash; requirement satisfied</div>
-                <div className={styles.legendItem}>{'\u26A0\uFE0F'} Partial &mdash; partially addressed</div>
-                <div className={styles.legendItem}>{'\u274C'} Gap &mdash; not addressed</div>
-              </div>
-              <div className={styles.tableWrap}>
-                <table className={styles.table}>
-                  <thead>
-                    <tr>
-                      <th className={styles.th}>Component</th>
-                      <th className={styles.th}>Category</th>
-                      <th className={styles.thCenter}>SLA</th>
-                      <th className={styles.thWrap}>HA Configuration</th>
-                      <th className={styles.thWrap}>DR Configuration</th>
-                      <th className={styles.thCenter}>Gap Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {gapAssessmentData.map((row, i) => {
-                      const badge = gapBadge(row.gap)
-                      return (
+            {/* ── 3. Business Impact Analysis ── */}
+            <AccordionItem value="bia">
+              <AccordionHeader>3. Business Impact Analysis (BIA)</AccordionHeader>
+              <AccordionPanel>
+                <p className={styles.subsectionDesc}>
+                  Quantify the impact of application downtime to prioritize
+                  recovery investments and set objectives.
+                </p>
+                <div className={styles.summaryGrid}>
+                  {biaMetrics.slice(0, 4).map((m, i) => (
+                    <div key={i} className={styles.summaryCard}>
+                      <div className={styles.summaryValue}>{m.value}</div>
+                      <div className={styles.summaryLabel}>{m.metric}</div>
+                    </div>
+                  ))}
+                </div>
+                <div className={styles.tableWrap}>
+                  <table className={styles.table}>
+                    <thead>
+                      <tr>
+                        <th className={styles.th}>Metric</th>
+                        <th className={styles.thCenter}>Value</th>
+                        <th className={styles.thWrap}>Notes</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {biaMetrics.map((row, i) => (
+                        <tr key={i}>
+                          <td className={styles.td} style={{ fontWeight: 600 }}>{row.metric}</td>
+                          <td className={styles.tdCenter}><strong>{row.value}</strong></td>
+                          <td className={styles.td}>{row.notes}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <h4 style={{ marginTop: '20px', marginBottom: '12px' }}>Dependency Analysis</h4>
+                {biaDependencies.map((dep, i) => (
+                  <Card key={i} className={styles.card}>
+                    <div className={styles.cardTitle}>{dep.direction} Dependencies</div>
+                    <ul className={styles.list}>
+                      {dep.items.map((item, j) => (
+                        <li key={j}>{item}</li>
+                      ))}
+                    </ul>
+                  </Card>
+                ))}
+              </AccordionPanel>
+            </AccordionItem>
+
+            {/* ── 4. Fault Tree Analysis (-BCDR) ── */}
+            <AccordionItem value="fta-before">
+              <AccordionHeader>4. Fault Tree Analysis (&minus;BCDR)</AccordionHeader>
+              <AccordionPanel>
+                <p className={styles.subsectionDesc}>
+                  Top-down failure analysis before BCDR improvements. Identifies
+                  how component failures contribute to application unavailability.
+                </p>
+                <div className={styles.faultTreeRoot}>
+                  Top Event: Application Unavailable
+                </div>
+                <div className={styles.faultTreeBranch}>
+                  {faultTreeBefore.map((branch, i) => (
+                    <div key={i}>
+                      <div className={styles.faultTreeNode}>
+                        <strong>{branch.category}</strong>
+                        <span style={{ marginLeft: '12px' }}>
+                          <Badge appearance="filled" style={{ backgroundColor: branch.probability === 'Medium' ? '#ffc107' : '#fd7e14', color: '#1a1a1a', marginRight: '6px' }}>
+                            P: {branch.probability}
+                          </Badge>
+                          <Badge appearance="filled" style={{ backgroundColor: branch.impact === 'Critical' ? '#dc3545' : '#fd7e14', color: '#ffffff' }}>
+                            I: {branch.impact}
+                          </Badge>
+                        </span>
+                      </div>
+                      {branch.causes.map((cause, j) => (
+                        <div key={j} className={styles.faultTreeLeaf}>{cause}</div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              </AccordionPanel>
+            </AccordionItem>
+
+            {/* ── 5. Architecture Gap Assessment (-BCDR) ── */}
+            <AccordionItem value="gap-assessment">
+              <AccordionHeader>5. Architecture | Continuity Gap Assessment (&minus;BCDR)</AccordionHeader>
+              <AccordionPanel>
+                <p className={styles.subsectionDesc}>
+                  Assess each component&apos;s current HA and DR configuration against
+                  requirements. Gaps indicate where BCDR improvements are needed.
+                </p>
+                <div className={styles.legend}>
+                  <div className={styles.legendItem}><Checkmark16Filled style={{color: '#28a745'}} /> Met &mdash; requirement satisfied</div>
+                  <div className={styles.legendItem}><Subtract16Filled style={{color: '#ffc107'}} /> Partial &mdash; partially addressed</div>
+                  <div className={styles.legendItem}><Dismiss16Filled style={{color: '#dc3545'}} /> Gap &mdash; not addressed</div>
+                </div>
+                <div className={styles.tableWrap}>
+                  <table className={styles.table}>
+                    <thead>
+                      <tr>
+                        <th className={styles.th}>Component</th>
+                        <th className={styles.th}>Category</th>
+                        <th className={styles.thCenter}>SLA</th>
+                        <th className={styles.thWrap}>HA Configuration</th>
+                        <th className={styles.thWrap}>DR Configuration</th>
+                        <th className={styles.thCenter}>Gap Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {gapAssessmentData.map((row, i) => (
                         <tr key={i}>
                           <td className={styles.td} style={{ fontWeight: 600 }}>{row.component}</td>
                           <td className={styles.td}>{row.category}</td>
@@ -899,553 +939,545 @@ function Phase2ApplicationContinuity() {
                           <td className={styles.td}>{row.ha}</td>
                           <td className={styles.td}>{row.dr}</td>
                           <td className={styles.tdCenter}>
-                            <Badge appearance="filled" style={{ backgroundColor: badge.color, color: badge.color === '#ffc107' ? '#1a1a1a' : '#ffffff' }}>
-                              {badge.label}
+                            <GapStatusBadge gap={row.gap} />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </AccordionPanel>
+            </AccordionItem>
+
+            {/* ── 6. Metric Analysis ── */}
+            <AccordionItem value="metric-analysis">
+              <AccordionHeader>6. Metric Analysis (&minus;BCDR)</AccordionHeader>
+              <AccordionPanel>
+                <p className={styles.subsectionDesc}>
+                  Baseline reliability and security scores per component before
+                  BCDR implementation. These scores feed into the business case for
+                  improvement.
+                </p>
+                <div className={styles.tableWrap}>
+                  <table className={styles.table}>
+                    <thead>
+                      <tr>
+                        <th className={styles.th}>Component</th>
+                        <th className={styles.thCenter}>Availability</th>
+                        <th className={styles.thCenter}>Reliability</th>
+                        <th className={styles.thCenter}>Security</th>
+                        <th className={styles.thCenter}>Composite Score</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {metricAnalysisData.map((row, i) => (
+                        <tr key={i}>
+                          <td className={styles.td} style={{ fontWeight: 600 }}>{row.component}</td>
+                          <td className={styles.tdCenter}>{row.availability}</td>
+                          <td className={styles.tdCenter}>{row.reliability}</td>
+                          <td className={styles.tdCenter}>{row.security}</td>
+                          <td className={styles.tdCenter}><strong>{row.composite}</strong></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </AccordionPanel>
+            </AccordionItem>
+          </Accordion>
+        )}
+
+        {/* ================================================================
+            IMPLEMENT TAB
+            ================================================================ */}
+        {selectedTab === 'implement' && (
+          <Accordion collapsible multiple>
+            {/* ── 7. Response Plan by Scope ── */}
+            <AccordionItem value="response-plan">
+              <AccordionHeader>7. Response Plan by Scope</AccordionHeader>
+              <AccordionPanel>
+                <p className={styles.subsectionDesc}>
+                  Define planned responses for each impact scope, from most severe
+                  (global) to most localized (data integrity). Each level specifies
+                  availability, recoverability, resources, and preparation
+                  requirements.
+                </p>
+                {responsePlanData.map((plan, i) => (
+                  <div
+                    key={i}
+                    className={styles.responsePlanRow}
+                    style={{
+                      backgroundColor: plan.bgColor,
+                      borderLeftColor: plan.bgColor,
+                    }}
+                  >
+                    <div className={styles.responsePlanTitle}>
+                      <Badge appearance="filled" style={{ backgroundColor: 'rgba(255,255,255,0.2)', color: '#ffffff', marginRight: '8px' }}>
+                        {i + 1}
+                      </Badge>
+                      {plan.scope}
+                    </div>
+                    <div className={styles.responsePlanDetail}>
+                      <p><span className={styles.responsePlanLabel}>Availability:</span> {plan.availability}</p>
+                      <p><span className={styles.responsePlanLabel}>Recoverability:</span> {plan.recoverability}</p>
+                      <p><span className={styles.responsePlanLabel}>Resources:</span> {plan.resources}</p>
+                      <p><span className={styles.responsePlanLabel}>Continuity:</span> {plan.continuity}</p>
+                      <p style={{ marginTop: '8px', borderTop: '1px solid rgba(255,255,255,0.2)', paddingTop: '8px' }}>
+                        <span className={styles.responsePlanLabel}>Preparation:</span> {plan.preparation}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </AccordionPanel>
+            </AccordionItem>
+
+            {/* ── 8. Architecture Continuity Design (+BCDR) ── */}
+            <AccordionItem value="continuity-design">
+              <AccordionHeader>8. Architecture | Continuity Design (+BCDR)</AccordionHeader>
+              <AccordionPanel>
+                <p className={styles.subsectionDesc}>
+                  Updated architecture with BCDR improvements. Components marked
+                  with{' '}
+                  <Badge appearance="filled" style={{ backgroundColor: '#0d6efd', color: '#ffffff' }}>NEW</Badge>{' '}
+                  indicate changes from the gap assessment.
+                </p>
+                <div className={styles.tableWrap}>
+                  <table className={styles.table}>
+                    <thead>
+                      <tr>
+                        <th className={styles.th}>Component</th>
+                        <th className={styles.th}>Category</th>
+                        <th className={styles.thCenter}>SLA</th>
+                        <th className={styles.thWrap}>HA Configuration</th>
+                        <th className={styles.thWrap}>DR Configuration</th>
+                        <th className={styles.thWrap}>Remediation</th>
+                        <th className={styles.thCenter}>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {continuityDesignData.map((row, i) => {
+                        const isNew = row.status === 'new'
+                        return (
+                          <tr key={i} style={isNew ? { backgroundColor: 'rgba(13,110,253,0.05)' } : undefined}>
+                            <td className={styles.td} style={{ fontWeight: 600 }}>{row.component}</td>
+                            <td className={styles.td}>{row.category}</td>
+                            <td className={styles.tdCenter}>{row.sla}</td>
+                            <td className={styles.td} style={isNew ? { borderLeft: '3px dotted #0d6efd' } : undefined}>{row.ha}</td>
+                            <td className={styles.td} style={isNew ? { borderLeft: '3px dotted #0d6efd' } : undefined}>{row.dr}</td>
+                            <td className={styles.td}>{row.remediation}</td>
+                            <td className={styles.tdCenter}>
+                              {isNew ? (
+                                <Badge appearance="filled" style={{ backgroundColor: '#0d6efd', color: '#ffffff' }}>NEW</Badge>
+                              ) : (
+                                <Badge appearance="filled" style={{ backgroundColor: '#28a745', color: '#ffffff' }}>Met</Badge>
+                              )}
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </AccordionPanel>
+            </AccordionItem>
+
+            {/* ── 9. Cost Comparison ── */}
+            <AccordionItem value="cost-comparison">
+              <AccordionHeader>9. Cost Comparison (&minus;BCDR vs. +BCDR)</AccordionHeader>
+              <AccordionPanel>
+                <p className={styles.subsectionDesc}>
+                  Side-by-side comparison of monthly costs before and after BCDR
+                  improvements. Use this to build the business case for investment.
+                </p>
+                <div className={styles.tableWrap}>
+                  <table className={styles.table}>
+                    <thead>
+                      <tr>
+                        <th className={styles.th}>Component</th>
+                        <th className={styles.thCenter}>Current (Monthly)</th>
+                        <th className={styles.thCenter}>+BCDR (Monthly)</th>
+                        <th className={styles.thCenter}>Difference</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {costComparisonData.map((row, i) => {
+                        const diff = row.bcdrCost - row.currentCost
+                        return (
+                          <tr key={i}>
+                            <td className={styles.td} style={{ fontWeight: 600 }}>{row.component}</td>
+                            <td className={styles.tdCenter}>${row.currentCost.toLocaleString()}</td>
+                            <td className={styles.tdCenter}>${row.bcdrCost.toLocaleString()}</td>
+                            <td className={styles.tdCenter} style={{ color: diff > 0 ? '#dc3545' : '#28a745', fontWeight: 600 }}>
+                              {diff > 0 ? '+' : ''}{`$${diff.toLocaleString()}`}
+                            </td>
+                          </tr>
+                        )
+                      })}
+                      <tr style={{ fontWeight: 700, backgroundColor: tokens.colorNeutralBackground3 }}>
+                        <td className={styles.td}>Total</td>
+                        <td className={styles.tdCenter}>${totalCurrent.toLocaleString()}</td>
+                        <td className={styles.tdCenter}>${totalBcdr.toLocaleString()}</td>
+                        <td className={styles.tdCenter} style={{ color: '#dc3545' }}>+${totalDiff.toLocaleString()}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div className={styles.costHighlight}>
+                  BCDR investment adds ${totalDiff.toLocaleString()}/month (+{pctIncrease}%) to improve
+                  availability from 99.9% to 99.99%
+                </div>
+              </AccordionPanel>
+            </AccordionItem>
+
+            {/* ── 10. Metric Comparison (+BCDR) ── */}
+            <AccordionItem value="metric-comparison">
+              <AccordionHeader>10. Metric Comparison (+BCDR)</AccordionHeader>
+              <AccordionPanel>
+                <p className={styles.subsectionDesc}>
+                  Improved reliability scores after BCDR implementation,
+                  demonstrating the value of investments made.
+                </p>
+                <div className={styles.tableWrap}>
+                  <table className={styles.table}>
+                    <thead>
+                      <tr>
+                        <th className={styles.th} rowSpan={2}>Component</th>
+                        <th className={styles.thCenter} colSpan={2}>Availability</th>
+                        <th className={styles.thCenter} colSpan={2}>Reliability</th>
+                        <th className={styles.thCenter} colSpan={2}>Security</th>
+                      </tr>
+                      <tr>
+                        <th className={styles.thCenter}>Before</th>
+                        <th className={styles.thCenter}>After</th>
+                        <th className={styles.thCenter}>Before</th>
+                        <th className={styles.thCenter}>After</th>
+                        <th className={styles.thCenter}>Before</th>
+                        <th className={styles.thCenter}>After</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {metricComparisonData.map((row, i) => (
+                        <tr key={i}>
+                          <td className={styles.td} style={{ fontWeight: 600 }}>{row.component}</td>
+                          <td className={styles.tdCenter}>{row.beforeAvail}</td>
+                          <td className={styles.tdCenter} style={{ color: '#28a745', fontWeight: 600 }}>{row.afterAvail}</td>
+                          <td className={styles.tdCenter}>{row.beforeReliability}</td>
+                          <td className={styles.tdCenter} style={{ color: '#28a745', fontWeight: 600 }}>{row.afterReliability}</td>
+                          <td className={styles.tdCenter}>{row.beforeSecurity}</td>
+                          <td className={styles.tdCenter} style={{ color: '#28a745', fontWeight: 600 }}>{row.afterSecurity}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </AccordionPanel>
+            </AccordionItem>
+
+            {/* ── 11. Fault Tree Analysis (+BCDR) ── */}
+            <AccordionItem value="fta-after">
+              <AccordionHeader>11. Fault Tree Analysis (+BCDR)</AccordionHeader>
+              <AccordionPanel>
+                <p className={styles.subsectionDesc}>
+                  Updated fault tree showing reduced failure probability after BCDR
+                  remediation. Compare with the pre-BCDR analysis to see
+                  improvements.
+                </p>
+                <div className={styles.faultTreeRoot} style={{ backgroundColor: '#28a745' }}>
+                  Top Event: Application Unavailable &mdash; Probability Reduced
+                </div>
+                <div className={styles.faultTreeBranch}>
+                  {faultTreeAfter.map((branch, i) => (
+                    <div key={i}>
+                      <div className={styles.faultTreeNode}>
+                        <strong>{branch.category}</strong>
+                        <span style={{ marginLeft: '12px' }}>
+                          <Badge appearance="filled" style={{ backgroundColor: '#28a745', color: '#ffffff', marginRight: '6px' }}>
+                            P: {branch.probability}
+                          </Badge>
+                          <Badge appearance="filled" style={{ backgroundColor: branch.impact === 'High' ? '#fd7e14' : '#ffc107', color: '#1a1a1a' }}>
+                            I: {branch.impact}
+                          </Badge>
+                        </span>
+                      </div>
+                      {branch.mitigations.map((mit, j) => (
+                        <div key={j} className={styles.faultTreeLeaf}>
+                          <Checkmark16Filled style={{color: '#28a745', marginRight: '4px', verticalAlign: 'middle'}} /> {mit}
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              </AccordionPanel>
+            </AccordionItem>
+
+            {/* ── 12. Contingency Plan ── */}
+            <AccordionItem value="contingency-plan">
+              <AccordionHeader>12. Contingency Plan</AccordionHeader>
+              <AccordionPanel>
+                <p className={styles.subsectionDesc}>
+                  Procedure for continuing operations when the system cannot be
+                  restored within MTD. This plan is activated only when normal
+                  recovery fails.
+                </p>
+                <div className={styles.note}>
+                  <strong>Trigger:</strong> The contingency plan is activated when the
+                  application cannot be restored within the Maximum Tolerable
+                  Downtime (MTD) of 24 hours and normal recovery procedures have
+                  been exhausted.
+                </div>
+                {contingencySteps.map((step, i) => (
+                  <div key={i} className={styles.checklistItem}>
+                    <div className={styles.checkBox} />
+                    <div><strong>Step {i + 1}:</strong> {step}</div>
+                  </div>
+                ))}
+              </AccordionPanel>
+            </AccordionItem>
+
+            {/* ── 13. Role Assignment ── */}
+            <AccordionItem value="role-assignment">
+              <AccordionHeader>13. Role Assignment</AccordionHeader>
+              <AccordionPanel>
+                <p className={styles.subsectionDesc}>
+                  Assign specific individuals to BCDR roles. Keep contact details
+                  current and review quarterly. Roles align with the RACI matrix
+                  defined in Phase 1.
+                </p>
+                <div className={styles.tableWrap}>
+                  <table className={styles.table}>
+                    <thead>
+                      <tr>
+                        <th className={styles.th}>Role</th>
+                        <th className={styles.th}>Assigned To</th>
+                        <th className={styles.th}>Team</th>
+                        <th className={styles.thWrap}>Responsibility</th>
+                        <th className={styles.th}>Escalation</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {roleAssignmentData.map((row, i) => (
+                        <tr key={i}>
+                          <td className={styles.td} style={{ fontWeight: 600 }}>{row.role}</td>
+                          <td className={styles.td}>{row.name}</td>
+                          <td className={styles.td}>{row.team}</td>
+                          <td className={styles.td}>{row.responsibility}</td>
+                          <td className={styles.td}>{row.escalation}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </AccordionPanel>
+            </AccordionItem>
+          </Accordion>
+        )}
+
+        {/* ================================================================
+            TEST TAB
+            ================================================================ */}
+        {selectedTab === 'test' && (
+          <Accordion collapsible multiple>
+            {/* ── 14. Test Summary ── */}
+            <AccordionItem value="test-summary">
+              <AccordionHeader>14. Test Summary</AccordionHeader>
+              <AccordionPanel>
+                <p className={styles.subsectionDesc}>
+                  Track all BCDR testing activities, schedules, and outcomes. Update
+                  after each test execution.
+                </p>
+                <div className={styles.tableWrap}>
+                  <table className={styles.table}>
+                    <thead>
+                      <tr>
+                        <th className={styles.th}>Test Type</th>
+                        <th className={styles.thCenter}>Frequency</th>
+                        <th className={styles.thCenter}>Last Test</th>
+                        <th className={styles.thCenter}>Next Test</th>
+                        <th className={styles.thCenter}>Automated</th>
+                        <th className={styles.thCenter}>Status</th>
+                        <th className={styles.th}>Owner</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {testSummaryData.map((row, i) => (
+                        <tr key={i}>
+                          <td className={styles.td} style={{ fontWeight: 600 }}>{row.type}</td>
+                          <td className={styles.tdCenter}>{row.frequency}</td>
+                          <td className={styles.tdCenter}>{row.lastTest}</td>
+                          <td className={styles.tdCenter}>{row.nextTest}</td>
+                          <td className={styles.tdCenter}>{row.automated}</td>
+                          <td className={styles.tdCenter}>
+                            <Badge appearance="filled" color={row.status === 'Passed' ? 'success' : 'warning'}>
+                              {row.status}
+                            </Badge>
+                          </td>
+                          <td className={styles.td}>{row.owner}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </AccordionPanel>
+            </AccordionItem>
+
+            {/* ── 15. Continuity Drill ── */}
+            <AccordionItem value="continuity-drill">
+              <AccordionHeader>15. Continuity Drill (Failover Test)</AccordionHeader>
+              <AccordionPanel>
+                <p className={styles.subsectionDesc}>
+                  Step-by-step procedure for conducting a failover and failback
+                  drill. All participants should review this before executing.
+                </p>
+                <Card className={styles.card}>
+                  <div className={styles.cardTitle}>Failover Procedure</div>
+                  <ol className={styles.olList}>
+                    {failoverSteps.map((step, i) => (
+                      <li key={i}>{step}</li>
+                    ))}
+                  </ol>
+                </Card>
+                <Card className={styles.card}>
+                  <div className={styles.cardTitle}>Failback Procedure</div>
+                  <ol className={styles.olList}>
+                    {failbackSteps.map((step, i) => (
+                      <li key={i}>{step}</li>
+                    ))}
+                  </ol>
+                </Card>
+                <div className={styles.note}>
+                  <strong>Reference:</strong>{' '}
+                  <a className={styles.link} href="https://learn.microsoft.com/en-us/azure/architecture/framework/resiliency/testing" target="_blank" rel="noopener noreferrer">Azure Well-Architected Framework &mdash; Reliability testing</a>
+                </div>
+              </AccordionPanel>
+            </AccordionItem>
+
+            {/* ── 16. Test Plan (UAT) ── */}
+            <AccordionItem value="uat-test-plan">
+              <AccordionHeader>16. Test Plan (UAT)</AccordionHeader>
+              <AccordionPanel>
+                <p className={styles.subsectionDesc}>
+                  User Acceptance Testing procedures to validate that recovered
+                  systems meet business requirements after a failover or restore
+                  event.
+                </p>
+                <div className={styles.tableWrap}>
+                  <table className={styles.table}>
+                    <thead>
+                      <tr>
+                        <th className={styles.th}>Business Function</th>
+                        <th className={styles.thWrap}>Test Steps</th>
+                        <th className={styles.thWrap}>Expected Result</th>
+                        <th className={styles.thCenter}>Priority</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {uatTestCases.map((row, i) => (
+                        <tr key={i}>
+                          <td className={styles.td} style={{ fontWeight: 600 }}>{row.function_name}</td>
+                          <td className={styles.td}>{row.testSteps}</td>
+                          <td className={styles.td}>{row.expectedResult}</td>
+                          <td className={styles.tdCenter}>
+                            <Badge
+                              appearance="filled"
+                              color={row.priority === 'High' ? 'danger' : row.priority === 'Medium' ? 'warning' : 'success'}
+                            >
+                              {row.priority}
                             </Badge>
                           </td>
                         </tr>
-                      )
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </AccordionPanel>
-          </AccordionItem>
-
-          {/* ── 6. Metric Analysis ── */}
-          <AccordionItem value="metric-analysis">
-            <AccordionHeader>6. Metric Analysis (\u2212BCDR)</AccordionHeader>
-            <AccordionPanel>
-              <p className={styles.subsectionDesc}>
-                Baseline reliability and security scores per component before
-                BCDR implementation. These scores feed into the business case for
-                improvement.
-              </p>
-              <div className={styles.tableWrap}>
-                <table className={styles.table}>
-                  <thead>
-                    <tr>
-                      <th className={styles.th}>Component</th>
-                      <th className={styles.thCenter}>Availability</th>
-                      <th className={styles.thCenter}>Reliability</th>
-                      <th className={styles.thCenter}>Security</th>
-                      <th className={styles.thCenter}>Composite Score</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {metricAnalysisData.map((row, i) => (
-                      <tr key={i}>
-                        <td className={styles.td} style={{ fontWeight: 600 }}>{row.component}</td>
-                        <td className={styles.tdCenter}>{row.availability}</td>
-                        <td className={styles.tdCenter}>{row.reliability}</td>
-                        <td className={styles.tdCenter}>{row.security}</td>
-                        <td className={styles.tdCenter}><strong>{row.composite}</strong></td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </AccordionPanel>
-          </AccordionItem>
-        </Accordion>
-      </div>
-
-      {/* ================================================================
-          IMPLEMENT SECTION
-          ================================================================ */}
-      <div className={styles.section}>
-        <h2 className={styles.sectionTitle}>
-          <Badge appearance="filled" color="success">Implement</Badge>
-          Implementation Activities
-        </h2>
-
-        <Accordion collapsible multiple>
-          {/* ── 7. Response Plan by Scope ── */}
-          <AccordionItem value="response-plan">
-            <AccordionHeader>7. Response Plan by Scope</AccordionHeader>
-            <AccordionPanel>
-              <p className={styles.subsectionDesc}>
-                Define planned responses for each impact scope, from most severe
-                (global) to most localized (data integrity). Each level specifies
-                availability, recoverability, resources, and preparation
-                requirements.
-              </p>
-              {responsePlanData.map((plan, i) => (
-                <div
-                  key={i}
-                  className={styles.responsePlanRow}
-                  style={{
-                    backgroundColor: plan.bgColor,
-                    borderLeftColor: plan.bgColor,
-                  }}
-                >
-                  <div className={styles.responsePlanTitle}>
-                    <Badge appearance="filled" style={{ backgroundColor: 'rgba(255,255,255,0.2)', color: '#ffffff', marginRight: '8px' }}>
-                      {i + 1}
-                    </Badge>
-                    {plan.scope}
-                  </div>
-                  <div className={styles.responsePlanDetail}>
-                    <p><span className={styles.responsePlanLabel}>Availability:</span> {plan.availability}</p>
-                    <p><span className={styles.responsePlanLabel}>Recoverability:</span> {plan.recoverability}</p>
-                    <p><span className={styles.responsePlanLabel}>Resources:</span> {plan.resources}</p>
-                    <p><span className={styles.responsePlanLabel}>Continuity:</span> {plan.continuity}</p>
-                    <p style={{ marginTop: '8px', borderTop: '1px solid rgba(255,255,255,0.2)', paddingTop: '8px' }}>
-                      <span className={styles.responsePlanLabel}>Preparation:</span> {plan.preparation}
-                    </p>
-                  </div>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-              ))}
-            </AccordionPanel>
-          </AccordionItem>
+              </AccordionPanel>
+            </AccordionItem>
 
-          {/* ── 8. Architecture Continuity Design (+BCDR) ── */}
-          <AccordionItem value="continuity-design">
-            <AccordionHeader>8. Architecture | Continuity Design (+BCDR)</AccordionHeader>
-            <AccordionPanel>
-              <p className={styles.subsectionDesc}>
-                Updated architecture with BCDR improvements. Components marked
-                with{' '}
-                <Badge appearance="filled" style={{ backgroundColor: '#0d6efd', color: '#ffffff' }}>NEW</Badge>{' '}
-                indicate changes from the gap assessment.
-              </p>
-              <div className={styles.tableWrap}>
-                <table className={styles.table}>
-                  <thead>
-                    <tr>
-                      <th className={styles.th}>Component</th>
-                      <th className={styles.th}>Category</th>
-                      <th className={styles.thCenter}>SLA</th>
-                      <th className={styles.thWrap}>HA Configuration</th>
-                      <th className={styles.thWrap}>DR Configuration</th>
-                      <th className={styles.thWrap}>Remediation</th>
-                      <th className={styles.thCenter}>Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {continuityDesignData.map((row, i) => {
-                      const isNew = row.status === 'new'
-                      return (
-                        <tr key={i} style={isNew ? { backgroundColor: 'rgba(13,110,253,0.05)' } : undefined}>
-                          <td className={styles.td} style={{ fontWeight: 600 }}>{row.component}</td>
-                          <td className={styles.td}>{row.category}</td>
-                          <td className={styles.tdCenter}>{row.sla}</td>
-                          <td className={styles.td} style={isNew ? { borderLeft: '3px dotted #0d6efd' } : undefined}>{row.ha}</td>
-                          <td className={styles.td} style={isNew ? { borderLeft: '3px dotted #0d6efd' } : undefined}>{row.dr}</td>
-                          <td className={styles.td}>{row.remediation}</td>
-                          <td className={styles.tdCenter}>
-                            {isNew ? (
-                              <Badge appearance="filled" style={{ backgroundColor: '#0d6efd', color: '#ffffff' }}>NEW</Badge>
-                            ) : (
-                              <Badge appearance="filled" style={{ backgroundColor: '#28a745', color: '#ffffff' }}>{'\u2705'} Met</Badge>
-                            )}
-                          </td>
-                        </tr>
-                      )
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </AccordionPanel>
-          </AccordionItem>
-
-          {/* ── 9. Cost Comparison ── */}
-          <AccordionItem value="cost-comparison">
-            <AccordionHeader>9. Cost Comparison (\u2212BCDR vs. +BCDR)</AccordionHeader>
-            <AccordionPanel>
-              <p className={styles.subsectionDesc}>
-                Side-by-side comparison of monthly costs before and after BCDR
-                improvements. Use this to build the business case for investment.
-              </p>
-              <div className={styles.tableWrap}>
-                <table className={styles.table}>
-                  <thead>
-                    <tr>
-                      <th className={styles.th}>Component</th>
-                      <th className={styles.thCenter}>Current (Monthly)</th>
-                      <th className={styles.thCenter}>+BCDR (Monthly)</th>
-                      <th className={styles.thCenter}>Difference</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {costComparisonData.map((row, i) => {
-                      const diff = row.bcdrCost - row.currentCost
-                      return (
-                        <tr key={i}>
-                          <td className={styles.td} style={{ fontWeight: 600 }}>{row.component}</td>
-                          <td className={styles.tdCenter}>${row.currentCost.toLocaleString()}</td>
-                          <td className={styles.tdCenter}>${row.bcdrCost.toLocaleString()}</td>
-                          <td className={styles.tdCenter} style={{ color: diff > 0 ? '#dc3545' : '#28a745', fontWeight: 600 }}>
-                            {diff > 0 ? '+' : ''}{`$${diff.toLocaleString()}`}
-                          </td>
-                        </tr>
-                      )
-                    })}
-                    <tr style={{ fontWeight: 700, backgroundColor: tokens.colorNeutralBackground3 }}>
-                      <td className={styles.td}>Total</td>
-                      <td className={styles.tdCenter}>${totalCurrent.toLocaleString()}</td>
-                      <td className={styles.tdCenter}>${totalBcdr.toLocaleString()}</td>
-                      <td className={styles.tdCenter} style={{ color: '#dc3545' }}>+${totalDiff.toLocaleString()}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-              <div className={styles.costHighlight}>
-                BCDR investment adds ${totalDiff.toLocaleString()}/month (+{pctIncrease}%) to improve
-                availability from 99.9% to 99.99%
-              </div>
-            </AccordionPanel>
-          </AccordionItem>
-
-          {/* ── 10. Metric Comparison (+BCDR) ── */}
-          <AccordionItem value="metric-comparison">
-            <AccordionHeader>10. Metric Comparison (+BCDR)</AccordionHeader>
-            <AccordionPanel>
-              <p className={styles.subsectionDesc}>
-                Improved reliability scores after BCDR implementation,
-                demonstrating the value of investments made.
-              </p>
-              <div className={styles.tableWrap}>
-                <table className={styles.table}>
-                  <thead>
-                    <tr>
-                      <th className={styles.th} rowSpan={2}>Component</th>
-                      <th className={styles.thCenter} colSpan={2}>Availability</th>
-                      <th className={styles.thCenter} colSpan={2}>Reliability</th>
-                      <th className={styles.thCenter} colSpan={2}>Security</th>
-                    </tr>
-                    <tr>
-                      <th className={styles.thCenter}>Before</th>
-                      <th className={styles.thCenter}>After</th>
-                      <th className={styles.thCenter}>Before</th>
-                      <th className={styles.thCenter}>After</th>
-                      <th className={styles.thCenter}>Before</th>
-                      <th className={styles.thCenter}>After</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {metricComparisonData.map((row, i) => (
-                      <tr key={i}>
-                        <td className={styles.td} style={{ fontWeight: 600 }}>{row.component}</td>
-                        <td className={styles.tdCenter}>{row.beforeAvail}</td>
-                        <td className={styles.tdCenter} style={{ color: '#28a745', fontWeight: 600 }}>{row.afterAvail}</td>
-                        <td className={styles.tdCenter}>{row.beforeReliability}</td>
-                        <td className={styles.tdCenter} style={{ color: '#28a745', fontWeight: 600 }}>{row.afterReliability}</td>
-                        <td className={styles.tdCenter}>{row.beforeSecurity}</td>
-                        <td className={styles.tdCenter} style={{ color: '#28a745', fontWeight: 600 }}>{row.afterSecurity}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </AccordionPanel>
-          </AccordionItem>
-
-          {/* ── 11. Fault Tree Analysis (+BCDR) ── */}
-          <AccordionItem value="fta-after">
-            <AccordionHeader>11. Fault Tree Analysis (+BCDR)</AccordionHeader>
-            <AccordionPanel>
-              <p className={styles.subsectionDesc}>
-                Updated fault tree showing reduced failure probability after BCDR
-                remediation. Compare with the pre-BCDR analysis to see
-                improvements.
-              </p>
-              <div className={styles.faultTreeRoot} style={{ backgroundColor: '#28a745' }}>
-                Top Event: Application Unavailable &mdash; Probability Reduced
-              </div>
-              <div className={styles.faultTreeBranch}>
-                {faultTreeAfter.map((branch, i) => (
-                  <div key={i}>
-                    <div className={styles.faultTreeNode}>
-                      <strong>{branch.category}</strong>
-                      <span style={{ marginLeft: '12px' }}>
-                        <Badge appearance="filled" style={{ backgroundColor: '#28a745', color: '#ffffff', marginRight: '6px' }}>
-                          P: {branch.probability}
-                        </Badge>
-                        <Badge appearance="filled" style={{ backgroundColor: branch.impact === 'High' ? '#fd7e14' : '#ffc107', color: '#1a1a1a' }}>
-                          I: {branch.impact}
-                        </Badge>
-                      </span>
-                    </div>
-                    {branch.mitigations.map((mit, j) => (
-                      <div key={j} className={styles.faultTreeLeaf}>
-                        {'\u2705'} {mit}
+            {/* ── 17. Outage Communication Plan ── */}
+            <AccordionItem value="outage-comm-plan">
+              <AccordionHeader>17. Outage Communication Plan</AccordionHeader>
+              <AccordionPanel>
+                <p className={styles.subsectionDesc}>
+                  Communication procedures organized by event scope. Defines
+                  pre-outage preparation, during-outage actions, and post-outage
+                  follow-up.
+                </p>
+                {commPlanData.map((plan, i) => (
+                  <Card key={i} className={styles.card}>
+                    <div className={styles.cardTitle}>{plan.scope}</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px' }}>
+                      <div>
+                        <strong>Pre-Outage</strong>
+                        <ul className={styles.list}>
+                          {plan.preOutage.map((item, j) => (
+                            <li key={j}>{item}</li>
+                          ))}
+                        </ul>
                       </div>
-                    ))}
-                  </div>
+                      <div>
+                        <strong>During Outage</strong>
+                        <ul className={styles.list}>
+                          {plan.duringOutage.map((item, j) => (
+                            <li key={j}>{item}</li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div>
+                        <strong>Post-Outage</strong>
+                        <ul className={styles.list}>
+                          {plan.postOutage.map((item, j) => (
+                            <li key={j}>{item}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </Card>
                 ))}
-              </div>
-            </AccordionPanel>
-          </AccordionItem>
+              </AccordionPanel>
+            </AccordionItem>
 
-          {/* ── 12. Contingency Plan ── */}
-          <AccordionItem value="contingency-plan">
-            <AccordionHeader>12. Contingency Plan</AccordionHeader>
-            <AccordionPanel>
-              <p className={styles.subsectionDesc}>
-                Procedure for continuing operations when the system cannot be
-                restored within MTD. This plan is activated only when normal
-                recovery fails.
-              </p>
-              <div className={styles.note}>
-                <strong>Trigger:</strong> The contingency plan is activated when the
-                application cannot be restored within the Maximum Tolerable
-                Downtime (MTD) of 24 hours and normal recovery procedures have
-                been exhausted.
-              </div>
-              {contingencySteps.map((step, i) => (
-                <div key={i} className={styles.checklistItem}>
-                  <div className={styles.checkBox} />
-                  <div><strong>Step {i + 1}:</strong> {step}</div>
+            {/* ── 18. Maintain Application Continuity ── */}
+            <AccordionItem value="maintain">
+              <AccordionHeader>18. Maintain Application Continuity</AccordionHeader>
+              <AccordionPanel>
+                <p className={styles.subsectionDesc}>
+                  Maintenance schedule for all continuity documentation and
+                  artifacts. Regular reviews ensure documents stay current with
+                  architecture and organizational changes.
+                </p>
+                <div className={styles.tableWrap}>
+                  <table className={styles.table}>
+                    <thead>
+                      <tr>
+                        <th className={styles.th}>Document</th>
+                        <th className={styles.thCenter}>Review Frequency</th>
+                        <th className={styles.thCenter}>Next Review</th>
+                        <th className={styles.th}>Owner</th>
+                        <th className={styles.th}>Approver</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {maintenanceData.map((row, i) => (
+                        <tr key={i}>
+                          <td className={styles.td} style={{ fontWeight: 600 }}>{row.document}</td>
+                          <td className={styles.tdCenter}>{row.frequency}</td>
+                          <td className={styles.tdCenter}>{row.nextReview}</td>
+                          <td className={styles.td}>{row.owner}</td>
+                          <td className={styles.td}>{row.approver}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-              ))}
-            </AccordionPanel>
-          </AccordionItem>
-
-          {/* ── 13. Role Assignment ── */}
-          <AccordionItem value="role-assignment">
-            <AccordionHeader>13. Role Assignment</AccordionHeader>
-            <AccordionPanel>
-              <p className={styles.subsectionDesc}>
-                Assign specific individuals to BCDR roles. Keep contact details
-                current and review quarterly. Roles align with the RACI matrix
-                defined in Phase 1.
-              </p>
-              <div className={styles.tableWrap}>
-                <table className={styles.table}>
-                  <thead>
-                    <tr>
-                      <th className={styles.th}>Role</th>
-                      <th className={styles.th}>Assigned To</th>
-                      <th className={styles.th}>Team</th>
-                      <th className={styles.thWrap}>Responsibility</th>
-                      <th className={styles.th}>Escalation</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {roleAssignmentData.map((row, i) => (
-                      <tr key={i}>
-                        <td className={styles.td} style={{ fontWeight: 600 }}>{row.role}</td>
-                        <td className={styles.td}>{row.name}</td>
-                        <td className={styles.td}>{row.team}</td>
-                        <td className={styles.td}>{row.responsibility}</td>
-                        <td className={styles.td}>{row.escalation}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </AccordionPanel>
-          </AccordionItem>
-        </Accordion>
-      </div>
-
-      {/* ================================================================
-          TEST SECTION
-          ================================================================ */}
-      <div className={styles.section}>
-        <h2 className={styles.sectionTitle}>
-          <Badge appearance="filled" color="warning">Test</Badge>
-          Testing Activities
-        </h2>
-
-        <Accordion collapsible multiple>
-          {/* ── 14. Test Summary ── */}
-          <AccordionItem value="test-summary">
-            <AccordionHeader>14. Test Summary</AccordionHeader>
-            <AccordionPanel>
-              <p className={styles.subsectionDesc}>
-                Track all BCDR testing activities, schedules, and outcomes. Update
-                after each test execution.
-              </p>
-              <div className={styles.tableWrap}>
-                <table className={styles.table}>
-                  <thead>
-                    <tr>
-                      <th className={styles.th}>Test Type</th>
-                      <th className={styles.thCenter}>Frequency</th>
-                      <th className={styles.thCenter}>Last Test</th>
-                      <th className={styles.thCenter}>Next Test</th>
-                      <th className={styles.thCenter}>Automated</th>
-                      <th className={styles.thCenter}>Status</th>
-                      <th className={styles.th}>Owner</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {testSummaryData.map((row, i) => (
-                      <tr key={i}>
-                        <td className={styles.td} style={{ fontWeight: 600 }}>{row.type}</td>
-                        <td className={styles.tdCenter}>{row.frequency}</td>
-                        <td className={styles.tdCenter}>{row.lastTest}</td>
-                        <td className={styles.tdCenter}>{row.nextTest}</td>
-                        <td className={styles.tdCenter}>{row.automated}</td>
-                        <td className={styles.tdCenter}>{row.status}</td>
-                        <td className={styles.td}>{row.owner}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </AccordionPanel>
-          </AccordionItem>
-
-          {/* ── 15. Continuity Drill ── */}
-          <AccordionItem value="continuity-drill">
-            <AccordionHeader>15. Continuity Drill (Failover Test)</AccordionHeader>
-            <AccordionPanel>
-              <p className={styles.subsectionDesc}>
-                Step-by-step procedure for conducting a failover and failback
-                drill. All participants should review this before executing.
-              </p>
-              <Card className={styles.card}>
-                <div className={styles.cardTitle}>Failover Procedure</div>
-                <ol className={styles.olList}>
-                  {failoverSteps.map((step, i) => (
-                    <li key={i}>{step}</li>
-                  ))}
-                </ol>
-              </Card>
-              <Card className={styles.card}>
-                <div className={styles.cardTitle}>Failback Procedure</div>
-                <ol className={styles.olList}>
-                  {failbackSteps.map((step, i) => (
-                    <li key={i}>{step}</li>
-                  ))}
-                </ol>
-              </Card>
-              <div className={styles.note}>
-                <strong>Reference:</strong>{' '}
-                <a className={styles.link} href="https://learn.microsoft.com/en-us/azure/architecture/framework/resiliency/testing" target="_blank" rel="noopener noreferrer">Azure Well-Architected Framework &mdash; Reliability testing</a>
-              </div>
-            </AccordionPanel>
-          </AccordionItem>
-
-          {/* ── 16. Test Plan (UAT) ── */}
-          <AccordionItem value="uat-test-plan">
-            <AccordionHeader>16. Test Plan (UAT)</AccordionHeader>
-            <AccordionPanel>
-              <p className={styles.subsectionDesc}>
-                User Acceptance Testing procedures to validate that recovered
-                systems meet business requirements after a failover or restore
-                event.
-              </p>
-              <div className={styles.tableWrap}>
-                <table className={styles.table}>
-                  <thead>
-                    <tr>
-                      <th className={styles.th}>Business Function</th>
-                      <th className={styles.thWrap}>Test Steps</th>
-                      <th className={styles.thWrap}>Expected Result</th>
-                      <th className={styles.thCenter}>Priority</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {uatTestCases.map((row, i) => (
-                      <tr key={i}>
-                        <td className={styles.td} style={{ fontWeight: 600 }}>{row.function_name}</td>
-                        <td className={styles.td}>{row.testSteps}</td>
-                        <td className={styles.td}>{row.expectedResult}</td>
-                        <td className={styles.tdCenter}>
-                          <Badge
-                            appearance="filled"
-                            color={row.priority === 'High' ? 'danger' : row.priority === 'Medium' ? 'warning' : 'success'}
-                          >
-                            {row.priority}
-                          </Badge>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </AccordionPanel>
-          </AccordionItem>
-
-          {/* ── 17. Outage Communication Plan ── */}
-          <AccordionItem value="outage-comm-plan">
-            <AccordionHeader>17. Outage Communication Plan</AccordionHeader>
-            <AccordionPanel>
-              <p className={styles.subsectionDesc}>
-                Communication procedures organized by event scope. Defines
-                pre-outage preparation, during-outage actions, and post-outage
-                follow-up.
-              </p>
-              {commPlanData.map((plan, i) => (
-                <Card key={i} className={styles.card}>
-                  <div className={styles.cardTitle}>{plan.scope}</div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px' }}>
-                    <div>
-                      <strong>Pre-Outage</strong>
-                      <ul className={styles.list}>
-                        {plan.preOutage.map((item, j) => (
-                          <li key={j}>{item}</li>
-                        ))}
-                      </ul>
-                    </div>
-                    <div>
-                      <strong>During Outage</strong>
-                      <ul className={styles.list}>
-                        {plan.duringOutage.map((item, j) => (
-                          <li key={j}>{item}</li>
-                        ))}
-                      </ul>
-                    </div>
-                    <div>
-                      <strong>Post-Outage</strong>
-                      <ul className={styles.list}>
-                        {plan.postOutage.map((item, j) => (
-                          <li key={j}>{item}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-                </Card>
-              ))}
-            </AccordionPanel>
-          </AccordionItem>
-
-          {/* ── 18. Maintain Application Continuity ── */}
-          <AccordionItem value="maintain">
-            <AccordionHeader>18. Maintain Application Continuity</AccordionHeader>
-            <AccordionPanel>
-              <p className={styles.subsectionDesc}>
-                Maintenance schedule for all continuity documentation and
-                artifacts. Regular reviews ensure documents stay current with
-                architecture and organizational changes.
-              </p>
-              <div className={styles.tableWrap}>
-                <table className={styles.table}>
-                  <thead>
-                    <tr>
-                      <th className={styles.th}>Document</th>
-                      <th className={styles.thCenter}>Review Frequency</th>
-                      <th className={styles.thCenter}>Next Review</th>
-                      <th className={styles.th}>Owner</th>
-                      <th className={styles.th}>Approver</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {maintenanceData.map((row, i) => (
-                      <tr key={i}>
-                        <td className={styles.td} style={{ fontWeight: 600 }}>{row.document}</td>
-                        <td className={styles.tdCenter}>{row.frequency}</td>
-                        <td className={styles.tdCenter}>{row.nextReview}</td>
-                        <td className={styles.td}>{row.owner}</td>
-                        <td className={styles.td}>{row.approver}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <div className={styles.note}>
-                <strong>Update triggers:</strong> Documents should also be reviewed after
-                any architecture change, test failure, actual outage event, or
-                organizational restructuring &mdash; regardless of scheduled
-                review dates.
-              </div>
-            </AccordionPanel>
-          </AccordionItem>
-        </Accordion>
+                <div className={styles.note}>
+                  <strong>Update triggers:</strong> Documents should also be reviewed after
+                  any architecture change, test failure, actual outage event, or
+                  organizational restructuring &mdash; regardless of scheduled
+                  review dates.
+                </div>
+              </AccordionPanel>
+            </AccordionItem>
+          </Accordion>
+        )}
       </div>
     </div>
   )
