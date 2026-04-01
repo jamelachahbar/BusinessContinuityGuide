@@ -264,6 +264,8 @@ export default function AssessTab() {
     setBiaDeps(biaDeps.map((g, i) => i === gi ? { ...g, items: g.items.map((item, j) => j === ii ? value : item) } : g))
   }
   const addDepItem = (gi: number) => setBiaDeps(biaDeps.map((g, i) => i === gi ? { ...g, items: [...g.items, ''] } : g))
+  const deleteDepItem = (gi: number, ii: number) => setBiaDeps(biaDeps.map((g, i) => i === gi ? { ...g, items: g.items.filter((_, j) => j !== ii) } : g))
+  const resetDeps = () => setBiaDeps(defaultBiaDeps)
 
   /* ── Gap helpers ── */
   const updateGap = <K extends keyof GapRow>(idx: number, field: K, value: GapRow[K]) => {
@@ -434,23 +436,29 @@ export default function AssessTab() {
             </table>
           </div>
 
-          <h4 style={{ marginTop: '20px', marginBottom: '12px' }}>Dependency Analysis</h4>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '20px', marginBottom: '12px' }}>
+            <h4 style={{ margin: 0 }}>Dependency Analysis</h4>
+            <Button icon={<ArrowReset20Regular />} size="small" appearance="subtle" onClick={resetDeps}>Reset</Button>
+          </div>
           {biaDeps.map((dep, gi) => (
             <Card key={gi} className={styles.card}>
               <div className={styles.cardTitle}>{dep.direction} Dependencies</div>
               <ul className={styles.list}>
                 {dep.items.map((item, ii) => (
-                  <li key={ii} style={{ cursor: 'pointer' }} onClick={() => setEditingCell(`dep-${gi}-${ii}`)}>
-                    {editingCell === `dep-${gi}-${ii}` ? (
-                      <input
-                        autoFocus
-                        defaultValue={item}
-                        onBlur={(e) => { updateDepItem(gi, ii, e.target.value); setEditingCell(null) }}
-                        onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); if (e.key === 'Escape') setEditingCell(null) }}
-                        className={styles.cellInput}
-                        style={{ width: '80%' }}
-                      />
-                    ) : item || '\u00A0'}
+                  <li key={ii} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                    <span style={{ flex: 1, cursor: 'pointer' }} onClick={() => setEditingCell(`dep-${gi}-${ii}`)}>
+                      {editingCell === `dep-${gi}-${ii}` ? (
+                        <input
+                          autoFocus
+                          defaultValue={item}
+                          onBlur={(e) => { updateDepItem(gi, ii, e.target.value); setEditingCell(null) }}
+                          onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); if (e.key === 'Escape') setEditingCell(null) }}
+                          className={styles.cellInput}
+                          style={{ width: '100%' }}
+                        />
+                      ) : (item || '(click to edit)')}
+                    </span>
+                    <Button icon={<Delete20Regular />} size="small" appearance="subtle" onClick={() => deleteDepItem(gi, ii)} />
                   </li>
                 ))}
               </ul>
