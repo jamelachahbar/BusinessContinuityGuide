@@ -1,119 +1,275 @@
-# Introducing the Azure Business Continuity Guide
+<p align="center">
+  <img src="web-app/public/favicon.svg" alt="BoltPlan Logo" width="120"/>
+</p>
 
-> [!IMPORTANT]
-> The ABC Guide is now available in two formats:
-> - **Web Version:** Browse the guide interactively in your browser (see [Web Application](#web-application) below)
-> - **Excel Workbook:** Download for offline use with the full interactive workbook experience
+<h1 align="center">BoltPlan</h1>
+<p align="center"><em>Interactive BCDR Workbench for Azure &mdash; ISO 22301 Compliant</em></p>
 
-**Download Latest Release:** [Azure Business Continuity Guide v0.55](https://github.com/Azure/BusinessContinuityGuide/releases/download/v0.55/ABCG.v0.55.xlsx)
+<p align="center">
+  <img src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black" alt="React 19"/>
+  <img src="https://img.shields.io/badge/TypeScript-5.9-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript"/>
+  <img src="https://img.shields.io/badge/Vite-8-646CFF?style=flat-square&logo=vite&logoColor=white" alt="Vite 8"/>
+  <img src="https://img.shields.io/badge/FluentUI-v9-0078D4?style=flat-square&logo=microsoft&logoColor=white" alt="FluentUI v9"/>
+  <img src="https://img.shields.io/badge/ISO_22301-compliant-28a745?style=flat-square" alt="ISO 22301"/>
+  <img src="https://img.shields.io/badge/React_Flow-11-ff6600?style=flat-square" alt="React Flow"/>
+  <img src="https://img.shields.io/badge/Azure_services-100+-667eea?style=flat-square" alt="100+ Azure Services"/>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-brightgreen?style=flat-square" alt="License: MIT"/></a>
+  <img src="https://img.shields.io/badge/version-1.0-brightgreen?style=flat-square" alt="Version"/>
+</p>
 
-📢 *For a brief overview of how the ABC Guide is structured and how to navigate the content, please see the **[Getting Started](getting-started.md)** page.*
+<p align="center">
+  <a href="#quick-start">Quick Start</a> &bull;
+  <a href="#why-boltplan">Why BoltPlan</a> &bull;
+  <a href="#features">Features</a> &bull;
+  <a href="#phases">BCDR Phases</a> &bull;
+  <a href="#exports">Exports</a> &bull;
+  <a href="#architecture">Architecture</a> &bull;
+  <a href="LICENSE">License</a>
+</p>
 
-## Web Application
+<p align="center">
+  <strong>Plan. Assess. Implement. Test.</strong> Build ISO 22301-compliant BCDR plans interactively.<br/>
+  Based on the Azure Business Continuity Guide &bull; 100+ Azure services &bull; Multi-solution support &bull; PDF &amp; Word export
+</p>
 
-Access the Azure Business Continuity Guide as a modern web application built with React, Vite, and FluentUI. The web version provides:
+<p align="center">
+  <img src="docs/dashboard.png" alt="BoltPlan Dashboard" width="900"/>
+</p>
 
-- 🌐 Browser-based access with no downloads required
-- 📱 Responsive design that works on desktop, tablet, and mobile
-- ⚡ Fast, modern interface with intuitive navigation
-- 🎨 Clean design using Microsoft FluentUI components
+<details open>
+<summary><strong>Table of Contents</strong></summary>
 
-### Quick Start
+- [Why BoltPlan?](#why-boltplan)
+- [Quick Start](#quick-start)
+- [Features](#features)
+- [BCDR Phases](#phases)
+- [Exports](#exports)
+- [Architecture](#architecture)
+- [Development](#development)
+- [License](#license)
 
-To run the web application locally:
+</details>
+
+---
+
+## Why BoltPlan?
+
+Instead of filling out Excel spreadsheets across dozens of tabs, use this interactive web workbench to:
+
+- **Build service maps** visually with drag-and-drop React Flow diagrams
+- **Run fault tree analysis** with official IEC 61025 symbols and FMEA scoring
+- **Calculate composite SLAs** automatically from your component chain (per Microsoft WAF)
+- **Track BCDR progress** with a 13-step getting-started checklist
+- **Generate ISO 22301 reports** as professional PDF or Word documents
+- **Manage multiple solutions** &mdash; each with fully isolated data across all phases
+
+> **Based on:** The [Azure Business Continuity Guide](https://github.com/Azure/BusinessContinuityGuide) Excel workbook (v0.55), reimagined as a modern interactive web application.
+
+<p align="right">(<a href="#boltplan">back to top</a>)</p>
+
+---
+
+## Quick Start
 
 ```bash
-cd web-app
+git clone https://github.com/Azure/BusinessContinuityGuide.git
+cd BusinessContinuityGuide/web-app
 npm install
 npm run dev
 ```
 
-Visit `http://localhost:5173` to view the application.
+Open [http://localhost:5173](http://localhost:5173) &mdash; a guided tour starts automatically.
 
-For more details, see the [web-app README](web-app/README.md).
+| Prerequisite | Version | Install |
+|-------------|---------|---------|
+| Node.js | 18+ | [nodejs.org](https://nodejs.org/) |
+| npm | 9+ | Included with Node.js |
 
-## What is the Azure Business Continuity Guide (ABC Guide)?
+No backend required &mdash; all data stored in browser localStorage.
 
-The Azure Business Continuity Guide provides a comprehensive set of recommendations to help customers define what BCDR looks like for their applications. Often a customer will ask us for help with their business continuity and disaster recovery plans. Sometimes, the customer simply needs a structured approach to protect one application in Microsoft Azure. In other cases, they have a portfolio of many applications in a hybrid environment that might never have had a good solution to protect everything with a single BCDR framework. In addition, Microsoft Azure offers a variety of services and features to help customers achieve high availability, disaster recovery, and backup for their applications and data. However, planning and implementing a solid strategy can be challenging, especially for complex environments.
+<p align="right">(<a href="#boltplan">back to top</a>)</p>
 
-That's why we created the Azure Business Continuity Guide. This guide available to all customers who are adopting BCDR solutions at any point in their journey. Let's take a tour!
+---
 
-## What's included in the Azure Business Continuity Guide?
+## Features
 
-The ABC Guide is a comprehensive and practical resource that helps you design and execute a BCDR plan for your Azure resources. The ABC Guide is published as an [Excel workbook](https://github.com/Azure/BusinessContinuityGuide/releases/download/v0.55/ABCG.v0.55.xlsx), which you can download and customize for your own needs. The ABC Guide contains a few different elements:
+### Guided Tour
 
-- Select documentation covering the important concepts of BCDR on Microsoft Azure
-- Recommended templates to help define your BCDR requirements in a consistent way
-- Example assessments, plans and checklists for customers to consider in their own BCDR implementation
+A 6-step branded walkthrough auto-starts for first-time visitors. Re-launch anytime from the Tour button.
 
-The workbook is divided into 3 distinct phases across the BCDR journey, from readiness to application continuity all the way through business continuity.
+<p align="center">
+  <img src="docs/guided-tour.png" alt="Guided Tour" width="900"/>
+</p>
 
-## Phase 1: Prepare
+### Criticality Model &amp; Multi-Solution Support
 
-In this phase we review fundamental concepts to answer the question, "What is the Microsoft Azure BCDR Solution?" This includes documentation on platform features, the shared responsibility model, design patterns and reliability trade-offs (ex. cost) just to name a few of the concepts. We also provide a set of templates that compose a structured methodology for assessing the business continuity of existing applications and facilitating the design of new ones. This approach can improve the overall adoption of BCDR and lead to more consistent planning.
+Define criticality tiers with auto-colored badges. Switch between solutions with the chip selector &mdash; all data is isolated per solution.
 
-![Phase 1 - Criticality Definitions](media/Prepare-Criticality_Definitions.png)
+<p align="center">
+  <img src="docs/phase1-criticality.png" alt="Criticality Model with multi-solution selector" width="900"/>
+</p>
 
-*For more information on this phase, head over to [Getting Started - Phase 1: Prepare](getting-started.md#phase-1-prepare)*
+### Service Map (React Flow)
 
-## Phase 2: Application Continuity
+Build your architecture with 100+ Azure services across 14 categories. 7 connection types with editable labels, direction, and click-to-edit. Export as PNG or CSV.
 
-From this point we have an iterative set of activities that should be followed for each independent application that needs a continuity plan.
+<p align="center">
+  <img src="docs/service-map.png" alt="Service Map dependency diagram" width="900"/>
+</p>
 
-### Assess
+### Fault Tree Analysis (IEC 61025)
 
-Starting with an assessment of the application to determine the requirements and architectural decisions. This should be guided by the business case for each application, which includes data from business impact assessments, service mapping and fault tree analysis among other included examples. Once you have validated your requirements in this way, any gaps in the implementation or design can be addressed during the implement activity.
+Official FTA symbols with FMEA risk priority scoring (Severity x Occurrence x Detection = RPN). Before/after comparison for -BCDR and +BCDR.
 
-### Implement
+<p align="center">
+  <img src="docs/fault-tree.png" alt="Fault Tree Analysis with FMEA" width="900"/>
+</p>
 
-In this activity we develop our response plan for the application that describes the types of events, their scope of impact and the appropriate response (and preparation) that should take place. For example, if a disaster impacts a single Availability Zone within a region we define the automated and/or manual failover activities that need to occur to recover.
+### Cost Comparison &amp; Architecture Design
 
-![Phase 2 - Impact Scope](media/Implement-Impact_Scope.png)
+Bar chart comparing before/after BCDR costs. Auto-synced from Architecture Design section.
 
-Next, we recommend documenting the architectural considerations for each service or component that affects the application's resiliency. This can be defined as a list of requirements with details on how the components meet requirements (i.e. use of availability zones or paired regions). The result is a robust document describing how the application should be implemented to meet the resiliency requirements. Any gaps or unmet requirements should be included so that your contingency planning can account for these items as needed.
+<p align="center">
+  <img src="docs/cost-comparison.png" alt="Cost Comparison" width="900"/>
+</p>
 
-Before moving to the next activity, we recommend customers assign roles and responsibilities to the recovery team that will be involved in the BCDR testing. A RACI template is included to help you consistently plan your teams across all applications.
+### ISO 22301 PDF &amp; Word Export
 
-### Test
+Generate a full Business Continuity Plan &mdash; 13 sections + appendices, all populated from your workbench data.
 
-Without regular testing, even the most robust plan can fail when it's needed most. Testing activities should include a failover plan, recovery plan, acceptance testing, outage communications and a regular review (and update) of all documents that support your application continuity plan. A test summary example is included in the ABC Guide to help track testing activities and results over time. Don't forget to include appropriate communication plans during tests as well. As you review your testing outcomes, look for ways to improve your plans to reduce costs, recovery times and efficiency.
+<p align="center">
+  <img src="docs/pdf-export.png" alt="PDF Export Cover Page" width="700"/>
+</p>
 
-*For more information on this phase, head over to [Getting Started - Phase 2: Application Continuity](getting-started.md#phase-2-application-continuity)*
+<p align="center">
+  <img src="docs/pdf-content.png" alt="PDF Content" width="700"/>
+</p>
 
-## Phase 3: Business Continuity
+<p align="right">(<a href="#boltplan">back to top</a>)</p>
 
-For the final phase of the ABC Guide, we focus on minimum business continuity objective (MBCO) planning and ongoing management. This involves combining and coordinating the individual application continuity plans for all critical applications.  Your organization should define the risks that are most likely to impact the business (i.e. natural disasters, cyberattacks, power outages, etc). We provide an example list of considerations to include from people and processes to validation and testing. The details from your risk assessment (and the outcomes of all the other activities up to this point) should help define the recovery order of your application portfolio. You should also identify any business critical events for your organization to ensure that BCDR testing does not cause disruption during these times.
+---
 
-![Phase 3 - Application Recovery Order](media/Business_Continuity-Minimum_Business_Continuity_Objective.png)
+## Phases
 
-*For more information on this phase, head over to [Getting Started - Phase 3: Business Continuity](getting-started.md#phase-3-business-continuity)*
+### Phase 1: Prepare
 
-## Get Started with the ABC Guide
+| Tab | Content |
+|-----|---------|
+| Concepts | Shared Responsibility, Design Patterns, Reliability Trade-offs |
+| Criticality Model | Color-coded tiers with auto-colored badges |
+| Business Commitment | 7 expandable sub-sections |
+| Fault Model | Failure types with mitigation strategies |
+| RACI Matrix | 29 deliverables mapped to 8 roles |
+| Requirements | Categorized with filters |
+| Test Plans | Types with frequency tracking |
 
-If you are ready to start, **[download the latest release](https://github.com/Azure/BusinessContinuityGuide/releases)** and then head over to the **[Getting Started](getting-started.md)** page to learn more about how to navigate the contents.
+### Phase 2: Application Continuity
 
+| Sub-tab | Sections | Key Features |
+|---------|----------|-------------|
+| **Assess** (6) | Requirements, Service Map, BIA, Fault Tree, Gap Assessment, Metrics | React Flow, composite SLA, FMEA |
+| **Implement** (7) | Response Plan, Architecture, Cost, Metrics, Fault Tree +BCDR, Contingency, Roles | Auto-sync, charts, reorderable steps |
+| **Test** (5) | Test Summary, Drill, UAT, Communication, Maintenance | Clickable status cycling |
 
-## Feedback
-The Azure Business Continuity Guide is a living document which we think our customers will value. Over time we plan to improve upon it based on your feedback. Please download a copy of the ABC Guide and let us know what you find useful, and what might make it even better for others!
+### Phase 3: Business Continuity
+
+| Tab | Sections |
+|-----|----------|
+| Planning &amp; Risk | BCP Checklist (progress %), Risk Assessment (5x5 matrix) |
+| MBCO &amp; Portfolio | Recovery Order, BIA Portfolio Summary |
+| Operations | Calendar, Dashboard (auto-populated), Activity Log |
+| Maintenance | Review schedule with status cycling |
+
+<p align="right">(<a href="#boltplan">back to top</a>)</p>
+
+---
+
+## Exports
+
+| Format | Content | Button |
+|--------|---------|--------|
+| **PDF** | Full ISO 22301 BCP (13 sections + appendices) | Toolbar: PDF |
+| **Word (.docx)** | Same ISO 22301 structure as PDF | Toolbar: DOCX |
+| **CSV** | All phase data | Toolbar: CSV or per-section |
+| **JSON** | Full workbench backup per solution | Toolbar: JSON |
+| **PNG** | Service Map and Fault Tree diagrams | Per-diagram buttons |
+
+---
+
+## Architecture
+
+| Technology | Purpose |
+|-----------|---------|
+| React 19 + TypeScript | UI framework |
+| Vite 8 | Build tool |
+| FluentUI React v9 | Component library |
+| React Flow 11 | Service Map &amp; Fault Tree |
+| Recharts 3 | Charts |
+| React Joyride 3 | Guided tour |
+| docx + file-saver | Word export |
+| html-to-image | PNG export |
+| localStorage | Per-solution persistence |
+
+<details>
+<summary><strong>Project Structure</strong></summary>
+
+```
+web-app/src/
+├── App.tsx                     # Collapsible sidebar, toolbar
+├── components/
+│   ├── Home.tsx                # Dashboard + progress card
+│   ├── Phase1Prepare.tsx       # Tabbed: Concepts → Test Plans
+│   ├── Phase2*.tsx             # Assess, Implement, Test
+│   ├── phase2/
+│   │   ├── ServiceMap.tsx      # React Flow + Azure catalog
+│   │   └── FaultTree.tsx       # IEC 61025 + FMEA
+│   ├── Phase3*.tsx             # Planning → Maintenance
+│   ├── AppSelector.tsx         # Multi-solution switcher
+│   ├── GuidedTour.tsx          # Branded walkthrough
+│   └── HelpIcon.tsx            # "?" contextual help
+├── context/
+│   ├── AppContext.tsx           # Solution registry
+│   └── WorkbenchContext.tsx     # Per-solution localStorage
+└── utils/
+    ├── azureCatalog.ts          # 100+ Azure services
+    ├── generateBcpPdf.ts        # ISO 22301 PDF
+    └── generateBcpDocx.ts       # ISO 22301 Word
+```
+
+</details>
+
+<p align="right">(<a href="#boltplan">back to top</a>)</p>
+
+---
+
+## Development
+
+```bash
+cd web-app
+npm install
+npm run dev       # http://localhost:5173
+npm run build     # Production build
+npm run lint      # ESLint
+```
+
+---
 
 ## Contributing
 
-This project welcomes contributions and suggestions.  Most contributions require you to agree to a
-Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
-the rights to use your contribution. For details, visit https://cla.opensource.microsoft.com.
+This project welcomes contributions. See [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
 
-When you submit a pull request, a CLA bot will automatically determine whether you need to provide
-a CLA and decorate the PR appropriately (e.g., status check, comment). Simply follow the instructions
-provided by the bot. You will only need to do this once across all repos using our CLA.
+---
 
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
-For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
-contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+## License
 
-## Trademarks
+**MIT** &mdash; see [LICENSE](LICENSE).
 
-This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft 
-trademarks or logos is subject to and must follow 
-[Microsoft's Trademark & Brand Guidelines](https://www.microsoft.com/en-us/legal/intellectualproperty/trademarks/usage/general).
-Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion or imply Microsoft sponsorship.
-Any use of third-party trademarks or logos are subject to those third-party's policies.
+---
+
+## Authors &amp; Contributors
+
+- **Azure BCDR Team** &mdash; Original Excel workbook
+- **Jamel Achahbar** &mdash; Web application ([jamelachahbar](https://github.com/jamelachahbar))
+- **GitHub Copilot** &mdash; AI pair programmer
+
+<p align="right">(<a href="#boltplan">back to top</a>)</p>
