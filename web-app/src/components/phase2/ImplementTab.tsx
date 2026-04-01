@@ -341,7 +341,7 @@ export default function ImplementTab() {
       <div className={s.section}>
         <h3 className={s.sectionTitle}>11. Fault Tree Analysis (+BCDR)</h3>
         <p className={s.desc}>Build the post-remediation fault tree showing reduced failure probability. This uses a separate data set from the Assess fault tree so you can compare before vs. after.</p>
-        <FaultTree />
+        <FaultTree storageKey="phase2-fta-after" afterBcdr />
       </div>
 
       {/* ──── 12. Contingency Plan (INTERACTIVE) ──── */}

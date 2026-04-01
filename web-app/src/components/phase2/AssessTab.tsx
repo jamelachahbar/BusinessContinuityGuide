@@ -469,7 +469,7 @@ export default function AssessTab() {
             events (top event, intermediate, basic causes), logic gates (OR/AND), and mitigations.
             Connect them to show how failures cascade. Export as CSV or PNG.
           </p>
-          <FaultTree />
+          <FaultTree storageKey="phase2-fta-before" />
         </AccordionPanel>
       </AccordionItem>
 

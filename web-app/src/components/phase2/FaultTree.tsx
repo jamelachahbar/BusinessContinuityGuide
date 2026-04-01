@@ -50,7 +50,8 @@ const FTA_TYPES = {
   'intermediate': { label: 'Intermediate',   shape: 'rect', color: '#fd7e14', textColor: '#fff' },
   'basic':        { label: 'Basic Event',    shape: 'circle', color: '#667eea', textColor: '#fff' },
   'undeveloped':  { label: 'Undeveloped',    shape: 'diamond', color: '#ffc107', textColor: '#1a1a1a' },
-  'house':        { label: 'House Event',    shape: 'house', color: '#28a745', textColor: '#fff' },
+  'house':        { label: 'House Event',    shape: 'house', color: '#6c757d', textColor: '#fff' },
+  'mitigation':   { label: 'Mitigation',     shape: 'rect', color: '#28a745', textColor: '#fff' },
   'or-gate':      { label: 'OR Gate',        shape: 'or', color: '#764ba2', textColor: '#fff' },
   'and-gate':     { label: 'AND Gate',       shape: 'and', color: '#1a237e', textColor: '#fff' },
 } as const
@@ -129,13 +130,60 @@ function toEdges(pairs: string[][]): Edge[] {
   return pairs.map(([s, t], i) => ({ id: `fe${i}`, source: s, target: t, style: { strokeWidth: 2, stroke: '#718096' }, markerEnd: { type: MarkerType.ArrowClosed, color: '#718096' } }))
 }
 
+/* ═══════ +BCDR "after" example with mitigations ═══════ */
+
+const afterNodes: FtaNodeData[] = [
+  { id: 'top', label: 'Application\nUnavailable', ftaType: 'top-event', x: 380, y: 0 },
+  { id: 'or1', label: 'OR', ftaType: 'or-gate', x: 395, y: 90 },
+  // Intermediate events with REDUCED occurrence scores (mitigations applied)
+  { id: 'infra', label: 'Infrastructure\nFailure', ftaType: 'intermediate', severity: 4, occurrence: 1, detection: 2, x: 80, y: 180 },
+  { id: 'app', label: 'Application\nFailure', ftaType: 'intermediate', severity: 4, occurrence: 1, detection: 1, x: 300, y: 180 },
+  { id: 'data', label: 'Data\nIssues', ftaType: 'intermediate', severity: 5, occurrence: 1, detection: 1, x: 520, y: 180 },
+  { id: 'sec', label: 'Security\nIncident', ftaType: 'intermediate', severity: 5, occurrence: 1, detection: 1, x: 740, y: 180 },
+  // Mitigations (green)
+  { id: 'm1', label: 'Zone-redundant\n(3 AZs)', ftaType: 'mitigation', x: 0, y: 310 },
+  { id: 'm2', label: 'Multi-region\nfailover', ftaType: 'mitigation', x: 130, y: 310 },
+  { id: 'm3', label: 'Circuit breaker\n+ retry', ftaType: 'mitigation', x: 250, y: 310 },
+  { id: 'm4', label: 'IaC with drift\ndetection', ftaType: 'mitigation', x: 370, y: 310 },
+  { id: 'm5', label: 'Point-in-time\nrestore (30d)', ftaType: 'mitigation', x: 480, y: 310 },
+  { id: 'm6', label: 'Geo-replication\n+ soft delete', ftaType: 'mitigation', x: 600, y: 310 },
+  { id: 'm7', label: 'DDoS Protection\nStandard', ftaType: 'mitigation', x: 700, y: 310 },
+  { id: 'm8', label: 'Managed ID +\nKey Vault', ftaType: 'mitigation', x: 820, y: 310 },
+  // Basic events still exist but with lower occurrence
+  { id: 'b1', label: 'AZ Outage', ftaType: 'basic', severity: 3, occurrence: 1, detection: 1, x: 0, y: 430 },
+  { id: 'b2', label: 'Region\nOutage', ftaType: 'basic', severity: 4, occurrence: 1, detection: 1, x: 130, y: 430 },
+  { id: 'b3', label: 'Code\nException', ftaType: 'basic', severity: 3, occurrence: 1, detection: 1, x: 250, y: 430 },
+  { id: 'b4', label: 'Config\nDrift', ftaType: 'basic', severity: 2, occurrence: 1, detection: 1, x: 370, y: 430 },
+  { id: 'b5', label: 'Data\nCorruption', ftaType: 'basic', severity: 4, occurrence: 1, detection: 1, x: 480, y: 430 },
+  { id: 'b6', label: 'Accidental\nDeletion', ftaType: 'basic', severity: 3, occurrence: 1, detection: 1, x: 600, y: 430 },
+  { id: 'b7', label: 'DDoS\nAttack', ftaType: 'basic', severity: 3, occurrence: 1, detection: 1, x: 700, y: 430 },
+  { id: 'b8', label: 'Credential\nCompromise', ftaType: 'basic', severity: 4, occurrence: 1, detection: 1, x: 820, y: 430 },
+]
+
+const afterEdges = [
+  ['top','or1'],['or1','infra'],['or1','app'],['or1','data'],['or1','sec'],
+  // Mitigations connected to intermediate events
+  ['infra','m1'],['infra','m2'],['app','m3'],['app','m4'],['data','m5'],['data','m6'],['sec','m7'],['sec','m8'],
+  // Basic events still connected through mitigations
+  ['m1','b1'],['m2','b2'],['m3','b3'],['m4','b4'],['m5','b5'],['m6','b6'],['m7','b7'],['m8','b8'],
+]
+
 /* ═══════ Component ═══════ */
 
-export default function FaultTree() {
+interface FaultTreeProps {
+  /** Storage key prefix. Use different keys for -BCDR vs +BCDR instances */
+  storageKey?: string
+  /** Use the +BCDR example with mitigations as default */
+  afterBcdr?: boolean
+}
+
+export default function FaultTree({ storageKey = 'phase2-fta', afterBcdr = false }: FaultTreeProps) {
   const st = useStyles()
   const ref = useRef<HTMLDivElement>(null)
-  const [ftData, setFtData, resetFtData] = useWorkbenchData<FtaNodeData[]>('phase2-fta-nodes', defaultNodes)
-  const [ftEdges, setFtEdges] = useWorkbenchData<string[][]>('phase2-fta-edges', defaultEdgesPairs)
+  const initNodes = afterBcdr ? afterNodes : defaultNodes
+  const initEdges = afterBcdr ? afterEdges : defaultEdgesPairs
+  const [ftData, setFtData, resetFtData] = useWorkbenchData<FtaNodeData[]>(`${storageKey}-nodes`, initNodes)
+  const [ftEdges, setFtEdges] = useWorkbenchData<string[][]>(`${storageKey}-edges`, initEdges)
 
   const [nodes, setNodes, onNC] = useNodesState(useMemo(() => toNodes(ftData), [ftData]))
   const [edges, setEdges, onEC] = useEdgesState(useMemo(() => toEdges(ftEdges), [ftEdges]))
@@ -168,9 +216,9 @@ export default function FaultTree() {
   }, [ftData, ftEdges, setFtData, setFtEdges, setNodes, setEdges])
 
   const reset = useCallback(() => {
-    resetFtData(); setFtEdges(defaultEdgesPairs)
-    setNodes(toNodes(defaultNodes)); setEdges(toEdges(defaultEdgesPairs))
-  }, [resetFtData, setFtEdges, setNodes, setEdges])
+    resetFtData(); setFtEdges(initEdges)
+    setNodes(toNodes(initNodes)); setEdges(toEdges(initEdges))
+  }, [resetFtData, setFtEdges, setNodes, setEdges, initNodes, initEdges])
 
   // FMEA table
   const fmeaRows = useMemo(() => ftData.filter(n => n.severity != null).map(n => ({
