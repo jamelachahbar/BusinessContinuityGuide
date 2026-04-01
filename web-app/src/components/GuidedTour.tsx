@@ -3,7 +3,7 @@
  */
 
 import { useCallback } from 'react'
-import { Joyride, STATUS, type EventData, type TooltipRenderProps } from 'react-joyride'
+import { Joyride, STATUS, ACTIONS, type EventData, type TooltipRenderProps } from 'react-joyride'
 
 /* ═══════ Step definitions ═══════ */
 
@@ -165,7 +165,11 @@ interface Props {
 
 export default function GuidedTour({ run, onFinish }: Props) {
   const onEvent = useCallback((data: EventData) => {
-    if (data.status === STATUS.FINISHED || data.status === STATUS.SKIPPED) {
+    if (
+      data.status === STATUS.FINISHED ||
+      data.status === STATUS.SKIPPED ||
+      data.action === ACTIONS.CLOSE
+    ) {
       onFinish()
       localStorage.setItem('abcg_tour-seen', '1')
     }
