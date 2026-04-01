@@ -292,6 +292,19 @@ export default function AssessTab() {
     })),
   [])
 
+  /* ── Composite SLA calculation (serial chain per Microsoft WAF) ── */
+  const compositeSla = useMemo(() => {
+    const slaValues = gapData
+      .map(r => parseFloat(r.sla))
+      .filter(v => !isNaN(v) && v > 0)
+    if (slaValues.length === 0) return null
+    // Serial composition: multiply all SLA percentages
+    const composite = slaValues.reduce((acc, sla) => acc * (sla / 100), 1) * 100
+    // Downtime per month (30 days)
+    const downtimeMinutes = (1 - composite / 100) * 30 * 24 * 60
+    return { composite: composite.toFixed(4), downtimeMinutes: downtimeMinutes.toFixed(1), components: slaValues.length }
+  }, [gapData])
+
   /* ── CSV exports ── */
   const exportReqs = () => downloadCsv('phase2_requirements.csv', objectsToCsvSheet('Requirements', requirements as unknown as Record<string, unknown>[]))
   const exportBia = () => downloadCsv('phase2_bia_metrics.csv', objectsToCsvSheet('BIA', biaMetrics as unknown as Record<string, unknown>[]))
@@ -530,6 +543,28 @@ export default function AssessTab() {
                 <Legend />
               </PieChart>
             </ResponsiveContainer>
+          </div>
+
+          {/* Composite SLA */}
+          {compositeSla && (
+            <div className={styles.summaryGrid}>
+              <div className={styles.summaryCard}>
+                <div className={styles.summaryValue}>{compositeSla.composite}%</div>
+                <div className={styles.summaryLabel}>Composite SLA</div>
+              </div>
+              <div className={styles.summaryCard}>
+                <div className={styles.summaryValue}>{compositeSla.downtimeMinutes} min</div>
+                <div className={styles.summaryLabel}>Est. Downtime / Month</div>
+              </div>
+              <div className={styles.summaryCard}>
+                <div className={styles.summaryValue}>{compositeSla.components}</div>
+                <div className={styles.summaryLabel}>Components in Chain</div>
+              </div>
+            </div>
+          )}
+          <div className={styles.note} style={{ marginBottom: '16px' }}>
+            <strong>Composite SLA (Microsoft WAF):</strong> Serial chain = product of individual SLAs. Example: 99.95% x 99.99% x 99.9% = 99.84%.
+            <a href="https://learn.microsoft.com/azure/well-architected/reliability/metrics" target="_blank" rel="noopener noreferrer" className={styles.link} style={{ marginLeft: '4px' }}>Learn more</a>
           </div>
 
           <div className={styles.sectionHeader}>

@@ -118,6 +118,9 @@ export default function ServiceMap() {
   const [cl, setCl] = useState('')
   const [cd, setCd] = useState<Dir>('forward')
 
+  // Edge editing state
+  const [editingEdge, setEditingEdge] = useState<string | null>(null)
+
   const onConnect = useCallback((p: Connection) => {
     if (!p.source || !p.target) return
     const c = CONN_TYPES[ct]
@@ -132,6 +135,35 @@ export default function ServiceMap() {
     }, eds))
     setCl('')
   }, [setEdges, ct, cl, cd])
+
+  const onEdgeClick = useCallback((_: React.MouseEvent, edge: Edge) => {
+    setEditingEdge(edge.id)
+    // Pre-fill the connection settings with the edge's current values
+    if (edge.data?.connType) setCt(edge.data.connType as ConnType)
+    if (edge.data?.connLabel !== undefined) setCl(edge.data.connLabel as string)
+    if (edge.data?.direction) setCd(edge.data.direction as Dir)
+  }, [])
+
+  const updateEdge = useCallback(() => {
+    if (!editingEdge) return
+    const c = CONN_TYPES[ct]
+    setEdges(eds => eds.map(e => e.id === editingEdge ? {
+      ...e,
+      label: cl || undefined,
+      animated: c.anim,
+      style: { strokeWidth: 2, stroke: c.color, ...(c.dash ? { strokeDasharray: '6 3' } : {}) },
+      data: { connType: ct, direction: cd, connLabel: cl },
+      markerEnd: cd !== 'reverse' ? { type: MarkerType.ArrowClosed, color: c.color } : undefined,
+      markerStart: cd !== 'forward' ? { type: MarkerType.ArrowClosed, color: c.color } : undefined,
+    } : e))
+    setEditingEdge(null)
+  }, [editingEdge, ct, cl, cd, setEdges])
+
+  const deleteEdge = useCallback(() => {
+    if (!editingEdge) return
+    setEdges(eds => eds.filter(e => e.id !== editingEdge))
+    setEditingEdge(null)
+  }, [editingEdge, setEdges])
 
   const addSvc = useCallback(() => {
     if (!selSvc) return
@@ -151,7 +183,20 @@ export default function ServiceMap() {
   const exportPng = useCallback(() => {
     const el = ref.current?.querySelector('.react-flow__viewport') as HTMLElement | null
     if (!el) return
-    toPng(el, { backgroundColor: '#fafbfc', pixelRatio: 2 }).then(url => { const a = document.createElement('a'); a.href = url; a.download = `service_map_${new Date().toISOString().slice(0, 10)}.png`; a.click() })
+    // Clone and fix foreignObject edge labels (cause black boxes in html-to-image)
+    toPng(el, {
+      backgroundColor: '#fafbfc',
+      pixelRatio: 2,
+      filter: (node) => {
+        // Keep everything except the react-flow attribution
+        if (node instanceof HTMLElement && node.classList?.contains('react-flow__attribution')) return false
+        return true
+      },
+      style: {
+        // Override foreignObject text rendering
+        color: '#1a202c',
+      },
+    }).then(url => { const a = document.createElement('a'); a.href = url; a.download = `service_map_${new Date().toISOString().slice(0, 10)}.png`; a.click() })
   }, [])
 
   return (
@@ -205,9 +250,24 @@ export default function ServiceMap() {
         <Badge appearance="outline" size="small">{edges.length} connections</Badge>
       </div>
 
+      {/* Edge editing panel */}
+      {editingEdge && (
+        <div className={s.connBox}>
+          <div className={s.connTitle}>Edit Connection (click Apply to save, Delete to remove)</div>
+          <div className={s.row}>
+            <div className={s.field}><span className={s.label}>Type</span><Select size="small" value={ct} onChange={(_, d) => setCt(d.value as ConnType)}>{connKeys.map(k => <option key={k} value={k}>{CONN_TYPES[k].label}</option>)}</Select></div>
+            <div className={s.field}><span className={s.label}>Label</span><input value={cl} onChange={ev => setCl(ev.target.value)} placeholder="e.g. queries" style={{ fontSize: 13, padding: '4px 8px', border: '1px solid #e2e8f0', borderRadius: 4, width: 140 }} /></div>
+            <div className={s.field}><span className={s.label}>Direction</span><Select size="small" value={cd} onChange={(_, d) => setCd(d.value as Dir)}><option value="forward">{DIRS.forward} Forward</option><option value="reverse">{DIRS.reverse} Reverse</option><option value="both">{DIRS.both} Both</option></Select></div>
+            <Button size="small" appearance="primary" onClick={updateEdge}>Apply</Button>
+            <Button size="small" appearance="subtle" onClick={deleteEdge}>Delete</Button>
+            <Button size="small" appearance="subtle" onClick={() => setEditingEdge(null)}>Cancel</Button>
+          </div>
+        </div>
+      )}
+
       {/* 4. Canvas */}
       <div className={s.canvas} ref={ref}>
-        <ReactFlow nodes={nodes} edges={edges} onNodesChange={onNC} onEdgesChange={onEC} onConnect={onConnect} nodeTypes={nodeTypes} fitView snapToGrid snapGrid={[16, 16]} connectionLineStyle={{ strokeWidth: 2, stroke: CONN_TYPES[ct].color }} attributionPosition="bottom-left">
+        <ReactFlow nodes={nodes} edges={edges} onNodesChange={onNC} onEdgesChange={onEC} onConnect={onConnect} onEdgeClick={onEdgeClick} nodeTypes={nodeTypes} fitView snapToGrid snapGrid={[16, 16]} connectionLineStyle={{ strokeWidth: 2, stroke: CONN_TYPES[ct].color }} attributionPosition="bottom-left">
           <Controls />
           <Background gap={16} size={1} color="#e2e8f0" />
           <MiniMap nodeColor={n => CATEGORY_COLORS[(n.data?.category as string)]?.accent ?? '#667eea'} maskColor="rgba(248,249,250,0.85)" style={{ borderRadius: 6, border: '1px solid #e2e8f0' }} />
@@ -215,7 +275,7 @@ export default function ServiceMap() {
       </div>
 
       <div className={s.hint}>
-        Select a category and Azure service to add nodes. Configure connection type, label, and direction before drawing. Drag between node handles to connect.
+        Click any connection line to edit its type, label, and direction. Click Apply to save or Delete to remove it. Drag between node handles to create new connections.
       </div>
     </div>
   )
