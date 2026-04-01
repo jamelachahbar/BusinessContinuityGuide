@@ -17,12 +17,13 @@ const brandStep = {
 }
 
 const steps = [
-  { ...brandStep, target: '[data-tour="sidebar"]', content: 'Navigate between phases, references, and settings. Click the bolt icon to collapse.', title: 'Navigation', placement: 'right' as const },
-  { ...brandStep, target: '[data-tour="toolbar"]', content: 'Export as CSV, PDF (ISO 22301), JSON backup. Import data or start the tour again.', title: 'Export & Import', placement: 'bottom' as const },
-  { ...brandStep, target: '[data-tour="phase1"]', content: 'Define your BCDR framework: criticality model, business commitments, RACI matrix, and test plans.', title: 'Phase 1: Prepare', placement: 'right' as const },
-  { ...brandStep, target: '[data-tour="phase2"]', content: 'Per-solution continuity: requirements, service map, BIA, gap analysis, cost comparison, and failover testing.', title: 'Phase 2: Solution Continuity', placement: 'right' as const },
-  { ...brandStep, target: '[data-tour="phase3"]', content: 'BCP checklist, 5x5 risk matrix, MBCO recovery order, BCDR dashboard, and maintenance schedule.', title: 'Phase 3: Business Continuity', placement: 'right' as const },
-  { ...brandStep, target: '[data-tour="settings"]', content: 'Organization, workload description, contact details, date format, and currency for reports.', title: 'Settings', placement: 'right' as const },
+  { ...brandStep, target: 'body', content: 'Welcome to BoltPlan! This quick tour will show you how to navigate the workbench and build your BCDR plan. Click Next to begin.', title: 'Welcome to BoltPlan', placement: 'center' as const, skipBeacon: true },
+  { ...brandStep, target: '[data-tour="sidebar"]', content: 'Navigate between phases, references, and settings. Click the bolt icon to collapse the sidebar.', title: 'Navigation', placement: 'right' as const, skipBeacon: true },
+  { ...brandStep, target: '[data-tour="toolbar"]', content: 'Export as CSV, PDF (ISO 22301), Word, or JSON. Import previous data or clear everything.', title: 'Export & Import', placement: 'bottom' as const, skipBeacon: true },
+  { ...brandStep, target: '[data-tour="phase1"]', content: 'Start here: define criticality tiers, business commitments, RACI matrix, and test plans for your organization.', title: 'Phase 1: Prepare', placement: 'right' as const, skipBeacon: true },
+  { ...brandStep, target: '[data-tour="phase2"]', content: 'For each solution: assess requirements, build a service map, run gap analysis, design BCDR architecture, and plan tests.', title: 'Phase 2: Solution Continuity', placement: 'right' as const, skipBeacon: true },
+  { ...brandStep, target: '[data-tour="phase3"]', content: 'Portfolio-wide planning: BCP checklist, risk matrix, recovery order, and maintenance schedule.', title: 'Phase 3: Business Continuity', placement: 'right' as const, skipBeacon: true },
+  { ...brandStep, target: '[data-tour="settings"]', content: 'Set your organization name, workload description, and contact details. These appear in exported PDF and Word reports.', title: 'Settings', placement: 'right' as const, skipBeacon: true },
 ]
 
 /* ═══════ Custom Tooltip ═══════ */
@@ -102,7 +103,7 @@ function CustomTooltip({ step, index, size, isLastStep, backProps, primaryProps,
 
         {/* Buttons */}
         <div style={{ display: 'flex', gap: '8px' }}>
-          {index === 0 && (
+          {index === 0 ? (
             <button
               {...skipProps}
               style={{
@@ -114,10 +115,9 @@ function CustomTooltip({ step, index, size, isLastStep, backProps, primaryProps,
                 padding: '6px 12px',
               }}
             >
-              Skip
+              Skip tour
             </button>
-          )}
-          {index > 0 && (
+          ) : (
             <button
               {...backProps}
               style={{
