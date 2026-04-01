@@ -33,6 +33,7 @@ import {
   PanelLeftContract24Regular,
 } from '@fluentui/react-icons'
 import { WorkbenchProvider, useWorkbenchContext } from './context/WorkbenchContext'
+import { AppProvider } from './context/AppContext'
 import Home from './components/Home'
 import Phase1Prepare from './components/Phase1Prepare'
 import Phase2ApplicationContinuity from './components/Phase2ApplicationContinuity'
@@ -41,6 +42,8 @@ import Personas from './components/Personas'
 import Glossary from './components/Glossary'
 import References from './components/References'
 import Settings from './components/Settings'
+import AppSelector from './components/AppSelector'
+import GuidedTour from './components/GuidedTour'
 import { exportAllPhasesToCsv } from './utils/exportAllCsv'
 import { generateBcpPdf } from './utils/generateBcpPdf'
 
@@ -478,6 +481,7 @@ function AppContent() {
       <aside
         className={`${styles.sidebar} ${collapsed ? styles.sidebarCollapsed : ''} ${mobileOpen ? styles.sidebarMobileOpen : ''}`}
         data-no-print
+        data-tour="sidebar"
       >
         {/* Header */}
         <div className={styles.sidebarHeader}>
@@ -532,6 +536,7 @@ function AppContent() {
                     key={item.value}
                     className={`${styles.navItem} ${selectedTab === item.value ? styles.navItemActive : ''}`}
                     onClick={() => handleNav(item.value)}
+                    data-tour={item.value}
                   >
                     <span className={styles.navIcon}>{item.icon}</span>
                     <span className={`${styles.navLabel} ${hideText}`}>{item.label}</span>
@@ -569,7 +574,8 @@ function AppContent() {
             <span className={styles.breadcrumbSep}><ChevronRight16Regular /></span>
             <span className={styles.breadcrumbCurrent}>{PAGE_LABELS[selectedTab]}</span>
           </div>
-          <div className={styles.toolbarActions}>
+          <div className={styles.toolbarActions} data-tour="toolbar">
+            <GuidedTour buttonOnly />
             <Button appearance="subtle" size="small" icon={<TableSimple24Regular />} onClick={exportAllPhasesToCsv}>CSV</Button>
             <Button appearance="subtle" size="small" icon={<Print24Regular />} onClick={generateBcpPdf}>PDF</Button>
             <Button appearance="subtle" size="small" icon={<ArrowDownload24Regular />} onClick={exportJSON} disabled={!hasData}>Export</Button>
@@ -600,10 +606,14 @@ function AppContent() {
         {/* Content */}
         <main ref={mainContentRef} className={styles.mainContent}>
           <div className={styles.contentWrapper}>
+            {selectedTab === 'phase2' && <div data-tour="app-selector"><AppSelector /></div>}
             {renderContent()}
           </div>
         </main>
       </div>
+
+      {/* Guided tour overlay */}
+      <GuidedTour />
     </div>
   )
 }
@@ -614,8 +624,10 @@ function AppContent() {
 
 export default function App() {
   return (
-    <WorkbenchProvider>
-      <AppContent />
-    </WorkbenchProvider>
+    <AppProvider>
+      <WorkbenchProvider>
+        <AppContent />
+      </WorkbenchProvider>
+    </AppProvider>
   )
 }
