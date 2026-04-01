@@ -1,7 +1,10 @@
-import { useState, useCallback } from 'react'
+/**
+ * Guided Tour using react-joyride v3.
+ * Single instance approach: the parent passes `run` state via props.
+ */
+
+import { useCallback } from 'react'
 import { Joyride, STATUS, type EventData } from 'react-joyride'
-import { Button } from '@fluentui/react-components'
-import { Lightbulb20Regular } from '@fluentui/react-icons'
 
 const steps = [
   {
@@ -18,70 +21,50 @@ const steps = [
   },
   {
     target: '[data-tour="phase1"]',
-    content: 'Define your BCDR framework: criticality model, business commitments, RACI, and test plans. Each solution gets its own data.',
+    content: 'Define your BCDR framework: criticality model, business commitments, RACI, and test plans.',
     title: 'Phase 1: Prepare',
     placement: 'right' as const,
   },
   {
     target: '[data-tour="phase2"]',
-    content: 'Per-solution continuity: requirements, service map, BIA, gap analysis, cost comparison, failover testing. Use the Solution Selector to switch between solutions.',
+    content: 'Per-solution continuity: requirements, service map, BIA, gap analysis, cost comparison, failover testing.',
     title: 'Phase 2: Solution Continuity',
     placement: 'right' as const,
   },
   {
     target: '[data-tour="phase3"]',
-    content: 'Portfolio-wide: BCP checklist, risk matrix, MBCO recovery order, dashboard. Each solution gets its own data.',
+    content: 'BCP checklist, risk matrix, MBCO recovery order, and BCDR dashboard.',
     title: 'Phase 3: Business Continuity',
     placement: 'right' as const,
   },
   {
     target: '[data-tour="settings"]',
-    content: 'Organization name, contact, date format, currency. Used in exports and the PDF report.',
+    content: 'Organization, workload description, contact, date format, currency. All used in the PDF report.',
     title: 'Settings',
     placement: 'right' as const,
   },
 ]
 
 interface Props {
-  buttonOnly?: boolean
+  run: boolean
+  onFinish: () => void
 }
 
-export default function GuidedTour({ buttonOnly }: Props) {
-  const [run, setRun] = useState(false)
-
+export default function GuidedTour({ run, onFinish }: Props) {
   const onEvent = useCallback((data: EventData) => {
     if (data.status === STATUS.FINISHED || data.status === STATUS.SKIPPED) {
-      setRun(false)
+      onFinish()
       localStorage.setItem('abcg_tour-seen', '1')
     }
-  }, [])
-
-  const hasSeenTour = localStorage.getItem('abcg_tour-seen') === '1'
-
-  if (buttonOnly) {
-    return <Button icon={<Lightbulb20Regular />} size="small" appearance="subtle" onClick={() => setRun(true)}>Tour</Button>
-  }
+  }, [onFinish])
 
   return (
-    <>
-      {!hasSeenTour && !run && (
-        <Button
-          icon={<Lightbulb20Regular />}
-          appearance="primary"
-          size="small"
-          onClick={() => setRun(true)}
-          style={{ position: 'fixed', bottom: 20, right: 20, zIndex: 1000, borderRadius: 20, boxShadow: '0 4px 12px rgba(102,126,234,0.3)' }}
-        >
-          Take a Tour
-        </Button>
-      )}
-      <Joyride
-        steps={steps}
-        run={run}
-        continuous
-        scrollToFirstStep
-        onEvent={onEvent}
-      />
-    </>
+    <Joyride
+      steps={steps}
+      run={run}
+      continuous
+      scrollToFirstStep
+      onEvent={onEvent}
+    />
   )
 }

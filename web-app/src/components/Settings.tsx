@@ -95,6 +95,7 @@ export interface AppSettings {
   guideName: string
   primaryContact: string
   primaryContactEmail: string
+  workloadDescription: string
   dateFormat: string
   currency: string
   notes: string
@@ -105,6 +106,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   guideName: 'Azure Business Continuity Guide',
   primaryContact: '',
   primaryContactEmail: '',
+  workloadDescription: '',
   dateFormat: 'YYYY-MM-DD',
   currency: 'USD',
   notes: '',
@@ -169,6 +171,18 @@ function Settings() {
               value={settings.primaryContactEmail}
               onChange={(_, d) => updateField('primaryContactEmail', d.value)}
             />
+          </div>
+          <div className={styles.fieldFull}>
+            <Label className={styles.label} htmlFor="workload-desc">Workload / Solution Description</Label>
+            <Textarea
+              id="workload-desc"
+              placeholder="Describe the workload or solution this BCDR plan covers, its purpose, key business functions, and technology stack..."
+              value={settings.workloadDescription}
+              onChange={(_, d) => updateField('workloadDescription', d.value)}
+              rows={3}
+              resize="vertical"
+            />
+            <span className={styles.hint}>Included in the PDF cover page and Context section</span>
           </div>
         </div>
       </Card>

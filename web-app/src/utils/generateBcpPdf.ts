@@ -166,7 +166,7 @@ const defMaintenance = [
    ═══════════════════════════════════════════════════════ */
 
 export function generateBcpPdf(): void {
-  const s = ld<AppSettings>('settings', { organizationName: '', guideName: 'Azure Business Continuity Guide', primaryContact: '', primaryContactEmail: '', dateFormat: 'YYYY-MM-DD', currency: 'USD', notes: '' })
+  const s = ld<AppSettings>('settings', { organizationName: '', guideName: 'Azure Business Continuity Guide', primaryContact: '', primaryContactEmail: '', workloadDescription: '', dateFormat: 'YYYY-MM-DD', currency: 'USD', notes: '' })
   const org = s.organizationName || 'Organization'
   const appName = getAppName()
   const date = dt()
@@ -234,7 +234,11 @@ export function generateBcpPdf(): void {
   // 2. Context (ISO §4)
   sec.push(`<h1>2. Context of the Organization (ISO 22301 &sect;4)</h1>`)
   sec.push(`<p>This BCP establishes the framework for ${e(org)} to maintain essential functions during and after a disruption.</p>`)
-  sec.push(`<h2>2.1 Scope</h2><p>All business-critical applications and infrastructure as defined in the criticality model below.</p>`)
+  if (s.workloadDescription) {
+    sec.push(`<h2>2.1 Workload Description</h2>`)
+    sec.push(`<p>${e(s.workloadDescription)}</p>`)
+  }
+  sec.push(`<h2>${s.workloadDescription ? '2.2' : '2.1'} Scope</h2><p>All business-critical components and infrastructure as defined in the criticality model and architecture assessment.</p>`)
   if (s.notes) sec.push(`<div class="info"><strong>Notes:</strong> ${e(s.notes)}</div>`)
 
   // 3. Leadership (ISO §5)
@@ -327,11 +331,13 @@ export function generateBcpPdf(): void {
 
   sec.push(`<div class="info"><strong>End of Document.</strong> This BCP is a living document. Review and update per the maintenance schedule.</div>`)
 
-  const html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><title>BCP - ${e(org)}</title><style>${css}</style></head><body>${sec.join('\n')}</body></html>`
+  const html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><title>BCP - ${e(org)} - ${e(appName)}</title><style>${css}</style></head><body>${sec.join('\n')}</body></html>`
 
-  const w = window.open('', '_blank')
-  if (!w) { alert('Please allow popups to generate the PDF.'); return }
-  w.document.write(html)
-  w.document.close()
+  // Use Blob URL to avoid about:blank in title bar
+  const blob = new Blob([html], { type: 'text/html' })
+  const url = URL.createObjectURL(blob)
+  const w = window.open(url, '_blank')
+  if (!w) { alert('Please allow popups to generate the PDF.'); URL.revokeObjectURL(url); return }
+  w.addEventListener('afterprint', () => URL.revokeObjectURL(url))
   setTimeout(() => w.print(), 600)
 }

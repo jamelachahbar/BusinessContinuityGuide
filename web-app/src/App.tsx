@@ -31,6 +31,7 @@ import {
   Settings24Regular,
   TableSimple24Regular,
   PanelLeftContract24Regular,
+  Lightbulb20Regular,
 } from '@fluentui/react-icons'
 import { WorkbenchProvider, useWorkbenchContext } from './context/WorkbenchContext'
 import { AppProvider, useAppContext } from './context/AppContext'
@@ -428,6 +429,7 @@ function AppContent() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [clearDialogOpen, setClearDialogOpen] = useState(false)
+  const [tourRun, setTourRun] = useState(false)
   const mainContentRef = useRef<HTMLElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { exportJSON, importJSON, clearAll, hasData } = useWorkbenchContext()
@@ -576,7 +578,7 @@ function AppContent() {
             <span className={styles.breadcrumbCurrent}>{PAGE_LABELS[selectedTab]}</span>
           </div>
           <div className={styles.toolbarActions} data-tour="toolbar">
-            <GuidedTour buttonOnly />
+            <Button appearance="subtle" size="small" icon={<Lightbulb20Regular />} onClick={() => setTourRun(true)}>Tour</Button>
             <Button appearance="subtle" size="small" icon={<TableSimple24Regular />} onClick={exportAllPhasesToCsv}>CSV</Button>
             <Button appearance="subtle" size="small" icon={<Print24Regular />} onClick={generateBcpPdf}>PDF</Button>
             <Button appearance="subtle" size="small" icon={<ArrowDownload24Regular />} onClick={exportJSON} disabled={!hasData}>Export</Button>
@@ -614,7 +616,7 @@ function AppContent() {
       </div>
 
       {/* Guided tour overlay */}
-      <GuidedTour />
+      <GuidedTour run={tourRun} onFinish={() => setTourRun(false)} />
     </div>
   )
 }
