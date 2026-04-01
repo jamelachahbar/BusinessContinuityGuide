@@ -12,25 +12,28 @@
 - [x] Task-008: Add References page (commit: aa9962b)
 - [x] Task-009: Final polish and merge (commit: 5a3aebb, merge: eeea140)
 - [x] Task-010: Workbench infrastructure — context, hooks, export toolbar, print stylesheet (commit: a25a052)
+- [x] Task-011: Make Phase 1 templates editable with localStorage persistence
 
 ## Current Iteration
 
-- Iteration: 10
-- Working on: Task-010 (complete)
+- Iteration: 11
+- Working on: Task-011 (complete)
 - Branch: feature/interactive-workbench
 - Status: ✅ Done
 
 ## Last Completed
 
-- Task-010: Workbench infrastructure
+- Task-011: Make Phase 1 templates editable
 - Tests: ✅ Build passes
 - Key decisions:
-  - WorkbenchContext with localStorage prefix `abcg_` for all keys
-  - useWorkbenchData hook returns [value, setter, reset] tuple
-  - Export toolbar with 4 buttons: Export PDF, Export Data, Import Data, Clear Data
-  - FluentUI Dialog for clear confirmation
-  - Print stylesheet hides sidebar, topBar, toolbar via data-no-print attribute
-  - WorkbenchProvider wraps AppContent inside App component
+  - All template sections (Criticality, BCM, RACI, App Requirements, Test Plans, Fault Model) are now editable
+  - Concepts section remains read-only (educational content)
+  - useWorkbenchData hook used for each section with localStorage persistence
+  - BcmSection extracted as sub-component (7 sub-sections each with own storage key)
+  - Click-to-edit text cells, click-to-toggle boolean/status cells, click-to-cycle RACI/priority
+  - Add Row / Delete Row / Reset to Default buttons per section
+  - Hover effect (light blue #EBF5FF) indicates editable cells
+  - Storage keys: phase1_criticalityModel, phase1_bcm_*, phase1_raci, phase1_appRequirements, phase1_testPlans, phase1_faultModel
 
 ## Blockers
 
