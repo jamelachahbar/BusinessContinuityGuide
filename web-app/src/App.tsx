@@ -31,7 +31,6 @@ import {
   Settings24Regular,
   TableSimple24Regular,
   PanelLeftContract24Regular,
-  PanelLeftExpand24Regular,
 } from '@fluentui/react-icons'
 import { WorkbenchProvider, useWorkbenchContext } from './context/WorkbenchContext'
 import Home from './components/Home'
@@ -453,7 +452,6 @@ function AppContent() {
 
   const collapsed = sidebarCollapsed
   const hideText = collapsed ? styles.navLabelHidden : ''
-  const hideLogoText = collapsed ? styles.logoTextHidden : ''
 
   const renderContent = () => {
     switch (selectedTab) {
@@ -483,20 +481,35 @@ function AppContent() {
       >
         {/* Header */}
         <div className={styles.sidebarHeader}>
-          <div className={styles.logo}>
-            <BoltLogo className={styles.logoIcon} />
-            <div className={`${styles.logoTextWrap} ${hideLogoText}`}>
-              <div className={styles.logoTitle}>ABC Guide</div>
-              <div className={styles.logoSub}>Business Continuity</div>
-            </div>
-          </div>
-          <button
-            className={styles.collapseBtn}
-            onClick={() => setSidebarCollapsed(!collapsed)}
-            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          >
-            {collapsed ? <PanelLeftExpand24Regular /> : <PanelLeftContract24Regular />}
-          </button>
+          {collapsed ? (
+            /* Collapsed: just the bolt icon, click to expand */
+            <button
+              className={styles.collapseBtn}
+              onClick={() => setSidebarCollapsed(false)}
+              aria-label="Expand sidebar"
+              style={{ margin: '0 auto' }}
+            >
+              <BoltLogo className={styles.logoIcon} />
+            </button>
+          ) : (
+            /* Expanded: logo + text + collapse button */
+            <>
+              <div className={styles.logo}>
+                <BoltLogo className={styles.logoIcon} />
+                <div className={styles.logoTextWrap}>
+                  <div className={styles.logoTitle}>ABC Guide</div>
+                  <div className={styles.logoSub}>Business Continuity</div>
+                </div>
+              </div>
+              <button
+                className={styles.collapseBtn}
+                onClick={() => setSidebarCollapsed(true)}
+                aria-label="Collapse sidebar"
+              >
+                <PanelLeftContract24Regular />
+              </button>
+            </>
+          )}
           <button
             className={styles.closeMobile}
             onClick={() => setMobileOpen(false)}

@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo } from 'react'
 import {
   makeStyles,
   shorthands,
@@ -11,8 +11,6 @@ import {
   Card,
   Badge,
   Button,
-  Input,
-  Select,
 } from '@fluentui/react-components'
 import {
   Checkmark16Filled,
@@ -23,15 +21,13 @@ import {
   ArrowReset20Regular,
   ArrowDownload20Regular,
 } from '@fluentui/react-icons'
-import ReactFlow, { Controls, Background, useNodesState, useEdgesState, addEdge, type Connection } from 'reactflow'
-import 'reactflow/dist/style.css'
-import type { Node, Edge } from 'reactflow'
 import {
   PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend,
   RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
 } from 'recharts'
 import { useWorkbenchData } from '../../hooks/useWorkbenchData'
 import { downloadCsv, objectsToCsvSheet } from '../../utils/csvExport'
+import ServiceMap from './ServiceMap'
 
 /* ────────────────────────────────────────────────────
    Styles
@@ -182,71 +178,6 @@ const defaultMetricAnalysis: MetricRow[] = [
 ]
 
 /* ────────────────────────────────────────────────────
-   Service Map — React Flow Nodes & Edges
-   ──────────────────────────────────────────────────── */
-
-const nodeColors: Record<string, { bg: string; border: string; text: string }> = {
-  Networking: { bg: '#4285F4', border: '#3367d6', text: '#fff' },
-  Compute:    { bg: '#764ba2', border: '#5e3a82', text: '#fff' },
-  Data:       { bg: '#28a745', border: '#1e7e34', text: '#fff' },
-  Cache:      { bg: '#fd7e14', border: '#d96a0b', text: '#fff' },
-  Messaging:  { bg: '#ffc107', border: '#d6a206', text: '#1a1a1a' },
-  Security:   { bg: '#dc3545', border: '#bd2130', text: '#fff' },
-  Monitoring: { bg: '#17a2b8', border: '#117a8b', text: '#fff' },
-  Identity:   { bg: '#1a237e', border: '#0d1259', text: '#fff' },
-  Storage:    { bg: '#20c997', border: '#17a37d', text: '#fff' },
-}
-
-function makeNode(id: string, label: string, type: string, x: number, y: number): Node {
-  const c = nodeColors[type] ?? nodeColors.Compute
-  return {
-    id,
-    data: { label },
-    position: { x, y },
-    style: {
-      background: c.bg,
-      color: c.text,
-      border: `2px solid ${c.border}`,
-      borderRadius: '8px',
-      padding: '10px 16px',
-      fontSize: '13px',
-      fontWeight: 600,
-      width: 180,
-      textAlign: 'center' as const,
-    },
-  }
-}
-
-const serviceMapNodes: Node[] = [
-  makeNode('entraId',    'Microsoft Entra ID',      'Identity',   350, 10),
-  makeNode('frontDoor',  'Azure Front Door',        'Networking',  30, 160),
-  makeNode('appService', 'App Service (Web App)',    'Compute',    300, 160),
-  makeNode('azureSql',   'Azure SQL Database',       'Data',       570, 70),
-  makeNode('redis',      'Azure Cache for Redis',    'Cache',      570, 180),
-  makeNode('serviceBus', 'Azure Service Bus',        'Messaging',  570, 290),
-  makeNode('functions',  'Azure Functions',          'Compute',    800, 290),
-  makeNode('keyVault',   'Azure Key Vault',          'Security',    80, 340),
-  makeNode('storage',    'Storage Account',          'Storage',    800, 400),
-  makeNode('appInsights','Application Insights',     'Monitoring',  80, 440),
-]
-
-const serviceMapEdges: Edge[] = [
-  { id: 'e-fd-as',  source: 'frontDoor',  target: 'appService' },
-  { id: 'e-as-sql', source: 'appService', target: 'azureSql' },
-  { id: 'e-as-rd',  source: 'appService', target: 'redis' },
-  { id: 'e-as-sb',  source: 'appService', target: 'serviceBus' },
-  { id: 'e-sb-fn',  source: 'serviceBus', target: 'functions' },
-  { id: 'e-fn-sql', source: 'functions',  target: 'azureSql',   style: { strokeDasharray: '5 5' }, animated: false },
-  { id: 'e-fn-st',  source: 'functions',  target: 'storage' },
-  { id: 'e-ei-as',  source: 'entraId',    target: 'appService' },
-  { id: 'e-ei-kv',  source: 'entraId',    target: 'keyVault' },
-  { id: 'e-as-kv',  source: 'appService', target: 'keyVault',   style: { strokeDasharray: '5 5' } },
-  { id: 'e-fn-kv',  source: 'functions',  target: 'keyVault',   style: { strokeDasharray: '5 5' } },
-  { id: 'e-as-ai',  source: 'appService', target: 'appInsights', animated: true },
-  { id: 'e-fn-ai',  source: 'functions',  target: 'appInsights', animated: true },
-]
-
-/* ────────────────────────────────────────────────────
    Helpers
    ──────────────────────────────────────────────────── */
 
@@ -281,117 +212,6 @@ function GapStatusBadge({ gap, onClick }: { gap: GapStatus; onClick?: () => void
 }
 
 const CHART_COLORS = { met: '#28a745', partial: '#ffc107', gap: '#dc3545' }
-
-/* ────────────────────────────────────────────────────
-   Service Map Flow — fully editable: add, remove, rename, drag, connect
-   ──────────────────────────────────────────────────── */
-
-const nodeTypeOptions = Object.keys(nodeColors)
-
-interface ServiceMapFlowProps {
-  styles: ReturnType<typeof useStyles>
-}
-
-function ServiceMapFlow({ styles }: ServiceMapFlowProps) {
-  const [nodes, setNodes, onNodesChange] = useNodesState(serviceMapNodes)
-  const [edges, setEdges, onEdgesChange] = useEdgesState(serviceMapEdges)
-  const [newName, setNewName] = useState('')
-  const [newType, setNewType] = useState('Compute')
-
-  const onConnect = useCallback(
-    (params: Connection) => setEdges((eds) => addEdge(params, eds)),
-    [setEdges],
-  )
-
-  const addNode = useCallback(() => {
-    if (!newName.trim()) return
-    const id = `node-${Date.now()}`
-    // Place new node at a visible position offset from existing
-    const x = 100 + Math.random() * 600
-    const y = 100 + Math.random() * 300
-    const node = makeNode(id, newName.trim(), newType, x, y)
-    setNodes((nds) => [...nds, node])
-    setNewName('')
-  }, [newName, newType, setNodes])
-
-  const removeNode = useCallback((nodeId: string) => {
-    setNodes((nds) => nds.filter(n => n.id !== nodeId))
-    setEdges((eds) => eds.filter(e => e.source !== nodeId && e.target !== nodeId))
-  }, [setNodes, setEdges])
-
-  const resetMap = useCallback(() => {
-    setNodes(serviceMapNodes)
-    setEdges(serviceMapEdges)
-  }, [setNodes, setEdges])
-
-  return (
-    <>
-      {/* Add node controls */}
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <span style={{ fontSize: '12px', fontWeight: 500, color: tokens.colorNeutralForeground3 }}>Service Name</span>
-          <Input
-            size="small"
-            placeholder="e.g. Azure Cosmos DB"
-            value={newName}
-            onChange={(_, d) => setNewName(d.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter') addNode() }}
-            style={{ minWidth: '200px' }}
-          />
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <span style={{ fontSize: '12px', fontWeight: 500, color: tokens.colorNeutralForeground3 }}>Category</span>
-          <Select size="small" value={newType} onChange={(_, d) => setNewType(d.value)}>
-            {nodeTypeOptions.map(t => <option key={t} value={t}>{t}</option>)}
-          </Select>
-        </div>
-        <Button icon={<Add20Regular />} size="small" appearance="primary" onClick={addNode} disabled={!newName.trim()}>
-          Add Node
-        </Button>
-        <Button icon={<ArrowReset20Regular />} size="small" appearance="subtle" onClick={resetMap}>
-          Reset Map
-        </Button>
-      </div>
-
-      {/* Node list for quick delete */}
-      {nodes.length > 0 && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '12px' }}>
-          {nodes.map(n => (
-            <Badge
-              key={n.id}
-              appearance="outline"
-              size="small"
-              style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-              onClick={() => removeNode(n.id)}
-            >
-              {n.data.label as string} <Dismiss16Filled style={{ fontSize: '10px', color: '#dc3545' }} />
-            </Badge>
-          ))}
-        </div>
-      )}
-
-      <div className={styles.flowContainer}>
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          fitView
-          attributionPosition="bottom-left"
-        >
-          <Controls />
-          <Background gap={16} size={1} />
-        </ReactFlow>
-      </div>
-      <div className={styles.note}>
-        <strong>How to use:</strong> Add services using the form above. Drag nodes to arrange them.
-        Drag from a node edge to another node to create a dependency connection.
-        Click the &times; on any badge above to remove a node and its connections. Click Reset to restore the example map.
-      </div>
-    </>
-  )
-}
 
 /* ────────────────────────────────────────────────────
    Component
@@ -562,17 +382,10 @@ export default function AssessTab() {
         <AccordionHeader>2. Service Map</AccordionHeader>
         <AccordionPanel>
           <p className={styles.subsectionDesc}>
-            Build your application's dependency diagram. Add your own services, drag to arrange, and connect them to map dependencies.
+            Build your application's dependency diagram. Add services, drag to arrange, and connect them to map dependencies.
+            Each node has handles (top, bottom, left, right) for creating directional connections with arrow markers.
           </p>
-          <div className={styles.legend}>
-            {Object.entries(nodeColors).map(([type, c]) => (
-              <div key={type} className={styles.legendItem}>
-                <span style={{ width: 14, height: 14, borderRadius: 3, backgroundColor: c.bg, display: 'inline-block' }} />
-                {type}
-              </div>
-            ))}
-          </div>
-          <ServiceMapFlow styles={styles} />
+          <ServiceMap />
         </AccordionPanel>
       </AccordionItem>
 
