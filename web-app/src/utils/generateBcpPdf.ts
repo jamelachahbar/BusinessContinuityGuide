@@ -12,6 +12,16 @@ function getAppPrefix(): string {
   return `abcg_${currentAppId}_`
 }
 
+function getAppName(): string {
+  const currentAppId = localStorage.getItem('abcg_current-app') ?? 'default'
+  const raw = localStorage.getItem('abcg_app-registry')
+  if (!raw) return 'Sample Application'
+  try {
+    const apps = JSON.parse(raw) as { id: string; name: string }[]
+    return apps.find(a => a.id === currentAppId)?.name ?? 'Sample Application'
+  } catch { return 'Sample Application' }
+}
+
 /**
  * Load from localStorage with current app prefix.
  * Falls back to the provided default data.
@@ -158,6 +168,7 @@ const defMaintenance = [
 export function generateBcpPdf(): void {
   const s = ld<AppSettings>('settings', { organizationName: '', guideName: 'Azure Business Continuity Guide', primaryContact: '', primaryContactEmail: '', dateFormat: 'YYYY-MM-DD', currency: 'USD', notes: '' })
   const org = s.organizationName || 'Organization'
+  const appName = getAppName()
   const date = dt()
 
   // Load with REAL defaults as fallback
@@ -190,6 +201,7 @@ export function generateBcpPdf(): void {
     .cover h1 { font-size: 26pt; font-weight: 700; color: #667eea; margin-bottom: 6px; }
     .cover h2 { font-size: 14pt; font-weight: 400; color: #718096; margin-bottom: 36px; }
     .cover-org { font-size: 13pt; font-weight: 600; color: #1a202c; }
+    .cover-app { font-size: 11pt; font-weight: 500; color: #667eea; margin-top: 4px; }
     .cover-date { font-size: 10pt; color: #718096; margin-top: 4px; }
     .cover-std { margin-top: 40px; font-size: 9pt; color: #a0aec0; border: 1px solid #e2e8f0; padding: 6px 20px; border-radius: 4px; }
     h1 { font-size: 16pt; font-weight: 700; color: #667eea; margin: 28px 0 10px; border-bottom: 2px solid #667eea; padding-bottom: 4px; page-break-after: avoid; }
@@ -213,11 +225,11 @@ export function generateBcpPdf(): void {
   const sec: string[] = []
 
   // Cover
-  sec.push(`<div class="cover"><div class="cover-bar"></div><h1>Business Continuity Plan</h1><h2>Business Continuity &amp; Disaster Recovery</h2><div class="cover-org">${e(org)}</div><div class="cover-date">Date: ${date}</div><div class="cover-std">ISO 22301:2019 &mdash; Business Continuity Management Systems</div></div>`)
+  sec.push(`<div class="cover"><div class="cover-bar"></div><h1>Business Continuity Plan</h1><h2>Business Continuity &amp; Disaster Recovery</h2><div class="cover-org">${e(org)}</div><div class="cover-app">Application: ${e(appName)}</div><div class="cover-date">Date: ${date}</div><div class="cover-std">ISO 22301:2019 &mdash; Business Continuity Management Systems</div></div>`)
 
   // 1. Document Control
   sec.push(`<h1>1. Document Control</h1>`)
-  sec.push(tbl(['Field', 'Value'], [['Organization', e(org)], ['Standard', 'ISO 22301:2019'], ['Primary Contact', e(s.primaryContact || 'TBD')], ['Contact Email', e(s.primaryContactEmail || 'TBD')], ['Date', date], ['Classification', 'Confidential']]))
+  sec.push(tbl(['Field', 'Value'], [['Organization', e(org)], ['Application', e(appName)], ['Standard', 'ISO 22301:2019'], ['Primary Contact', e(s.primaryContact || 'TBD')], ['Contact Email', e(s.primaryContactEmail || 'TBD')], ['Date', date], ['Classification', 'Confidential']]))
 
   // 2. Context (ISO §4)
   sec.push(`<h1>2. Context of the Organization (ISO 22301 &sect;4)</h1>`)
