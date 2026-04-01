@@ -26,6 +26,7 @@ import {
   Delete20Regular,
 } from '@fluentui/react-icons'
 import { useWorkbenchData } from '../hooks/useWorkbenchData'
+import { getCriticalityColor, getCriticalityOptions } from '../utils/criticality'
 
 const useStyles = makeStyles({
   container: {
@@ -634,7 +635,15 @@ function Phase1Prepare() {
 
   /* ── Criticality helpers ── */
   const updateCritField = (idx: number, field: keyof CriticalityRow, value: string | boolean) => {
-    setCriticalityRows(criticalityRows.map((row, i) => i === idx ? { ...row, [field]: value } : row))
+    setCriticalityRows(criticalityRows.map((row, i) => {
+      if (i !== idx) return row
+      const updated = { ...row, [field]: value }
+      // Auto-set color when criticality name changes
+      if (field === 'criticality' && typeof value === 'string') {
+        updated.color = getCriticalityColor(value).color
+      }
+      return updated
+    }))
   }
   const addCritRow = () => {
     setCriticalityRows([...criticalityRows, { tier: '', criticality: '', color: '#6c757d', businessView: '', financial: '', brand: false, trust: false, exp: false, injury: false, prod: false }])
@@ -842,22 +851,19 @@ function Phase1Prepare() {
                           onClick={() => !isBadgeEditing && setEditingCell(badgeKey)}
                         >
                           {isBadgeEditing ? (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              <input
-                                autoFocus
-                                defaultValue={row.criticality}
-                                onBlur={(e) => { updateCritField(i, 'criticality', e.target.value); setEditingCell(null) }}
-                                onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); if (e.key === 'Escape') setEditingCell(null) }}
-                                className={styles.cellInput}
-                                style={{ flexGrow: 1 }}
-                              />
-                              <input
-                                type="color"
-                                value={row.color}
-                                onChange={(e) => updateCritField(i, 'color', e.target.value)}
-                                style={{ width: '32px', height: '32px', border: 'none', cursor: 'pointer', padding: 0 }}
-                              />
-                            </div>
+                            <select
+                              autoFocus
+                              value={row.criticality}
+                              onChange={(e) => { updateCritField(i, 'criticality', e.target.value); setEditingCell(null) }}
+                              onBlur={() => setEditingCell(null)}
+                              className={styles.cellInput}
+                              style={{ minWidth: '160px' }}
+                            >
+                              <option value="">-- Select --</option>
+                              {getCriticalityOptions().map(opt => (
+                                <option key={opt.value} value={opt.value}>{opt.label}</option>
+                              ))}
+                            </select>
                           ) : (
                             <Badge
                               appearance="filled"
