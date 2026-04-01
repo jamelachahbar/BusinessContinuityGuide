@@ -3,6 +3,14 @@ import {
   makeStyles,
   tokens,
   shorthands,
+  Button,
+  Dialog,
+  DialogSurface,
+  DialogBody,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  DialogTrigger,
 } from '@fluentui/react-components'
 import {
   Home24Regular,
@@ -15,7 +23,12 @@ import {
   Navigation24Regular,
   Dismiss24Regular,
   ChevronRight16Regular,
+  ArrowDownload24Regular,
+  ArrowUpload24Regular,
+  Print24Regular,
+  Delete24Regular,
 } from '@fluentui/react-icons'
+import { WorkbenchProvider, useWorkbenchContext } from './context/WorkbenchContext'
 import Home from './components/Home'
 import Phase1Prepare from './components/Phase1Prepare'
 import Phase2ApplicationContinuity from './components/Phase2ApplicationContinuity'
@@ -237,6 +250,26 @@ const useStyles = makeStyles({
       ...shorthands.padding('24px', '16px'),
     },
   },
+  toolbar: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    ...shorthands.padding('6px', '48px'),
+    backgroundColor: '#f1f5f9',
+    borderBottomWidth: '1px',
+    borderBottomStyle: 'solid',
+    borderBottomColor: '#e2e8f0',
+    [`@media (max-width: ${MOBILE_BREAKPOINT})`]: {
+      ...shorthands.padding('6px', '16px'),
+      flexWrap: 'wrap',
+    },
+  },
+  toolbarSpacer: {
+    flex: 1,
+  },
+  hiddenInput: {
+    display: 'none',
+  },
 })
 
 type TabValue = 'home' | 'phase1' | 'phase2' | 'phase3' | 'personas' | 'glossary' | 'references'
@@ -251,11 +284,14 @@ const PAGE_LABELS: Record<TabValue, string> = {
   references: 'References',
 }
 
-function App() {
+function AppContent() {
   const styles = useStyles()
   const [selectedTab, setSelectedTab] = useState<TabValue>('home')
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [clearDialogOpen, setClearDialogOpen] = useState(false)
   const mainContentRef = useRef<HTMLElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const { exportJSON, importJSON, clearAll, hasData } = useWorkbenchContext()
 
   // Scroll to top on page change
   useEffect(() => {
@@ -266,6 +302,23 @@ function App() {
     setSelectedTab(tab)
     setSidebarOpen(false)
   }, [])
+
+  const handleImport = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    try {
+      await importJSON(file)
+    } catch (err) {
+      console.error('Import failed:', err)
+    }
+    // Reset so the same file can be re-imported
+    e.target.value = ''
+  }, [importJSON])
+
+  const handleClear = useCallback(() => {
+    clearAll()
+    setClearDialogOpen(false)
+  }, [clearAll])
 
   const renderContent = () => {
     switch (selectedTab) {
@@ -310,7 +363,7 @@ function App() {
       )}
 
       {/* Sidebar */}
-      <aside className={`${styles.sidebar} ${sidebarOpen ? styles.sidebarOpen : ''}`}>
+      <aside className={`${styles.sidebar} ${sidebarOpen ? styles.sidebarOpen : ''}`} data-no-print>
         <div className={styles.sidebarHeader}>
           <div className={styles.logo}>
             <div className={styles.logoTitle}>ABC Guide</div>
@@ -345,11 +398,12 @@ function App() {
 
       {/* Main content */}
       <div className={styles.mainWrapper}>
-        <header className={styles.topBar}>
+        <header className={styles.topBar} data-no-print>
           <button
             className={styles.hamburger}
             onClick={() => setSidebarOpen(true)}
             aria-label="Open menu"
+            data-no-print
           >
             <Navigation24Regular />
           </button>
@@ -360,6 +414,69 @@ function App() {
           </div>
         </header>
 
+        {/* Workbench toolbar */}
+        <div className={styles.toolbar} data-no-print>
+          <div className={styles.toolbarSpacer} />
+          <Button
+            appearance="subtle"
+            size="small"
+            icon={<Print24Regular />}
+            onClick={() => window.print()}
+          >
+            Export PDF
+          </Button>
+          <Button
+            appearance="subtle"
+            size="small"
+            icon={<ArrowDownload24Regular />}
+            onClick={exportJSON}
+            disabled={!hasData}
+          >
+            Export Data
+          </Button>
+          <Button
+            appearance="subtle"
+            size="small"
+            icon={<ArrowUpload24Regular />}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            Import Data
+          </Button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".json"
+            className={styles.hiddenInput}
+            onChange={handleImport}
+          />
+          <Dialog open={clearDialogOpen} onOpenChange={(_, d) => setClearDialogOpen(d.open)}>
+            <DialogTrigger disableButtonEnhancement>
+              <Button
+                appearance="subtle"
+                size="small"
+                icon={<Delete24Regular />}
+                disabled={!hasData}
+              >
+                Clear Data
+              </Button>
+            </DialogTrigger>
+            <DialogSurface>
+              <DialogBody>
+                <DialogTitle>Clear All Workbench Data?</DialogTitle>
+                <DialogContent>
+                  This will permanently remove all saved workbench data from your browser. This action cannot be undone.
+                </DialogContent>
+                <DialogActions>
+                  <DialogTrigger disableButtonEnhancement>
+                    <Button appearance="secondary">Cancel</Button>
+                  </DialogTrigger>
+                  <Button appearance="primary" onClick={handleClear}>Clear All</Button>
+                </DialogActions>
+              </DialogBody>
+            </DialogSurface>
+          </Dialog>
+        </div>
+
         <main ref={mainContentRef} className={styles.mainContent}>
           <div className={styles.contentWrapper}>
             {renderContent()}
@@ -367,6 +484,14 @@ function App() {
         </main>
       </div>
     </div>
+  )
+}
+
+function App() {
+  return (
+    <WorkbenchProvider>
+      <AppContent />
+    </WorkbenchProvider>
   )
 }
 

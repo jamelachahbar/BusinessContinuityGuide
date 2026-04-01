@@ -69,3 +69,26 @@ code {
 ::-webkit-scrollbar-thumb:hover {
   background: #a0aec0;
 }
+
+/* Print stylesheet */
+@media print {
+  /* Hide non-content elements */
+  .no-print,
+  [data-no-print] {
+    display: none !important;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+  }
+
+  #root {
+    height: auto;
+    overflow: visible;
+  }
+
+  * {
+    overflow: visible !important;
+  }
+}

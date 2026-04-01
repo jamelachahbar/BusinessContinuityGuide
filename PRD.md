@@ -1,107 +1,113 @@
-# PRD: Interactive Web Version of Azure Business Continuity Guide
+# PRD: Interactive Workbench with Export Functionality
 
 ## Objective
-Create a fully interactive web version of the Azure Business Continuity Guide that mirrors the Excel workbook's practical, interactive nature. The web app should not just display static content but provide interactive tables, color-coded indicators, expandable/collapsible sections, filterable views, and practical templates that replicate the workbook experience. All sections from the original Excel worksheet must be incorporated.
+Transform the ABC Guide web app from a static content viewer into an interactive workbench where users can:
+1. **Edit and fill in** all templates with their own data (criticality model, BIA, RACI, requirements, etc.)
+2. **Persist data** in browser localStorage so work is saved across sessions
+3. **Export plans** to downloadable formats (PDF report and JSON data backup)
 
-## Key Interactive Features to Replicate from Excel
-- **Color-coded criticality tiers** — Red (Mission Critical), Orange (High), Yellow (Medium), Green (Low), Gray (Unsupported)
-- **Status indicators** — ✅ Required, ❌ Not Required, ➖ As Required (with legend)
-- **Collapsible/expandable sections** — Business Commitment Model has 7 expandable sub-sections
-- **Interactive data tables** — Criticality Model, MBCO Recovery Order, Architecture Assessment tables
-- **RACI matrix** — Color-coded role assignments (Responsible, Accountable, Consulted, Informed)
-- **Risk calculation** — RISK = IMPACT × PROBABILITY with 1-5 scale visual and color-coded risk levels
-- **Category filters** — Filterable requirement categories
-- **Visual workflow** — Impact scope diagram for Response Plan (from Global down to Data Integrity)
-- **Before/After comparisons** — Architecture -BCDR vs +BCDR, Metrics -BCDR vs +BCDR
+## Architecture Decisions
+- **State Management:** React `useState` + `useReducer` for form state; localStorage for persistence
+- **Export PDF:** Use browser `window.print()` with a dedicated print stylesheet for clean PDF output (no heavy dependencies)
+- **Export JSON:** Native `JSON.stringify` + `Blob` download for data backup/restore
+- **No backend:** All data stays in the browser (localStorage)
+- **Editable tables:** Contenteditable cells or controlled inputs in table cells for inline editing
+- **Per-page state:** Each phase manages its own editable state; a shared context provides save/load/export utilities
 
 ## Tasks
 
-### Task-001: Bootstrap project from feature branch ✅
-**Status:** DONE (commit: 4553ff3)
-
-### Task-002: Improve UI layout and responsive design ✅
-**Status:** DONE (commit: c6545ad)
-
-### Task-003: Interactive Phase 1 — Criticality Model & Business Commitment Model
-**Description:** Transform Phase 1 into an interactive experience matching the Excel workbook:
-1. **Criticality Model** — Interactive table with color-coded tiers (Tier 1-5), Criticality labels with colored badges, Business View descriptions, and Business Impact columns (Financial, Brand Reputation, Customer Trust, Customer Experience, Injury/Loss of Life, Employee Productivity) with Yes/No indicators
-2. **Business Commitment Model** — Expandable accordion with 7 sub-sections. Each sub-section has an interactive table showing requirements per criticality tier with ✅/❌/➖ status indicators and a legend. Sub-sections: General, Availability, Recoverability, Deployment, Monitoring, Security Control, Validation & Testing
-3. **Fault Model** — Table showing failure types and resilience strategies per criticality tier
-4. **RACI Matrix** — Interactive table with color-coded RACI roles matching the Excel's visual layout
-5. **Application Requirements Template** — Category-filtered requirements list with Required/Not Required/Not Applicable indicators
-6. **Test Plans Template** — Table of test types with descriptions and links
+### Task-010: Create workbench infrastructure — state context, save/load, export utilities
+**Description:** Build the foundational infrastructure for the interactive workbench:
+1. Create a `WorkbenchContext` React context with:
+   - `saveData(key, data)` — saves JSON to localStorage under a namespaced key
+   - `loadData(key)` — loads JSON from localStorage
+   - `exportJSON()` — exports all workbench data as a single JSON file download
+   - `importJSON(file)` — imports a previously exported JSON file
+   - `clearAll()` — clears all workbench data with confirmation
+2. Create a `WorkbenchProvider` component that wraps the app
+3. Add an export toolbar/bar to App.tsx — a persistent "Workbench" toolbar at the top or bottom with buttons:
+   - "Export PDF" (triggers print with print CSS)
+   - "Export Data" (downloads JSON)
+   - "Import Data" (file upload)
+   - "Clear Data" (with confirmation dialog)
+4. Add a print stylesheet that hides sidebar, toolbar, and navigation; shows clean formatted content
+5. Add visual indicator when data has unsaved changes
 
 **Acceptance Criteria:**
-- Criticality Model rendered as interactive table with color-coded badges per tier
-- Business Commitment Model has 7 expandable sub-sections, each with data tables using ✅/❌/➖ indicators
-- Legend explaining status indicators is shown
-- RACI matrix displayed with color-coded roles
-- All content matches Excel workbook descriptions from getting-started.md
+- WorkbenchContext created with save/load/export/import/clear functions
+- Export toolbar visible in app with working buttons
+- JSON export downloads a file with all workbench data
+- JSON import restores data from a previously exported file
+- Print/PDF export shows clean formatted content
 - `npm run build` succeeds
 
-### Task-004: Interactive Phase 2 — Assessment Templates & Before/After Comparisons
-**Description:** Transform Phase 2 into an interactive experience with three sub-sections (Assess, Implement, Test), each containing practical templates:
-1. **Assess section:** Requirements & ADR template with categorized filter buttons, Service Map component list, BIA with metrics table (SLA, RTO, RPO, MTD, etc.), Fault Tree Analysis visualization, Architecture Gap Assessment table with per-component requirements and gap indicators, Metric Analysis summary tables
-2. **Implement section:** Response Plan by Scope showing the impact scope hierarchy (Global → Geography → Region → Zone → Service → Data Integrity) with response plans and preparation activities for each scope. Architecture +BCDR with changed items highlighted. Cost Comparison table showing before/after costs. Metric Comparison with improved scores. Contingency Plan template. Role Assignment table.
-3. **Test section:** Test Summary with test types and tracking fields (frequency, dates, automation, outcomes). Continuity Drill procedure template. UAT Test Plan. Outage Communication Plan template. Maintenance plan table.
+### Task-011: Make Phase 1 templates editable — Criticality Model & Business Commitment Model
+**Description:** Transform Phase 1 from read-only display to an interactive workbench:
+1. **Criticality Model:** Users can edit tier assignments, add/remove rows, edit business view descriptions and financial thresholds. Each row has an edit button that opens inline editing. Add a "Reset to Default" button.
+2. **Business Commitment Model:** Make the ✅/❌/➖ indicators clickable to cycle through states (Required → Not Required → As Required → Required). Users click a cell to change the commitment status. Add text inputs for free-text cells (like SLA percentages, support hours). Custom rows can be added.
+3. **RACI Matrix:** Make RACI cells clickable to cycle through R/A/C/I/blank. Users can add new task rows and edit role names.
+4. **Application Requirements:** Users can add new requirements, mark status (Required/Not Required/N/A), and add notes.
+5. **All editable data persists to localStorage** via WorkbenchContext.
+6. **Each section has a "Reset to Default" button** to restore original example data.
 
 **Acceptance Criteria:**
-- Assess/Implement/Test tabs or sections with distinct visual styling (matching badges already in place)
-- Response Plan by Scope shows hierarchical impact scope diagram with details per level
-- Architecture tables show requirements per component with status indicators
-- All 17 sub-sections have detailed interactive content
-- Links to Microsoft docs (Application Insights, VM Insights, etc.) included
+- Criticality Model rows can be edited inline (tier, criticality, description, financial, impact columns)
+- Business Commitment Model cells are clickable to cycle ✅/❌/➖
+- RACI cells are clickable to cycle R/A/C/I/blank
+- Application Requirements can be added/edited
+- Data persists after page refresh
+- Reset to Default works per section
 - `npm run build` succeeds
 
-### Task-005: Interactive Phase 3 — Risk Matrix, MBCO Table & Dashboard
-**Description:** Transform Phase 3 with rich interactive content:
-1. **BCP Document** — Checklist-style list of BCP components with detailed descriptions
-2. **Business Risk Assessment** — Interactive risk matrix with RISK = IMPACT × PROBABILITY visual (1-5 scales), color-coded risk levels (Critical 20-25 Red, High 15-19 Orange, Medium 8-14 Yellow, Low 1-7 Green), example risk scenarios with calculated scores
-3. **MBCO Planning** — Interactive recovery order table with columns: Recovery Order, Application Name, Business Function, Criticality (color-coded), Criticality Window, Environment, Location, Dependencies (upstream/downstream), Recovery Options, Recovery Geography. Sample data matching the Excel screenshot.
-4. **Business Critical Function Calendar** — Calendar/timeline view of critical business events
-5. **BIA Portfolio Summary** — Summary table of all application BIAs with key metrics
-6. **BCDR Dashboard** — Dashboard-style layout with metric cards and status indicators
-7. **Maintain Business Continuity** — Maintenance plan table with review schedules
+### Task-012: Make Phase 2 templates editable — BIA, Gap Assessment, Cost Comparison
+**Description:** Make Phase 2 an interactive workbench:
+1. **Requirements & ADR:** Editable requirements list — users can add rows, change status (✅/❌/N/A), edit ADR notes
+2. **Service Map:** Users can add/remove service components and define dependencies
+3. **BIA:** Editable metrics table — users fill in their own SLO, RTO, RPO, MTD, impact cost values
+4. **Architecture Gap Assessment:** Editable per-component rows — users can add components, edit HA/DR config, change gap status (Met/Partial/Gap)
+5. **Cost Comparison:** Editable cost table — users input current and +BCDR costs per component, totals auto-calculate
+6. **Response Plan by Scope:** Editable response details per impact scope level
+7. **Role Assignment:** Editable table for assigning people to roles with contact fields
+8. **Test Summary:** Editable test schedule with date fields and status
+9. **Outage Communication Plan:** Editable questions/answers template
+10. **Maintain App Continuity:** Editable maintenance schedule
+
+All editable data persists via WorkbenchContext.
 
 **Acceptance Criteria:**
-- Risk calculation formula displayed visually with colored scale
-- Risk matrix is interactive with 4-quadrant view and color-coded severity
-- MBCO table shows detailed recovery order with color-coded criticality
-- All 7 sections have detailed interactive content matching Excel
+- BIA metrics can be edited inline with the values persisting
+- Gap Assessment status is clickable to cycle Met/Partial/Gap
+- Cost Comparison calculates totals automatically
+- Users can add new rows to tables
+- Data persists after page refresh
 - `npm run build` succeeds
 
-### Task-006: Add Personas page with Role-Task Matrix
-**Description:** Create a Personas page showing BCDR by Role and Task. The Excel has a dedicated tab mapping roles to tasks across all phases. Include roles: Application Owner, Solution Architect, Cloud Engineer, Operations, Security, Compliance, Business Stakeholder, QA/Testing. For each role, show which tasks they're Responsible, Accountable, Consulted, or Informed for across all 3 phases. Use a visual table or card-based layout with RACI color coding.
+### Task-013: Make Phase 3 templates editable — Risk Matrix, MBCO, Dashboard
+**Description:** Make Phase 3 an interactive workbench:
+1. **BCP Document:** Interactive checklist — users can check/uncheck items, add custom items, mark status
+2. **Business Risk Assessment:** Users can add their own risk scenarios with editable impact (1-5) and probability (1-5) scores. Risk score and level auto-calculate. The 5×5 matrix highlights cells corresponding to user-entered risks.
+3. **MBCO Recovery Order:** Editable table — users add applications, set recovery order, define dependencies, select criticality from dropdown
+4. **Critical Function Calendar:** Users can add/edit business critical dates and events
+5. **BIA Portfolio Summary:** Auto-populated from Phase 2 BIA data if available, otherwise editable
+6. **BCDR Dashboard:** Summary cards use live data from other phases where available
+7. **Maintain BC:** Editable maintenance schedule with date fields
+
+All editable data persists via WorkbenchContext.
+
 **Acceptance Criteria:**
-- New "Personas" nav item in sidebar with People icon
-- Role cards showing each persona with their responsibilities
-- RACI table mapping roles to specific tasks across phases
-- Color-coded RACI indicators matching Phase 1 RACI style
+- Risk scenarios can be added with auto-calculated scores
+- MBCO table rows can be added/edited/reordered
+- BCP checklist items are checkable
+- Dashboard pulls data from other phases where possible
+- Data persists after page refresh
 - `npm run build` succeeds
 
-### Task-007: Add searchable Glossary page
-**Description:** Add a Glossary page with searchable BCDR terminology. Key terms: RTO, RPO, MTD, MBCO, SLA, BIA, BCP, BCDR, SLO, SLI, RPA, RTA, DRaaS, HA, FTA, WAF, CAF. Each term should have an abbreviation, full name, and clear definition. Include a search/filter input at the top.
+### Task-014: Final build, commit, and merge to main
+**Description:** Final verification and merge of the interactive workbench feature.
 **Acceptance Criteria:**
-- New "Glossary" nav item in sidebar with Book icon
-- Search input that filters terms in real-time
-- Terms organized alphabetically with clear abbreviation → full name → definition layout
-- Minimum 20 BCDR terms included
-- `npm run build` succeeds
-
-### Task-008: Add References page with categorized links
-**Description:** Add a References page with categorized external links to Microsoft documentation. Categories: Azure Architecture & Reliability, Business Continuity Planning, Disaster Recovery, Monitoring & Operations, Security, Cloud Adoption Framework, Well-Architected Framework.
-**Acceptance Criteria:**
-- New "References" nav item in sidebar with Link icon
-- Links categorized into meaningful groups
-- Each link has title, URL, and brief description
-- Minimum 15 reference links included
-- `npm run build` succeeds
-
-### Task-009: Final polish, build verification, commit, and merge to main
-**Description:** Final pass: ensure consistent styling across all pages, verify build succeeds with no errors, commit all changes with clear messages, and merge `feature/ui-improvements` into `main`.
-**Acceptance Criteria:**
-- All pages have consistent styling using FluentUI makeStyles
-- `npm run build` succeeds with no errors or warnings
-- All changes committed with clear, descriptive messages
-- Branch merged into main (fast-forward or merge commit)
-- App runs correctly with `npm run dev`
+- All editable features work correctly across all phases
+- Data persists in localStorage
+- JSON export/import works correctly
+- PDF print is clean and formatted
+- Build succeeds with no errors
+- Branch merged into main
