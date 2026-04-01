@@ -28,6 +28,7 @@ import {
 import { useWorkbenchData } from '../../hooks/useWorkbenchData'
 import { downloadCsv, objectsToCsvSheet } from '../../utils/csvExport'
 import ServiceMap from './ServiceMap'
+import FaultTree from './FaultTree'
 
 /* ────────────────────────────────────────────────────
    Styles
@@ -127,13 +128,6 @@ interface BiaDependencyGroup {
 const defaultBiaDeps: BiaDependencyGroup[] = [
   { direction: 'Upstream', items: ['Customer Web Portal', 'Mobile Application', 'Partner API Gateway', 'CDN (static assets)'] },
   { direction: 'Downstream', items: ['Payment Processing Service', 'Email / Notification Service', 'Reporting Data Warehouse', 'Third-party CRM Integration'] },
-]
-
-const faultTreeBefore = [
-  { category: 'Infrastructure Failure', probability: 'Medium', impact: 'High', causes: ['Availability zone outage', 'Region-wide outage', 'Network connectivity failure', 'DNS resolution failure'] },
-  { category: 'Application Failure', probability: 'Medium', impact: 'High', causes: ['Unhandled code exceptions', 'Configuration drift / error', 'Dependency service timeout', 'Memory leak / resource exhaustion'] },
-  { category: 'Data Issues', probability: 'Low', impact: 'Critical', causes: ['Data corruption (application bug)', 'Accidental deletion', 'Replication lag / inconsistency', 'Schema migration failure'] },
-  { category: 'Security Incident', probability: 'Low', impact: 'Critical', causes: ['DDoS attack', 'Credential compromise', 'Ransomware / malware', 'Supply chain vulnerability'] },
 ]
 
 type GapStatus = 'met' | 'partial' | 'gap'
@@ -471,31 +465,11 @@ export default function AssessTab() {
         <AccordionHeader>4. Fault Tree Analysis (&minus;BCDR)</AccordionHeader>
         <AccordionPanel>
           <p className={styles.subsectionDesc}>
-            Top-down failure analysis before BCDR improvements. Identifies how component failures contribute to application unavailability.
+            Top-down failure analysis before BCDR improvements. Build your fault tree by adding
+            events (top event, intermediate, basic causes), logic gates (OR/AND), and mitigations.
+            Connect them to show how failures cascade. Export as CSV or PNG.
           </p>
-          <div className={styles.faultTreeRoot}>
-            Top Event: Application Unavailable
-          </div>
-          <div className={styles.faultTreeBranch}>
-            {faultTreeBefore.map((branch, i) => (
-              <div key={i}>
-                <div className={styles.faultTreeNode}>
-                  <strong>{branch.category}</strong>
-                  <span style={{ marginLeft: '12px' }}>
-                    <Badge appearance="filled" style={{ backgroundColor: branch.probability === 'Medium' ? '#ffc107' : '#fd7e14', color: '#1a1a1a', marginRight: '6px' }}>
-                      P: {branch.probability}
-                    </Badge>
-                    <Badge appearance="filled" style={{ backgroundColor: branch.impact === 'Critical' ? '#dc3545' : '#fd7e14', color: '#ffffff' }}>
-                      I: {branch.impact}
-                    </Badge>
-                  </span>
-                </div>
-                {branch.causes.map((cause, j) => (
-                  <div key={j} className={styles.faultTreeLeaf}>{cause}</div>
-                ))}
-              </div>
-            ))}
-          </div>
+          <FaultTree />
         </AccordionPanel>
       </AccordionItem>
 
