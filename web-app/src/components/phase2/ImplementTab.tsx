@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import {
   makeStyles, shorthands, mergeClasses, tokens,
   Badge, Button,
@@ -135,6 +135,30 @@ export default function ImplementTab() {
   const [metrics, setMetrics, resetMetrics] = useWorkbenchData<MetricRow[]>('phase2-metric-comparison', defaultMetrics)
   const [steps, setSteps, resetSteps] = useWorkbenchData<string[]>('phase2-contingency-steps', defaultContingency)
   const [roles, setRoles, resetRoles] = useWorkbenchData<RoleRow[]>('phase2-role-assignment', defaultRoles)
+
+  // Sync: Design components ↔ Cost rows (add new, remove deleted, keep existing costs)
+  useEffect(() => {
+    const designNames = design.map(d => d.component).filter(Boolean)
+    const existingCost = cost.filter(c => designNames.includes(c.component))
+    const newNames = designNames.filter(n => !cost.some(c => c.component === n))
+    const synced = [...existingCost, ...newNames.map(n => ({ component: n, currentCost: 0, bcdrCost: 0 }))]
+    if (synced.length !== cost.length || synced.some((s, i) => s.component !== cost[i]?.component)) {
+      setCost(synced)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [design])
+
+  // Sync: Design components ↔ Metric Comparison rows
+  useEffect(() => {
+    const designNames = design.map(d => d.component).filter(Boolean)
+    const existingMetrics = metrics.filter(m => designNames.includes(m.component))
+    const newNames = designNames.filter(n => !metrics.some(m => m.component === n))
+    const synced = [...existingMetrics, ...newNames.map(n => ({ component: n, beforeAvail: '', afterAvail: '', beforeRel: '', afterRel: '', beforeSec: '', afterSec: '' }))]
+    if (synced.length !== metrics.length || synced.some((s, i) => s.component !== metrics[i]?.component)) {
+      setMetrics(synced)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [design])
 
   // Edit cell helper
   const cell = (key: string, val: string, save: (v: string) => void, cls: string, extra?: React.CSSProperties) => {
