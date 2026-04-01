@@ -232,7 +232,7 @@ export function generateBcpPdf(): void {
   sec.push(tbl(['Field', 'Value'], [['Organization', e(org)], ['Solution', e(appName)], ['Standard', 'ISO 22301:2019'], ['Primary Contact', e(s.primaryContact || 'TBD')], ['Contact Email', e(s.primaryContactEmail || 'TBD')], ['Date', date], ['Classification', 'Confidential']]))
 
   // 2. Context (ISO §4)
-  sec.push(`<h1>2. Context of the Organization (ISO 22301 &sect;4)</h1>`)
+  sec.push(`<h1>2. Context of the Organization (ISO 22301 Clause 4)</h1>`)
   sec.push(`<p>This BCP establishes the framework for ${e(org)} to maintain essential functions during and after a disruption.</p>`)
   if (s.workloadDescription) {
     sec.push(`<h2>2.1 Workload Description</h2>`)
@@ -242,25 +242,25 @@ export function generateBcpPdf(): void {
   if (s.notes) sec.push(`<div class="info"><strong>Notes:</strong> ${e(s.notes)}</div>`)
 
   // 3. Leadership (ISO §5)
-  sec.push(`<h1>3. Leadership &amp; Roles (ISO 22301 &sect;5)</h1>`)
+  sec.push(`<h1>3. Leadership &amp; Roles (ISO 22301 Clause 5)</h1>`)
   sec.push(`<p>${e(org)} is committed to protecting employees, customers, and stakeholders through continuity of critical business operations.</p>`)
   sec.push(`<h2>3.1 Role Assignment</h2>`)
   sec.push(tbl(['Role', 'Assigned To', 'Team', 'Responsibility', 'Escalation'],
     roles.map((r: { role: string; name: string; team: string; responsibility: string; escalation: string }) => [e(r.role), e(r.name || 'TBD'), e(r.team), e(r.responsibility), e(r.escalation)])))
 
   // 4. Planning (ISO §6)
-  sec.push(`<h1>4. Planning &mdash; Requirements (ISO 22301 &sect;6)</h1>`)
+  sec.push(`<h1>4. Planning &mdash; Requirements (ISO 22301 Clause 6)</h1>`)
   sec.push(tbl(['Category', 'Requirement', 'Status', 'Architecture Decision'],
     requirements.map((r: { category: string; requirement: string; status: string; adr: string }) => [e(r.category), e(r.requirement), r.status === 'required' ? badge('Required', '#28a745') : r.status === 'not-required' ? badge('Not Req', '#dc3545') : badge('N/A', '#6c757d'), e(r.adr)]), { centerCols: [2] }))
 
   // 5. Support (ISO §7)
-  sec.push(`<h1>5. Support &mdash; Dependencies (ISO 22301 &sect;7)</h1>`)
+  sec.push(`<h1>5. Support &mdash; Dependencies (ISO 22301 Clause 7)</h1>`)
   biaDeps.forEach((dep: { direction: string; items: string[] }) => {
     sec.push(`<h3>${e(dep.direction)} Dependencies</h3><ul>${dep.items.filter(Boolean).map((i: string) => `<li>${e(i)}</li>`).join('')}</ul>`)
   })
 
   // 6. Operations / BIA (ISO §8)
-  sec.push(`<h1>6. Operations &mdash; Business Impact Analysis (ISO 22301 &sect;8)</h1>`)
+  sec.push(`<h1>6. Operations &mdash; Business Impact Analysis (ISO 22301 Clause 8)</h1>`)
   sec.push(tbl(['Metric', 'Value', 'Notes'],
     biaMetrics.map((m: { metric: string; value: string; notes: string }) => [`<strong>${e(m.metric)}</strong>`, e(m.value), e(m.notes)]), { centerCols: [1] }))
 
@@ -305,7 +305,7 @@ export function generateBcpPdf(): void {
   sec.push(`<ol>${contingency.filter(Boolean).map((st: string) => `<li>${e(st)}</li>`).join('')}</ol>`)
 
   // 12. Testing (ISO §9)
-  sec.push(`<h1>12. Performance Evaluation &mdash; Testing (ISO 22301 &sect;9)</h1>`)
+  sec.push(`<h1>12. Performance Evaluation &mdash; Testing (ISO 22301 Clause 9)</h1>`)
   sec.push(tbl(['Test Type', 'Frequency', 'Last Test', 'Next Test', 'Status', 'Owner'],
     tests.map((t: { type: string; frequency: string; lastTest: string; nextTest: string; status: string; owner: string }) => [e(t.type), e(t.frequency), t.lastTest, t.nextTest,
       t.status === 'Passed' ? badge('Passed', '#28a745') : t.status === 'Degraded' ? badge('Degraded', '#ffc107', '#1a1a1a') : badge('Failed', '#dc3545'),
@@ -319,7 +319,7 @@ export function generateBcpPdf(): void {
   }
 
   // 13. Maintenance (ISO §10)
-  sec.push(`<h1>13. Improvement &mdash; Maintenance (ISO 22301 &sect;10)</h1>`)
+  sec.push(`<h1>13. Improvement &mdash; Maintenance (ISO 22301 Clause 10)</h1>`)
   sec.push(tbl(['Document', 'Frequency', 'Next Review', 'Owner', 'Approver'],
     maintenance.map((m: { document: string; frequency: string; nextReview: string; owner: string; approver: string }) => [e(m.document), e(m.frequency), e(m.nextReview), e(m.owner), e(m.approver)]),
     { centerCols: [1, 2] }))
