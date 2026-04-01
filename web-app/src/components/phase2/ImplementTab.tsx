@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import {
   makeStyles, shorthands, mergeClasses, tokens,
   Badge, Button,
@@ -137,7 +137,11 @@ export default function ImplementTab() {
   const [roles, setRoles, resetRoles] = useWorkbenchData<RoleRow[]>('phase2-role-assignment', defaultRoles)
 
   // Sync: Design components ↔ Cost rows (add new, remove deleted, keep existing costs)
+  // Only sync when user explicitly changes design (not on first mount with defaults)
+  const costDesignRef = useRef(design)
   useEffect(() => {
+    if (costDesignRef.current === design) return
+    costDesignRef.current = design
     const designNames = design.map(d => d.component).filter(Boolean)
     const existingCost = cost.filter(c => designNames.includes(c.component))
     const newNames = designNames.filter(n => !cost.some(c => c.component === n))
@@ -149,7 +153,12 @@ export default function ImplementTab() {
   }, [design])
 
   // Sync: Design components ↔ Metric Comparison rows
+  // Only sync when user explicitly changes design (not on first mount with defaults)
+  const designRef = useRef(design)
   useEffect(() => {
+    // Skip sync on initial mount — only run when design actually changes
+    if (designRef.current === design) return
+    designRef.current = design
     const designNames = design.map(d => d.component).filter(Boolean)
     const existingMetrics = metrics.filter(m => designNames.includes(m.component))
     const newNames = designNames.filter(n => !metrics.some(m => m.component === n))
