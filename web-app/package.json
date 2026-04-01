@@ -12,8 +12,13 @@
   "dependencies": {
     "@fluentui/react-components": "^9.73.6",
     "@fluentui/react-icons": "^2.0.323",
+    "@reactflow/background": "^11.3.14",
+    "@reactflow/controls": "^11.2.14",
+    "@reactflow/core": "^11.11.4",
     "react": "^19.2.4",
-    "react-dom": "^19.2.4"
+    "react-dom": "^19.2.4",
+    "reactflow": "^11.11.4",
+    "recharts": "^3.8.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
