@@ -368,10 +368,12 @@ export default function Phase3BusinessContinuity() {
                         </td>
                         {cell(`mb-${i}-app`, r.application, v => setMbco(mbco.map((x, j) => j === i ? { ...x, application: v } : x)), s.td, { fontWeight: 600 })}
                         {cell(`mb-${i}-fn`, r.businessFunction, v => setMbco(mbco.map((x, j) => j === i ? { ...x, businessFunction: v } : x)), s.td)}
-                        <td className={s.tdC}>
-                          <Select size="small" value={r.criticality} onChange={(_, d) => setMbco(mbco.map((x, j) => j === i ? { ...x, criticality: d.value } : x))} style={{ minWidth: '140px' }}>
-                            {critLevels.map(opt => <option key={opt.name} value={opt.name}>{opt.name}</option>)}
-                          </Select>
+                        <td className={mergeClasses(s.tdC, s.editC)} onClick={() => ec !== `mb-${i}-crit` && setEc(`mb-${i}-crit`)}>
+                          {ec === `mb-${i}-crit` ? (
+                            <Select size="small" value={r.criticality} onChange={(_, d) => { setMbco(mbco.map((x, j) => j === i ? { ...x, criticality: d.value } : x)); setEc(null) }} onBlur={() => setEc(null)} style={{ minWidth: '140px' }}>
+                              {critLevels.map(opt => <option key={opt.name} value={opt.name}>{opt.name}</option>)}
+                            </Select>
+                          ) : (() => { const cc = getCriticalityColor(r.criticality); return <Badge appearance="filled" style={{ backgroundColor: cc.color, color: cc.textColor, maxWidth: '100%', height: 'auto', minHeight: '20px', padding: '2px 6px', whiteSpace: 'normal', lineHeight: '1.3', textAlign: 'center' }} size="small">{r.criticality}</Badge> })()}
                         </td>
                         {cell(`mb-${i}-w`, r.window, v => setMbco(mbco.map((x, j) => j === i ? { ...x, window: v } : x)), s.td)}
                         <td className={s.tdC}><Badge appearance="outline" color={r.env === 'Azure' ? 'brand' : 'warning'} size="small" style={{ maxWidth: '100%', height: 'auto', minHeight: '20px', padding: '2px 6px', whiteSpace: 'normal', lineHeight: '1.3', textAlign: 'center' }}>{r.env}</Badge></td>
@@ -403,11 +405,16 @@ export default function Phase3BusinessContinuity() {
                 <thead><tr><th className={s.th}>Application</th><th className={s.thC}>Criticality</th><th className={s.thC}>SLO</th><th className={s.thC}>RTO</th><th className={s.thC}>RPO</th><th className={s.thC}>MTD</th><th className={s.thC}>Impact/hr</th><th className={s.thC}>Last Review</th><th className={s.thC} style={{ width: 36 }}></th></tr></thead>
                 <tbody>
                   {biaPort.map((r, i) => {
-                    const cc = getCriticalityColor(r.criticality)
                     return (
                       <tr key={i}>
                         {cell(`bp-${i}-app`, r.application, v => setBiaPort(biaPort.map((x, j) => j === i ? { ...x, application: v } : x)), s.td, { fontWeight: 600 })}
-                        <td className={s.tdC}><Badge appearance="filled" style={{ backgroundColor: cc.color, color: cc.textColor, maxWidth: '100%', height: 'auto', minHeight: '20px', padding: '2px 6px', whiteSpace: 'normal', lineHeight: '1.3', textAlign: 'center' }} size="small">{r.criticality}</Badge></td>
+                        <td className={mergeClasses(s.tdC, s.editC)} onClick={() => ec !== `bp-${i}-crit` && setEc(`bp-${i}-crit`)}>
+                          {ec === `bp-${i}-crit` ? (
+                            <Select size="small" value={r.criticality} onChange={(_, d) => { setBiaPort(biaPort.map((x, j) => j === i ? { ...x, criticality: d.value } : x)); setEc(null) }} onBlur={() => setEc(null)} style={{ minWidth: '140px' }}>
+                              {critLevels.map(opt => <option key={opt.name} value={opt.name}>{opt.name}</option>)}
+                            </Select>
+                          ) : (() => { const cc = getCriticalityColor(r.criticality); return <Badge appearance="filled" style={{ backgroundColor: cc.color, color: cc.textColor, maxWidth: '100%', height: 'auto', minHeight: '20px', padding: '2px 6px', whiteSpace: 'normal', lineHeight: '1.3', textAlign: 'center' }} size="small">{r.criticality}</Badge> })()}
+                        </td>
                         {cell(`bp-${i}-slo`, r.slo, v => setBiaPort(biaPort.map((x, j) => j === i ? { ...x, slo: v } : x)), s.tdC)}
                         {cell(`bp-${i}-rto`, r.rto, v => setBiaPort(biaPort.map((x, j) => j === i ? { ...x, rto: v } : x)), s.tdC)}
                         {cell(`bp-${i}-rpo`, r.rpo, v => setBiaPort(biaPort.map((x, j) => j === i ? { ...x, rpo: v } : x)), s.tdC)}
