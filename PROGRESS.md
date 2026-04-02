@@ -22,21 +22,21 @@
 
 ## Current Iteration
 
-- Iteration: 22
-- Working on: Task-019: Configurable criticality levels and FluentUI select components
+- Iteration: 23
+- Working on: Task-020: Fix Fault Tree canvas sync, editable FMEA scores, and badge formatting
 - Status: Complete
 
 ## Last Completed
 
-- Task-019: Configurable criticality levels and FluentUI select components
+- Task-020: Fix Fault Tree canvas sync, editable FMEA scores, and badge formatting
 - Tests: Build passes
 - Key decisions:
-  - Added ConfigurableCriticalityLevel interface and DEFAULT_CRITICALITY_LEVELS to criticality.ts
-  - Added buildCriticalityMap() for dynamic color lookups from user-configured levels
-  - Settings page gets new Criticality Levels card with inline editing, color pickers, add/delete/reset
-  - Phase1 and Phase3 criticality dropdowns now use configurable levels via useWorkbenchData
-  - All native <select> elements replaced with FluentUI Select component
-  - MBCO criticality column changed from Badge display to Select dropdown
+  - Added onNodeDragStop handler to persist dragged positions back to ftData
+  - Added useEffect syncs from ftData/ftEdges to React Flow nodes/edges state
+  - Removed useMemo wrappers from useNodesState/useEdgesState initial values
+  - Made FMEA S/O/D columns editable with FluentUI Select dropdowns
+  - Added updateFmeaScore helper that updates ftData by matching label
+  - Added long-text-friendly styles to Phase 3 MBCO env badge
 
 ## Blockers
 

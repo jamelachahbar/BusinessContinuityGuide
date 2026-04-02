@@ -12,7 +12,7 @@
  * Also supports FMEA-style Severity / Occurrence / Detection / RPN scoring.
  */
 
-import { useState, useCallback, useMemo, useRef } from 'react'
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react'
 import ReactFlow, {
   Controls, Background, Handle, Position, MarkerType,
   useNodesState, useEdgesState, addEdge,
@@ -185,14 +185,38 @@ export default function FaultTree({ storageKey = 'phase2-fta', afterBcdr = false
   const [ftData, setFtData, resetFtData] = useWorkbenchData<FtaNodeData[]>(`${storageKey}-nodes`, initNodes)
   const [ftEdges, setFtEdges] = useWorkbenchData<string[][]>(`${storageKey}-edges`, initEdges)
 
-  const [nodes, setNodes, onNC] = useNodesState(useMemo(() => toNodes(ftData), [ftData]))
-  const [edges, setEdges, onEC] = useEdgesState(useMemo(() => toEdges(ftEdges), [ftEdges]))
+  const [nodes, setNodes, onNC] = useNodesState(toNodes(ftData))
+  const [edges, setEdges, onEC] = useEdgesState(toEdges(ftEdges))
+
+  // Sync React Flow state from persisted data
+  useEffect(() => {
+    setNodes(toNodes(ftData))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ftData])
+
+  useEffect(() => {
+    setEdges(toEdges(ftEdges))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ftEdges])
 
   const [newLabel, setNewLabel] = useState('')
   const [newType, setNewType] = useState<FtaType>('basic')
   const [newSev, setNewSev] = useState(3)
   const [newOcc, setNewOcc] = useState(2)
   const [newDet, setNewDet] = useState(3)
+
+  const onNodeDragStop = useCallback((_: React.MouseEvent, node: Node) => {
+    setFtData(ftData.map(n => n.id === node.id ? { ...n, x: node.position.x, y: node.position.y } : n))
+  }, [ftData, setFtData])
+
+  const updateFmeaScore = useCallback((eventLabel: string, field: 'severity' | 'occurrence' | 'detection', value: number) => {
+    setFtData(ftData.map(n => {
+      if (n.label.replace(/\n/g, ' ') === eventLabel) {
+        return { ...n, [field]: value }
+      }
+      return n
+    }))
+  }, [ftData, setFtData])
 
   const onConnect = useCallback((p: Connection) => {
     if (!p.source || !p.target) return
@@ -278,7 +302,7 @@ export default function FaultTree({ storageKey = 'phase2-fta', afterBcdr = false
 
       {/* Canvas */}
       <div className={st.canvas} ref={ref}>
-        <ReactFlow nodes={nodes} edges={edges} onNodesChange={onNC} onEdgesChange={onEC} onConnect={onConnect} nodeTypes={nodeTypes} fitView snapToGrid snapGrid={[16, 16]} defaultEdgeOptions={{ style: { strokeWidth: 2, stroke: '#718096' }, markerEnd: { type: MarkerType.ArrowClosed, color: '#718096' } }} attributionPosition="bottom-left">
+        <ReactFlow nodes={nodes} edges={edges} onNodesChange={onNC} onEdgesChange={onEC} onConnect={onConnect} onNodeDragStop={onNodeDragStop} nodeTypes={nodeTypes} fitView snapToGrid snapGrid={[16, 16]} defaultEdgeOptions={{ style: { strokeWidth: 2, stroke: '#718096' }, markerEnd: { type: MarkerType.ArrowClosed, color: '#718096' } }} attributionPosition="bottom-left">
           <Controls />
           <Background gap={16} size={1} color="#e2e8f0" />
         </ReactFlow>
@@ -305,9 +329,21 @@ export default function FaultTree({ storageKey = 'phase2-fta', afterBcdr = false
                   <tr key={i}>
                     <td style={{ padding: '6px 10px', borderBottom: '1px solid #e2e8f0', fontWeight: 600 }}>{r.Event}</td>
                     <td style={{ padding: '6px 10px', borderBottom: '1px solid #e2e8f0', textAlign: 'center' }}>{r.Type}</td>
-                    <td style={{ padding: '6px 10px', borderBottom: '1px solid #e2e8f0', textAlign: 'center' }}>{r.Severity}</td>
-                    <td style={{ padding: '6px 10px', borderBottom: '1px solid #e2e8f0', textAlign: 'center' }}>{r.Occurrence}</td>
-                    <td style={{ padding: '6px 10px', borderBottom: '1px solid #e2e8f0', textAlign: 'center' }}>{r.Detection}</td>
+                    <td style={{ padding: '6px 10px', borderBottom: '1px solid #e2e8f0', textAlign: 'center' }}>
+                      <Select size="small" value={String(r.Severity)} onChange={(_, d) => updateFmeaScore(r.Event, 'severity', Number(d.value))} style={{ minWidth: '55px' }}>
+                        {[1,2,3,4,5].map(v => <option key={v} value={v}>{v}</option>)}
+                      </Select>
+                    </td>
+                    <td style={{ padding: '6px 10px', borderBottom: '1px solid #e2e8f0', textAlign: 'center' }}>
+                      <Select size="small" value={String(r.Occurrence)} onChange={(_, d) => updateFmeaScore(r.Event, 'occurrence', Number(d.value))} style={{ minWidth: '55px' }}>
+                        {[1,2,3,4,5].map(v => <option key={v} value={v}>{v}</option>)}
+                      </Select>
+                    </td>
+                    <td style={{ padding: '6px 10px', borderBottom: '1px solid #e2e8f0', textAlign: 'center' }}>
+                      <Select size="small" value={String(r.Detection)} onChange={(_, d) => updateFmeaScore(r.Event, 'detection', Number(d.value))} style={{ minWidth: '55px' }}>
+                        {[1,2,3,4,5].map(v => <option key={v} value={v}>{v}</option>)}
+                      </Select>
+                    </td>
                     <td style={{ padding: '6px 10px', borderBottom: '1px solid #e2e8f0', textAlign: 'center' }}>
                       <Badge appearance="filled" size="small" style={{ backgroundColor: r.RPN >= 60 ? '#dc3545' : r.RPN >= 30 ? '#fd7e14' : r.RPN >= 10 ? '#ffc107' : '#28a745', color: r.RPN >= 10 && r.RPN < 60 && r.RPN >= 30 ? '#fff' : r.RPN >= 60 ? '#fff' : r.RPN < 10 ? '#fff' : '#1a1a1a' }}>
                         {r.RPN}

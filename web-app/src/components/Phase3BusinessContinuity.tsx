@@ -374,7 +374,7 @@ export default function Phase3BusinessContinuity() {
                           </Select>
                         </td>
                         {cell(`mb-${i}-w`, r.window, v => setMbco(mbco.map((x, j) => j === i ? { ...x, window: v } : x)), s.td)}
-                        <td className={s.tdC}><Badge appearance="outline" color={r.env === 'Azure' ? 'brand' : 'warning'} size="small">{r.env}</Badge></td>
+                        <td className={s.tdC}><Badge appearance="outline" color={r.env === 'Azure' ? 'brand' : 'warning'} size="small" style={{ maxWidth: '100%', height: 'auto', minHeight: '20px', padding: '2px 6px', whiteSpace: 'normal', lineHeight: '1.3', textAlign: 'center' }}>{r.env}</Badge></td>
                         {cell(`mb-${i}-loc`, r.location, v => setMbco(mbco.map((x, j) => j === i ? { ...x, location: v } : x)), s.td)}
                         {cell(`mb-${i}-up`, r.upstreamDeps, v => setMbco(mbco.map((x, j) => j === i ? { ...x, upstreamDeps: v } : x)), s.td)}
                         {cell(`mb-${i}-dn`, r.downstreamDeps, v => setMbco(mbco.map((x, j) => j === i ? { ...x, downstreamDeps: v } : x)), s.td)}
