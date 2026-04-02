@@ -151,6 +151,7 @@ function Settings() {
         if (changed) localStorage.setItem(`${storagePrefix}${key}`, JSON.stringify(data))
       } catch { /* skip malformed */ }
     }
+    window.dispatchEvent(new Event('workbench-data-changed'))
   }
 
   return (
