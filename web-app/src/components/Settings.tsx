@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import {
   makeStyles,
   shorthands,
@@ -18,6 +19,7 @@ import {
   Delete20Regular,
 } from '@fluentui/react-icons'
 import { useWorkbenchData } from '../hooks/useWorkbenchData'
+import { useWorkbenchContext } from '../context/WorkbenchContext'
 import { DEFAULT_CRITICALITY_LEVELS, type ConfigurableCriticalityLevel } from '../utils/criticality'
 
 const useStyles = makeStyles({
@@ -120,11 +122,35 @@ const DEFAULT_SETTINGS: AppSettings = {
 
 function Settings() {
   const styles = useStyles()
+  const { storagePrefix } = useWorkbenchContext()
   const [settings, setSettings] = useWorkbenchData<AppSettings>('settings', DEFAULT_SETTINGS)
   const [critLevels, setCritLevels, resetCritLevels] = useWorkbenchData<ConfigurableCriticalityLevel[]>('criticalityLevels', DEFAULT_CRITICALITY_LEVELS)
+  const [focusedLevelName, setFocusedLevelName] = useState<string>('')
 
   const updateField = <K extends keyof AppSettings>(field: K, value: AppSettings[K]) => {
     setSettings({ ...settings, [field]: value })
+  }
+
+  /** Propagate a criticality level rename across all stored data */
+  const renameCriticalityInData = (oldName: string, newName: string) => {
+    if (oldName === newName || !oldName || !newName) return
+    const keysToScan = ['phase1_criticalityModel', 'phase3-mbco', 'phase3-bia-portfolio']
+    for (const key of keysToScan) {
+      const raw = localStorage.getItem(`${storagePrefix}${key}`)
+      if (!raw) continue
+      try {
+        const data = JSON.parse(raw)
+        if (!Array.isArray(data)) continue
+        let changed = false
+        for (const row of data) {
+          if (row.criticality === oldName) {
+            row.criticality = newName
+            changed = true
+          }
+        }
+        if (changed) localStorage.setItem(`${storagePrefix}${key}`, JSON.stringify(data))
+      } catch { /* skip malformed */ }
+    }
   }
 
   return (
@@ -276,7 +302,7 @@ function Settings() {
             {critLevels.map((level, i) => (
               <tr key={i}>
                 <td style={{ padding: '6px 8px', borderBottom: '1px solid #f0f0f0' }}>
-                  <Input size="small" value={level.name} onChange={(_, d) => setCritLevels(critLevels.map((l, j) => j === i ? { ...l, name: d.value } : l))} style={{ width: '100%' }} />
+                  <Input size="small" value={level.name} onFocus={() => setFocusedLevelName(level.name)} onChange={(_, d) => setCritLevels(critLevels.map((l, j) => j === i ? { ...l, name: d.value } : l))} onBlur={() => { renameCriticalityInData(focusedLevelName, level.name); setFocusedLevelName('') }} style={{ width: '100%' }} />
                 </td>
                 <td style={{ padding: '6px 8px', borderBottom: '1px solid #f0f0f0', textAlign: 'center' }}>
                   <input type="color" value={level.color} onChange={e => setCritLevels(critLevels.map((l, j) => j === i ? { ...l, color: e.target.value } : l))} style={{ width: '32px', height: '28px', border: 'none', cursor: 'pointer', borderRadius: '4px' }} />
