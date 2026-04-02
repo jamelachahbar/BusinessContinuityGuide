@@ -367,7 +367,7 @@ export default function Phase3BusinessContinuity() {
                         </td>
                         {cell(`mb-${i}-app`, r.application, v => setMbco(mbco.map((x, j) => j === i ? { ...x, application: v } : x)), s.td, { fontWeight: 600 })}
                         {cell(`mb-${i}-fn`, r.businessFunction, v => setMbco(mbco.map((x, j) => j === i ? { ...x, businessFunction: v } : x)), s.td)}
-                        <td className={s.tdC}><Badge appearance="filled" style={{ backgroundColor: cc.color, color: cc.textColor }} size="small">{r.criticality}</Badge></td>
+                        <td className={s.tdC}><Badge appearance="filled" style={{ backgroundColor: cc.color, color: cc.textColor, maxWidth: '100%', height: 'auto', minHeight: '20px', padding: '2px 6px', whiteSpace: 'normal', lineHeight: '1.3', textAlign: 'center' }} size="small">{r.criticality}</Badge></td>
                         {cell(`mb-${i}-w`, r.window, v => setMbco(mbco.map((x, j) => j === i ? { ...x, window: v } : x)), s.td)}
                         <td className={s.tdC}><Badge appearance="outline" color={r.env === 'Azure' ? 'brand' : 'warning'} size="small">{r.env}</Badge></td>
                         {cell(`mb-${i}-loc`, r.location, v => setMbco(mbco.map((x, j) => j === i ? { ...x, location: v } : x)), s.td)}
@@ -402,7 +402,7 @@ export default function Phase3BusinessContinuity() {
                     return (
                       <tr key={i}>
                         {cell(`bp-${i}-app`, r.application, v => setBiaPort(biaPort.map((x, j) => j === i ? { ...x, application: v } : x)), s.td, { fontWeight: 600 })}
-                        <td className={s.tdC}><Badge appearance="filled" style={{ backgroundColor: cc.color, color: cc.textColor }} size="small">{r.criticality}</Badge></td>
+                        <td className={s.tdC}><Badge appearance="filled" style={{ backgroundColor: cc.color, color: cc.textColor, maxWidth: '100%', height: 'auto', minHeight: '20px', padding: '2px 6px', whiteSpace: 'normal', lineHeight: '1.3', textAlign: 'center' }} size="small">{r.criticality}</Badge></td>
                         {cell(`bp-${i}-slo`, r.slo, v => setBiaPort(biaPort.map((x, j) => j === i ? { ...x, slo: v } : x)), s.tdC)}
                         {cell(`bp-${i}-rto`, r.rto, v => setBiaPort(biaPort.map((x, j) => j === i ? { ...x, rto: v } : x)), s.tdC)}
                         {cell(`bp-${i}-rpo`, r.rpo, v => setBiaPort(biaPort.map((x, j) => j === i ? { ...x, rpo: v } : x)), s.tdC)}
