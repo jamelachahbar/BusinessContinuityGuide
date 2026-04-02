@@ -123,6 +123,41 @@ Use the `ArrowDownload20Regular` icon from `@fluentui/react-icons`.
 - `npm run build` succeeds
 
 ### Task-015: Final build, commit, and merge to main
+
+### Task-016: Dynamic impact columns for Criticality Model
+**Description:** Make the Criticality Model's impact assessment columns (currently hardcoded as Brand, Customer Trust, Customer Exp, Injury Risk, Employee Prod) fully dynamic:
+1. Store impact column names in a persisted array via `useWorkbenchData('phase1_impactColumns', defaultImpactColumns)` where defaults are `['Brand', 'Customer Trust', 'Customer Exp', 'Injury Risk', 'Employee Prod']`
+2. Change `CriticalityRow` interface: replace the individual boolean fields (`brand`, `trust`, `exp`, `injury`, `prod`) with `impacts: boolean[]` array matching the column order
+3. Add UI above the table to manage columns: editable column name headers (click-to-edit), add column button, delete column button on each header
+4. When a column is added, extend all existing rows' `impacts` array with `false`
+5. When a column is removed, splice all rows' `impacts` array at that index
+6. Update the CSV export to use dynamic column names
+7. Update default data to use the new `impacts: boolean[]` format
+8. The Tier and Criticality names remain editable per-row as they already are
+
+**Acceptance Criteria:**
+- Impact column headers are click-to-edit to rename
+- Users can add new impact columns and remove existing ones
+- All row data stays in sync when columns change
+- CSV export reflects dynamic column names
+- Data persists after refresh
+- `npm run build` succeeds
+
+### Task-017: Excel export for RACI Matrix with cell formatting
+**Description:** Add Excel (.xlsx) export for the RACI Matrix that preserves the R/A/C/I cell coloring:
+1. Install `exceljs` package
+2. Create `utils/excelExport.ts` with a function to generate XLSX with colored cells
+3. RACI colors: R=#003366 (white text), A=#336699 (white text), C=#6699CC (white text), I=#99CCFF (dark text)
+4. Add "Export Excel" button next to the existing "Export CSV" button in the RACI section header
+5. The Excel file should have: bold headers, colored RACI cells, auto-width columns, a title row
+
+**Acceptance Criteria:**
+- RACI tab has an "Export Excel" button next to Export CSV and Reset
+- Downloaded .xlsx file opens in Excel with colored R/A/C/I cells
+- Column widths are reasonable
+- `npm run build` succeeds
+
+### Task-018: Final build, commit, and merge to main
 **Description:** Final verification and merge of the interactive workbench feature.
 **Acceptance Criteria:**
 - All editable features work correctly across all phases

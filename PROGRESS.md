@@ -14,23 +14,27 @@
 - [x] Task-010: Workbench infrastructure — context, hooks, export toolbar, print stylesheet (commit: a25a052)
 - [x] Task-011: Make Phase 1 templates editable with localStorage persistence
 - [x] Task-012: Redesign Phase 1 with tabbed layout and FluentUI status icons
+- [x] Task-014: Add CSV export buttons to Phase 1 Prepare tabs (commit: 4612075)
+- [x] Task-016: Dynamic impact columns for Criticality Model
 
 ## Current Iteration
 
-- Iteration: 14
-- Working on: Task-015
+- Iteration: 16
+- Working on: None
 - Branch: feature/interactive-workbench
-- Status: In Progress
+- Status: Complete
 
 ## Last Completed
 
-- Task-014: Add CSV export buttons to Phase 1 Prepare tabs
+- Task-016: Dynamic impact columns for Criticality Model
 - Tests: Build passes
 - Key decisions:
-  - Added ArrowDownload20Regular icon and downloadCsv import
-  - Added Export CSV button next to Reset in all 6 editable tabs (Criticality, BCM, Fault Model, RACI, Requirements, Test Plans)
-  - Updated BcmSection component to accept sectionKey prop for dynamic filenames
-  - BCM CSV maps status values to human-readable labels
+  - Replaced hardcoded boolean fields (brand, trust, exp, injury, prod) with dynamic `impacts: boolean[]` array
+  - Added persisted `phase1_impactColumns` state for column names
+  - Column headers are click-to-edit with delete buttons
+  - Add Column button creates new impact column across all rows
+  - Reset button resets both columns and row data
+  - CSV export uses dynamic column names
 
 ## Blockers
 

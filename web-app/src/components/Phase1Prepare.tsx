@@ -316,24 +316,22 @@ interface CriticalityRow {
   color: string
   businessView: string
   financial: string
-  brand: boolean
-  trust: boolean
-  exp: boolean
-  injury: boolean
-  prod: boolean
+  impacts: boolean[]
 }
 
+const defaultImpactColumns = ['Brand', 'Customer Trust', 'Customer Exp', 'Injury Risk', 'Employee Prod']
+
 const defaultCriticalityData: CriticalityRow[] = [
-  { tier: 'Tier 1', criticality: 'Mission Critical', color: '#dc3545', businessView: "Affects the company\u2019s mission and might noticeably affect corporate profit-and-loss statements", financial: 'n/a', brand: true, trust: true, exp: true, injury: false, prod: true },
-  { tier: 'Tier 1', criticality: 'Business Critical', color: '#dc3545', businessView: 'Can lead to financial losses for the organization', financial: '> $250k', brand: true, trust: true, exp: true, injury: false, prod: true },
-  { tier: 'Tier 1', criticality: 'Compliance Critical', color: '#dc3545', businessView: 'In heavily regulated industries, some applications might be critical as part of an effort to maintain compliance requirements', financial: 'n/a', brand: true, trust: true, exp: true, injury: false, prod: true },
-  { tier: 'Tier 1', criticality: 'Safety Critical', color: '#dc3545', businessView: 'When lives or the physical safety of employees and customers is at risk during an outage', financial: 'n/a', brand: true, trust: true, exp: true, injury: true, prod: true },
-  { tier: 'Tier 1', criticality: 'Security Critical', color: '#fd7e14', businessView: 'Some applications might not be mission critical, but outages could result in loss of data or unintended access', financial: 'n/a', brand: true, trust: true, exp: true, injury: false, prod: true },
-  { tier: 'Tier 1', criticality: 'Unit Critical', color: '#fd7e14', businessView: 'Affects the mission of a specific business unit and its profit-and-loss statements', financial: '> $250k', brand: true, trust: true, exp: true, injury: false, prod: true },
-  { tier: 'Tier 2', criticality: 'High', color: '#ffc107', businessView: 'Might not hinder the mission, but affects high-importance processes. Measurable losses can be quantified', financial: '< $250k', brand: false, trust: true, exp: true, injury: false, prod: true },
-  { tier: 'Tier 3', criticality: 'Medium', color: '#28a745', businessView: 'Impact on processes is likely. Losses are low or immeasurable, but brand damage or upstream losses are likely', financial: '< $100k', brand: false, trust: true, exp: true, injury: false, prod: false },
-  { tier: 'Tier 4', criticality: 'Low', color: '#28a745', businessView: "Impact on business processes isn\u2019t measurable. Neither brand damage nor upstream losses are likely. Localized impact on a single team", financial: '< $50k', brand: false, trust: true, exp: true, injury: false, prod: true },
-  { tier: 'Tier 5', criticality: 'Unsupported', color: '#6c757d', businessView: "No business owner, team, or process that\u2019s associated with this application can justify any investment", financial: '$0', brand: false, trust: false, exp: false, injury: false, prod: true },
+  { tier: 'Tier 1', criticality: 'Mission Critical', color: '#dc3545', businessView: "Affects the company\u2019s mission and might noticeably affect corporate profit-and-loss statements", financial: 'n/a', impacts: [true, true, true, false, true] },
+  { tier: 'Tier 1', criticality: 'Business Critical', color: '#dc3545', businessView: 'Can lead to financial losses for the organization', financial: '> $250k', impacts: [true, true, true, false, true] },
+  { tier: 'Tier 1', criticality: 'Compliance Critical', color: '#dc3545', businessView: 'In heavily regulated industries, some applications might be critical as part of an effort to maintain compliance requirements', financial: 'n/a', impacts: [true, true, true, false, true] },
+  { tier: 'Tier 1', criticality: 'Safety Critical', color: '#dc3545', businessView: 'When lives or the physical safety of employees and customers is at risk during an outage', financial: 'n/a', impacts: [true, true, true, true, true] },
+  { tier: 'Tier 1', criticality: 'Security Critical', color: '#fd7e14', businessView: 'Some applications might not be mission critical, but outages could result in loss of data or unintended access', financial: 'n/a', impacts: [true, true, true, false, true] },
+  { tier: 'Tier 1', criticality: 'Unit Critical', color: '#fd7e14', businessView: 'Affects the mission of a specific business unit and its profit-and-loss statements', financial: '> $250k', impacts: [true, true, true, false, true] },
+  { tier: 'Tier 2', criticality: 'High', color: '#ffc107', businessView: 'Might not hinder the mission, but affects high-importance processes. Measurable losses can be quantified', financial: '< $250k', impacts: [false, true, true, false, true] },
+  { tier: 'Tier 3', criticality: 'Medium', color: '#28a745', businessView: 'Impact on processes is likely. Losses are low or immeasurable, but brand damage or upstream losses are likely', financial: '< $100k', impacts: [false, true, true, false, false] },
+  { tier: 'Tier 4', criticality: 'Low', color: '#28a745', businessView: "Impact on business processes isn\u2019t measurable. Neither brand damage nor upstream losses are likely. Localized impact on a single team", financial: '< $50k', impacts: [false, true, true, false, true] },
+  { tier: 'Tier 5', criticality: 'Unsupported', color: '#6c757d', businessView: "No business owner, team, or process that\u2019s associated with this application can justify any investment", financial: '$0', impacts: [false, false, false, false, true] },
 ]
 
 /* ────────────────────────────────────────────────────
@@ -615,6 +613,7 @@ function Phase1Prepare() {
   const [selectedTab, setSelectedTab] = useState<string>('concepts')
 
   const [criticalityRows, setCriticalityRows, resetCriticality] = useWorkbenchData('phase1_criticalityModel', defaultCriticalityData)
+  const [impactColumns, setImpactColumns, resetImpactColumns] = useWorkbenchData('phase1_impactColumns', defaultImpactColumns)
   const [raciState, setRaciState, resetRaci] = useWorkbenchData('phase1_raci', defaultRaciData)
   const [appReqs, setAppReqs, resetAppReqs] = useWorkbenchData('phase1_appRequirements', defaultAppRequirementsData)
   const [testPlans, setTestPlans, resetTestPlans] = useWorkbenchData('phase1_testPlans', defaultTestPlansData)
@@ -637,22 +636,35 @@ function Phase1Prepare() {
   }
 
   /* ── Criticality helpers ── */
-  const updateCritField = (idx: number, field: keyof CriticalityRow, value: string | boolean) => {
+  const updateCritField = (idx: number, field: 'tier' | 'criticality' | 'businessView' | 'financial' | 'color', value: string) => {
     setCriticalityRows(criticalityRows.map((row, i) => {
       if (i !== idx) return row
       const updated = { ...row, [field]: value }
-      // Auto-set color when criticality name changes
-      if (field === 'criticality' && typeof value === 'string') {
+      if (field === 'criticality') {
         updated.color = getCriticalityColor(value).color
       }
       return updated
     }))
   }
+  const updateCritImpact = (rowIdx: number, colIdx: number, value: boolean) => {
+    setCriticalityRows(criticalityRows.map((row, i) => i === rowIdx ? { ...row, impacts: row.impacts.map((v, j) => j === colIdx ? value : v) } : row))
+  }
   const addCritRow = () => {
-    setCriticalityRows([...criticalityRows, { tier: '', criticality: '', color: '#6c757d', businessView: '', financial: '', brand: false, trust: false, exp: false, injury: false, prod: false }])
+    setCriticalityRows([...criticalityRows, { tier: '', criticality: '', color: '#6c757d', businessView: '', financial: '', impacts: impactColumns.map(() => false) }])
   }
   const deleteCritRow = (idx: number) => {
     setCriticalityRows(criticalityRows.filter((_, i) => i !== idx))
+  }
+  const updateImpactColumnName = (idx: number, name: string) => {
+    setImpactColumns(impactColumns.map((c: string, i: number) => i === idx ? name : c))
+  }
+  const addImpactColumn = () => {
+    setImpactColumns([...impactColumns, 'New Column'])
+    setCriticalityRows(criticalityRows.map(row => ({ ...row, impacts: [...row.impacts, false] })))
+  }
+  const removeImpactColumn = (idx: number) => {
+    setImpactColumns(impactColumns.filter((_: string, i: number) => i !== idx))
+    setCriticalityRows(criticalityRows.map(row => ({ ...row, impacts: row.impacts.filter((_: boolean, i: number) => i !== idx) })))
   }
 
   /* ── Fault model helpers ── */
@@ -819,8 +831,8 @@ function Phase1Prepare() {
           <div className={styles.section}>
             <div className={styles.sectionHeader}>
               <h2 className={styles.sectionHeaderTitle}>Criticality Model</h2>
-              <Button appearance="subtle" size="small" onClick={() => downloadCsv('phase1-criticality-model.csv', { name: 'Criticality Model', headers: ['Tier', 'Criticality', 'Business View', 'Financial', 'Brand', 'Customer Trust', 'Customer Exp', 'Injury Risk', 'Employee Prod'], rows: criticalityRows.map(row => [row.tier, row.criticality, row.businessView, row.financial, row.brand ? 'Yes' : 'No', row.trust ? 'Yes' : 'No', row.exp ? 'Yes' : 'No', row.injury ? 'Yes' : 'No', row.prod ? 'Yes' : 'No']) })} icon={<ArrowDownload20Regular />}>Export CSV</Button>
-              <Button appearance="subtle" size="small" onClick={resetCriticality} icon={<ArrowReset20Regular />}>Reset</Button>
+              <Button appearance="subtle" size="small" onClick={() => downloadCsv('phase1-criticality-model.csv', { name: 'Criticality Model', headers: ['Tier', 'Criticality', 'Business View', 'Financial', ...impactColumns], rows: criticalityRows.map(row => [row.tier, row.criticality, row.businessView, row.financial, ...row.impacts.map(v => v ? 'Yes' : 'No')]) })} icon={<ArrowDownload20Regular />}>Export CSV</Button>
+              <Button appearance="subtle" size="small" onClick={() => { resetCriticality(); resetImpactColumns() }} icon={<ArrowReset20Regular />}>Reset</Button>
             </div>
             <p className={styles.subsectionDesc}>
               Classify applications based on business impact using a criticality
@@ -835,11 +847,27 @@ function Phase1Prepare() {
                     <th className={styles.th}>Criticality</th>
                     <th className={styles.th} style={{ whiteSpace: 'normal' }}>Business View</th>
                     <th className={styles.thCenter}>Financial</th>
-                    <th className={styles.thCenter}>Brand</th>
-                    <th className={styles.thCenter}>Customer Trust</th>
-                    <th className={styles.thCenter}>Customer Exp</th>
-                    <th className={styles.thCenter}>Injury Risk</th>
-                    <th className={styles.thCenter}>Employee Prod</th>
+                    {impactColumns.map((col: string, ci: number) => {
+                      const key = `impact-col-${ci}`
+                      const isEditing = editingCell === key
+                      return (
+                        <th key={ci} className={mergeClasses(styles.thCenter, styles.editableCellCenter)} onClick={() => !isEditing && setEditingCell(key)}>
+                          {isEditing ? (
+                            <input autoFocus defaultValue={col}
+                              onBlur={(e) => { updateImpactColumnName(ci, e.target.value); setEditingCell(null) }}
+                              onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); if (e.key === 'Escape') setEditingCell(null) }}
+                              className={styles.cellInput} />
+                          ) : (
+                            <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                              {col}
+                              <Button appearance="subtle" size="small" icon={<Delete20Regular />}
+                                onClick={(e) => { e.stopPropagation(); removeImpactColumn(ci) }}
+                                style={{ minWidth: 'auto', padding: '0' }} />
+                            </span>
+                          )}
+                        </th>
+                      )
+                    })}
                     <th className={styles.thCenter} style={{ width: '40px' }}></th>
                   </tr>
                 </thead>
@@ -882,11 +910,11 @@ function Phase1Prepare() {
                         </td>
                         {editCell(`crit-${i}-bv`, row.businessView, (v) => updateCritField(i, 'businessView', v), styles.td)}
                         {editCell(`crit-${i}-fin`, row.financial, (v) => updateCritField(i, 'financial', v), styles.tdCenter)}
-                        <td className={styles.tdCenter}><Checkbox checked={row.brand} onChange={(_, data) => updateCritField(i, 'brand', !!data.checked)} /></td>
-                        <td className={styles.tdCenter}><Checkbox checked={row.trust} onChange={(_, data) => updateCritField(i, 'trust', !!data.checked)} /></td>
-                        <td className={styles.tdCenter}><Checkbox checked={row.exp} onChange={(_, data) => updateCritField(i, 'exp', !!data.checked)} /></td>
-                        <td className={styles.tdCenter}><Checkbox checked={row.injury} onChange={(_, data) => updateCritField(i, 'injury', !!data.checked)} /></td>
-                        <td className={styles.tdCenter}><Checkbox checked={row.prod} onChange={(_, data) => updateCritField(i, 'prod', !!data.checked)} /></td>
+                        {row.impacts.map((val, ci) => (
+                          <td key={ci} className={styles.tdCenter}>
+                            <Checkbox checked={val} onChange={(_, data) => updateCritImpact(i, ci, !!data.checked)} />
+                          </td>
+                        ))}
                         <td className={styles.deleteCell}>
                           <Button appearance="subtle" size="small" icon={<Delete20Regular />} onClick={() => deleteCritRow(i)} />
                         </td>
@@ -897,6 +925,7 @@ function Phase1Prepare() {
               </table>
             </div>
             <Button appearance="subtle" size="small" className={styles.addRowButton} onClick={addCritRow} icon={<Add20Regular />}>Add Row</Button>
+            <Button appearance="subtle" size="small" onClick={addImpactColumn} icon={<Add20Regular />}>Add Column</Button>
           </div>
         )}
 
