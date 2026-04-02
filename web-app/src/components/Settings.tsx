@@ -134,6 +134,16 @@ function Settings() {
   /** Propagate a criticality level rename across all stored data */
   const renameCriticalityInData = (oldName: string, newName: string) => {
     if (oldName === newName || !oldName || !newName) return
+    // Store rename in ledger so components auto-migrate on load
+    const ledgerKey = `${storagePrefix}criticalityRenames`
+    const ledger: Record<string, string> = JSON.parse(localStorage.getItem(ledgerKey) || '{}')
+    // Chain renames: if A→B already stored and now B→C, update to A→C
+    for (const [orig, mapped] of Object.entries(ledger)) {
+      if (mapped === oldName) ledger[orig] = newName
+    }
+    ledger[oldName] = newName
+    localStorage.setItem(ledgerKey, JSON.stringify(ledger))
+    // Also update any data already in localStorage
     const keysToScan = ['phase1_criticalityModel', 'phase3-mbco', 'phase3-bia-portfolio']
     for (const key of keysToScan) {
       const raw = localStorage.getItem(`${storagePrefix}${key}`)
