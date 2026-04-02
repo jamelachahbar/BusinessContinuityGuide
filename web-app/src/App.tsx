@@ -629,7 +629,7 @@ function AppContent() {
 
         {/* Content */}
         <main ref={mainContentRef} className={styles.mainContent}>
-          <div className={styles.contentWrapper} key={currentApp.id}>
+            <div className={styles.contentWrapper} key={`${currentApp.id}-${selectedTab}`}>
             {selectedTab !== 'home' && <div data-tour="app-selector"><AppSelector /></div>}
             {renderContent()}
           </div>
