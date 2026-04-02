@@ -3,7 +3,14 @@ import { useWorkbenchContext } from '../context/WorkbenchContext'
 
 export function useWorkbenchData<T>(key: string, defaultValue: T): [T, (value: T) => void, () => void] {
   const { saveData, loadData, storagePrefix } = useWorkbenchContext()
-  const [value, setValue] = useState<T>(() => loadData(key, defaultValue))
+  const [value, setValue] = useState<T>(() => {
+    const loaded = loadData(key, defaultValue)
+    // Persist default data so external updates (e.g. criticality renames) can find it
+    if (localStorage.getItem(`${storagePrefix}${key}`) === null) {
+      saveData(key, defaultValue)
+    }
+    return loaded
+  })
 
   const setData = useCallback((newValue: T) => {
     setValue(newValue)
