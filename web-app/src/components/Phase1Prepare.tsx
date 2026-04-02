@@ -970,22 +970,27 @@ function Phase1Prepare() {
                               ))}
                             </Select>
                           ) : (
-                            <Badge
-                              appearance="filled"
-                              style={{
-                                backgroundColor: row.color,
-                                color: row.color === '#ffc107' ? '#1a1a1a' : '#fff',
-                                maxWidth: '100%',
-                                height: 'auto',
-                                minHeight: '20px',
-                                padding: '2px 8px',
-                                whiteSpace: 'normal',
-                                lineHeight: '1.3',
-                                textAlign: 'center',
-                              }}
-                            >
-                              {row.criticality || '\u00A0'}
-                            </Badge>
+                            (() => {
+                              const cc = getCriticalityColor(row.criticality)
+                              return (
+                                <Badge
+                                  appearance="filled"
+                                  style={{
+                                    backgroundColor: cc.color,
+                                    color: cc.textColor,
+                                    maxWidth: '100%',
+                                    height: 'auto',
+                                    minHeight: '20px',
+                                    padding: '2px 8px',
+                                    whiteSpace: 'normal',
+                                    lineHeight: '1.3',
+                                    textAlign: 'center',
+                                  }}
+                                >
+                                  {row.criticality || '\u00A0'}
+                                </Badge>
+                              )
+                            })()
                           )}
                         </td>
                         {editCell(`crit-${i}-bv`, row.businessView, (v) => updateCritField(i, 'businessView', v), styles.td)}
