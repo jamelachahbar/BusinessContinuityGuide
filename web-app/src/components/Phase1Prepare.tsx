@@ -24,7 +24,9 @@ import {
   ArrowReset20Regular,
   Add20Regular,
   Delete20Regular,
+  ArrowDownload20Regular,
 } from '@fluentui/react-icons'
+import { downloadCsv } from '../utils/csvExport'
 import { useWorkbenchData } from '../hooks/useWorkbenchData'
 import { getCriticalityColor, getCriticalityOptions } from '../utils/criticality'
 
@@ -521,7 +523,7 @@ function cyclePriority(current: 'danger' | 'warning' | 'success'): 'danger' | 'w
    BCM Sub-section component
    ──────────────────────────────────────────────────── */
 
-function BcmSection({ storageKey, defaultRows, description }: { storageKey: string; defaultRows: string[][]; description: string }) {
+function BcmSection({ storageKey, defaultRows, description, sectionKey }: { storageKey: string; defaultRows: string[][]; description: string; sectionKey: string }) {
   const styles = useStyles()
   const [rows, setRows, resetRows] = useWorkbenchData(storageKey, defaultRows)
   const [editingCell, setEditingCell] = useState<string | null>(null)
@@ -553,6 +555,7 @@ function BcmSection({ storageKey, defaultRows, description }: { storageKey: stri
     <>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <p className={styles.subsectionDesc}>{description}</p>
+        <Button appearance="subtle" size="small" onClick={() => downloadCsv(`phase1-bcm-${sectionKey}.csv`, { name: 'BCM', headers: bcmHeaders, rows: rows.map(row => [row[0], ...row.slice(1).map(v => v === 'required' ? 'Required' : v === 'not-required' ? 'Not Required' : v === 'as-required' ? 'As Required' : v)]) })} icon={<ArrowDownload20Regular />}>Export CSV</Button>
         <Button appearance="subtle" size="small" onClick={resetRows} icon={<ArrowReset20Regular />}>Reset</Button>
       </div>
       <div className={styles.tableWrap}>
@@ -816,6 +819,7 @@ function Phase1Prepare() {
           <div className={styles.section}>
             <div className={styles.sectionHeader}>
               <h2 className={styles.sectionHeaderTitle}>Criticality Model</h2>
+              <Button appearance="subtle" size="small" onClick={() => downloadCsv('phase1-criticality-model.csv', { name: 'Criticality Model', headers: ['Tier', 'Criticality', 'Business View', 'Financial', 'Brand', 'Customer Trust', 'Customer Exp', 'Injury Risk', 'Employee Prod'], rows: criticalityRows.map(row => [row.tier, row.criticality, row.businessView, row.financial, row.brand ? 'Yes' : 'No', row.trust ? 'Yes' : 'No', row.exp ? 'Yes' : 'No', row.injury ? 'Yes' : 'No', row.prod ? 'Yes' : 'No']) })} icon={<ArrowDownload20Regular />}>Export CSV</Button>
               <Button appearance="subtle" size="small" onClick={resetCriticality} icon={<ArrowReset20Regular />}>Reset</Button>
             </div>
             <p className={styles.subsectionDesc}>
@@ -915,7 +919,7 @@ function Phase1Prepare() {
                 <AccordionItem key={section.key} value={section.key}>
                   <AccordionHeader>{section.title}</AccordionHeader>
                   <AccordionPanel>
-                    <BcmSection storageKey={section.storageKey} defaultRows={section.defaultRows} description={section.description} />
+                    <BcmSection storageKey={section.storageKey} defaultRows={section.defaultRows} description={section.description} sectionKey={section.key} />
                   </AccordionPanel>
                 </AccordionItem>
               ))}
@@ -928,6 +932,7 @@ function Phase1Prepare() {
           <div className={styles.section}>
             <div className={styles.sectionHeader}>
               <h2 className={styles.sectionHeaderTitle}>Fault Model &amp; Resilience Strategies</h2>
+              <Button appearance="subtle" size="small" onClick={() => downloadCsv('phase1-fault-model.csv', { name: 'Fault Model', headers: ['Failure Type', 'Description', 'Tier 1 Strategy', 'Tier 2 Strategy', 'Tier 3-5 Strategy'], rows: faultRows.map(row => [row.type, row.desc, row.t1, row.t2, row.t3]) })} icon={<ArrowDownload20Regular />}>Export CSV</Button>
               <Button appearance="subtle" size="small" onClick={resetFault} icon={<ArrowReset20Regular />}>Reset</Button>
             </div>
             <p className={styles.subsectionDesc}>
@@ -972,6 +977,7 @@ function Phase1Prepare() {
           <div className={styles.section}>
             <div className={styles.sectionHeader}>
               <h2 className={styles.sectionHeaderTitle}>RACI Matrix</h2>
+              <Button appearance="subtle" size="small" onClick={() => downloadCsv('phase1-raci-matrix.csv', { name: 'RACI Matrix', headers: ['Task', ...raciState.roles], rows: raciState.tasks.map(t => [t.task, ...t.raci]) })} icon={<ArrowDownload20Regular />}>Export CSV</Button>
               <Button appearance="subtle" size="small" onClick={resetRaci} icon={<ArrowReset20Regular />}>Reset</Button>
             </div>
             <p className={styles.subsectionDesc}>
@@ -1047,6 +1053,7 @@ function Phase1Prepare() {
           <div className={styles.section}>
             <div className={styles.sectionHeader}>
               <h2 className={styles.sectionHeaderTitle}>Application Requirements Template</h2>
+              <Button appearance="subtle" size="small" onClick={() => downloadCsv('phase1-requirements.csv', { name: 'Requirements', headers: ['Category', 'Requirement', 'Priority'], rows: appReqs.map(([cat, req, pri]) => [cat, req, pri === 'danger' ? 'High' : pri === 'warning' ? 'Medium' : 'Low']) })} icon={<ArrowDownload20Regular />}>Export CSV</Button>
               <Button appearance="subtle" size="small" onClick={resetAppReqs} icon={<ArrowReset20Regular />}>Reset</Button>
             </div>
             <Card className={styles.card}>
@@ -1094,6 +1101,7 @@ function Phase1Prepare() {
           <div className={styles.section}>
             <div className={styles.sectionHeader}>
               <h2 className={styles.sectionHeaderTitle}>Test Plans Template</h2>
+              <Button appearance="subtle" size="small" onClick={() => downloadCsv('phase1-test-plans.csv', { name: 'Test Plans', headers: ['Test Type', 'Description', 'Typical Frequency'], rows: testPlans.map(row => [row[0], row[1], row[2]]) })} icon={<ArrowDownload20Regular />}>Export CSV</Button>
               <Button appearance="subtle" size="small" onClick={resetTestPlans} icon={<ArrowReset20Regular />}>Reset</Button>
             </div>
             <Card className={styles.card}>

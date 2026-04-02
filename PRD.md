@@ -102,12 +102,33 @@ All editable data persists via WorkbenchContext.
 - Data persists after page refresh
 - `npm run build` succeeds
 
-### Task-014: Final build, commit, and merge to main
+### Task-014: Add CSV export buttons to Phase 1 Prepare tabs
+**Description:** Add a "Download CSV" button to each editable tab in Phase 1 Prepare so users can export their data. Each tab with data should have a CSV export button next to the Reset button in the section header. Use the existing `downloadCsv` utility from `utils/csvExport.ts`.
+
+Tabs to add export to:
+1. **Criticality Model** — export columns: Tier, Criticality, Business View, Financial, Brand, Customer Trust, Customer Exp, Injury Risk, Employee Prod
+2. **Business Commitment Model** — each BCM sub-section accordion gets its own export button, exporting the BCM headers + rows
+3. **Fault Model** — export columns: Failure Type, Description, Tier 1 Strategy, Tier 2 Strategy, Tier 3–5 Strategy
+4. **RACI Matrix** — export columns: Task + all role names as headers, with R/A/C/I values
+5. **Requirements** — export columns: Category, Requirement, Priority
+6. **Test Plans** — export columns: Test Type, Description, Typical Frequency
+
+Use the `ArrowDownload20Regular` icon from `@fluentui/react-icons`.
+
+**Acceptance Criteria:**
+- Each editable tab has a CSV download button in the section header area
+- Each BCM sub-section has its own CSV export button
+- CSV files open correctly in Excel with proper encoding (BOM)
+- Downloaded filenames include the section name (e.g., `phase1-criticality-model.csv`)
+- `npm run build` succeeds
+
+### Task-015: Final build, commit, and merge to main
 **Description:** Final verification and merge of the interactive workbench feature.
 **Acceptance Criteria:**
 - All editable features work correctly across all phases
 - Data persists in localStorage
 - JSON export/import works correctly
 - PDF print is clean and formatted
+- CSV export works for Phase 1 tabs
 - Build succeeds with no errors
 - Branch merged into main

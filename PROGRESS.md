@@ -17,26 +17,20 @@
 
 ## Current Iteration
 
-- Iteration: 12
-- Working on: Task-012 (complete)
+- Iteration: 14
+- Working on: Task-015
 - Branch: feature/interactive-workbench
-- Status: Done
+- Status: In Progress
 
 ## Last Completed
 
-- Task-012: Redesign Phase 1 with tabbed layout and FluentUI status icons
+- Task-014: Add CSV export buttons to Phase 1 Prepare tabs
 - Tests: Build passes
 - Key decisions:
-  - Replaced vertical layout with FluentUI TabList (7 tabs: Concepts, Criticality Model, Business Commitment, Fault Model, RACI Matrix, Requirements, Test Plans)
-  - Replaced ALL unicode emoji indicators with FluentUI icons: Checkmark16Filled (green), Dismiss16Filled (red), Subtract16Filled (orange)
-  - Created StatusIcon component for clickable status rendering in BCM tables
-  - BCM data uses string enum values ('required', 'not-required', 'as-required') instead of unicode chars
-  - Mixed text+emoji cells simplified to plain text (e.g., 'Quarterly' instead of checkmark+Quarterly)
-  - Criticality model boolean columns now use FluentUI Checkbox instead of emoji toggle
-  - Criticality Badge editing includes inline color picker for color/level customization
-  - Reset/Add/Delete buttons use FluentUI icons (ArrowReset20Regular, Add20Regular, Delete20Regular)
-  - Legend shows FluentUI icons instead of emojis
-  - All useWorkbenchData hooks and localStorage persistence preserved
+  - Added ArrowDownload20Regular icon and downloadCsv import
+  - Added Export CSV button next to Reset in all 6 editable tabs (Criticality, BCM, Fault Model, RACI, Requirements, Test Plans)
+  - Updated BcmSection component to accept sectionKey prop for dynamic filenames
+  - BCM CSV maps status values to human-readable labels
 
 ## Blockers
 
