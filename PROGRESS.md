@@ -17,22 +17,23 @@
 - [x] Task-014: Add CSV export buttons to Phase 1 Prepare tabs (commit: 4612075)
 - [x] Task-016: Dynamic impact columns for Criticality Model
 - [x] Task-017: Excel export for RACI Matrix with cell formatting
+- [x] Task-018: Excel export for all Phase 1 tabs + grouped action buttons
 
 ## Current Iteration
 
-- Iteration: 18
+- Iteration: 19
 - Working on: Next task
 - Branch: feature/interactive-workbench
 - Status: Awaiting assignment
 
 ## Last Completed
 
-- Task-017: Excel export for RACI Matrix with cell formatting
+- Task-018: Excel export for all Phase 1 tabs + grouped action buttons
 - Tests: Build passes
 - Key decisions:
-  - Used exceljs library for .xlsx generation with colored RACI cells
-  - Color scheme: R=dark blue, A=medium blue, C=light blue, I=lightest blue
-  - Added Export Excel button next to existing Export CSV in RACI section
+  - Added generic `downloadExcel()` function to excelExport.ts using CsvSheet interface
+  - Added `headerActions` style to group Export CSV, Export Excel, and Reset buttons together
+  - Applied to all 5 section headers + BcmSection sub-sections
 
 ## Blockers
 

@@ -27,7 +27,7 @@ import {
   ArrowDownload20Regular,
 } from '@fluentui/react-icons'
 import { downloadCsv } from '../utils/csvExport'
-import { downloadRaciExcel } from '../utils/excelExport'
+import { downloadRaciExcel, downloadExcel } from '../utils/excelExport'
 import { useWorkbenchData } from '../hooks/useWorkbenchData'
 import { getCriticalityColor, getCriticalityOptions } from '../utils/criticality'
 
@@ -233,6 +233,11 @@ const useStyles = makeStyles({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: '16px',
+  },
+  headerActions: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '4px',
   },
   sectionHeaderTitle: {
     fontSize: '24px',
@@ -554,8 +559,11 @@ function BcmSection({ storageKey, defaultRows, description, sectionKey }: { stor
     <>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <p className={styles.subsectionDesc}>{description}</p>
-        <Button appearance="subtle" size="small" onClick={() => downloadCsv(`phase1-bcm-${sectionKey}.csv`, { name: 'BCM', headers: bcmHeaders, rows: rows.map(row => [row[0], ...row.slice(1).map(v => v === 'required' ? 'Required' : v === 'not-required' ? 'Not Required' : v === 'as-required' ? 'As Required' : v)]) })} icon={<ArrowDownload20Regular />}>Export CSV</Button>
-        <Button appearance="subtle" size="small" onClick={resetRows} icon={<ArrowReset20Regular />}>Reset</Button>
+        <div className={styles.headerActions}>
+          <Button appearance="subtle" size="small" onClick={() => downloadCsv(`phase1-bcm-${sectionKey}.csv`, { name: 'BCM', headers: bcmHeaders, rows: rows.map(row => [row[0], ...row.slice(1).map(v => v === 'required' ? 'Required' : v === 'not-required' ? 'Not Required' : v === 'as-required' ? 'As Required' : v)]) })} icon={<ArrowDownload20Regular />}>Export CSV</Button>
+          <Button appearance="subtle" size="small" onClick={() => downloadExcel({ name: `BCM - ${sectionKey}`, headers: bcmHeaders, rows: rows.map(row => [row[0], ...row.slice(1).map(v => v === 'required' ? 'Required' : v === 'not-required' ? 'Not Required' : v === 'as-required' ? 'As Required' : v)]) }, `phase1-bcm-${sectionKey}.xlsx`)} icon={<ArrowDownload20Regular />}>Export Excel</Button>
+          <Button appearance="subtle" size="small" onClick={resetRows} icon={<ArrowReset20Regular />}>Reset</Button>
+        </div>
       </div>
       <div className={styles.tableWrap}>
         <table className={styles.table}>
@@ -832,8 +840,11 @@ function Phase1Prepare() {
           <div className={styles.section}>
             <div className={styles.sectionHeader}>
               <h2 className={styles.sectionHeaderTitle}>Criticality Model</h2>
-              <Button appearance="subtle" size="small" onClick={() => downloadCsv('phase1-criticality-model.csv', { name: 'Criticality Model', headers: ['Tier', 'Criticality', 'Business View', 'Financial', ...impactColumns], rows: criticalityRows.map(row => [row.tier, row.criticality, row.businessView, row.financial, ...row.impacts.map(v => v ? 'Yes' : 'No')]) })} icon={<ArrowDownload20Regular />}>Export CSV</Button>
-              <Button appearance="subtle" size="small" onClick={() => { resetCriticality(); resetImpactColumns() }} icon={<ArrowReset20Regular />}>Reset</Button>
+              <div className={styles.headerActions}>
+                <Button appearance="subtle" size="small" onClick={() => downloadCsv('phase1-criticality-model.csv', { name: 'Criticality Model', headers: ['Tier', 'Criticality', 'Business View', 'Financial', ...impactColumns], rows: criticalityRows.map(row => [row.tier, row.criticality, row.businessView, row.financial, ...row.impacts.map(v => v ? 'Yes' : 'No')]) })} icon={<ArrowDownload20Regular />}>Export CSV</Button>
+                <Button appearance="subtle" size="small" onClick={() => downloadExcel({ name: 'Criticality Model', headers: ['Tier', 'Criticality', 'Business View', 'Financial', ...impactColumns], rows: criticalityRows.map(row => [row.tier, row.criticality, row.businessView, row.financial, ...row.impacts.map(v => v ? 'Yes' : 'No')]) }, 'phase1-criticality-model.xlsx')} icon={<ArrowDownload20Regular />}>Export Excel</Button>
+                <Button appearance="subtle" size="small" onClick={() => { resetCriticality(); resetImpactColumns() }} icon={<ArrowReset20Regular />}>Reset</Button>
+              </div>
             </div>
             <p className={styles.subsectionDesc}>
               Classify applications based on business impact using a criticality
@@ -962,8 +973,11 @@ function Phase1Prepare() {
           <div className={styles.section}>
             <div className={styles.sectionHeader}>
               <h2 className={styles.sectionHeaderTitle}>Fault Model &amp; Resilience Strategies</h2>
-              <Button appearance="subtle" size="small" onClick={() => downloadCsv('phase1-fault-model.csv', { name: 'Fault Model', headers: ['Failure Type', 'Description', 'Tier 1 Strategy', 'Tier 2 Strategy', 'Tier 3-5 Strategy'], rows: faultRows.map(row => [row.type, row.desc, row.t1, row.t2, row.t3]) })} icon={<ArrowDownload20Regular />}>Export CSV</Button>
-              <Button appearance="subtle" size="small" onClick={resetFault} icon={<ArrowReset20Regular />}>Reset</Button>
+              <div className={styles.headerActions}>
+                <Button appearance="subtle" size="small" onClick={() => downloadCsv('phase1-fault-model.csv', { name: 'Fault Model', headers: ['Failure Type', 'Description', 'Tier 1 Strategy', 'Tier 2 Strategy', 'Tier 3-5 Strategy'], rows: faultRows.map(row => [row.type, row.desc, row.t1, row.t2, row.t3]) })} icon={<ArrowDownload20Regular />}>Export CSV</Button>
+                <Button appearance="subtle" size="small" onClick={() => downloadExcel({ name: 'Fault Model', headers: ['Failure Type', 'Description', 'Tier 1 Strategy', 'Tier 2 Strategy', 'Tier 3-5 Strategy'], rows: faultRows.map(row => [row.type, row.desc, row.t1, row.t2, row.t3]) }, 'phase1-fault-model.xlsx')} icon={<ArrowDownload20Regular />}>Export Excel</Button>
+                <Button appearance="subtle" size="small" onClick={resetFault} icon={<ArrowReset20Regular />}>Reset</Button>
+              </div>
             </div>
             <p className={styles.subsectionDesc}>
               Define common failure types with pre-approved mitigation strategies
@@ -1007,9 +1021,11 @@ function Phase1Prepare() {
           <div className={styles.section}>
             <div className={styles.sectionHeader}>
               <h2 className={styles.sectionHeaderTitle}>RACI Matrix</h2>
-              <Button appearance="subtle" size="small" onClick={() => downloadCsv('phase1-raci-matrix.csv', { name: 'RACI Matrix', headers: ['Task', ...raciState.roles], rows: raciState.tasks.map(t => [t.task, ...t.raci]) })} icon={<ArrowDownload20Regular />}>Export CSV</Button>
-              <Button appearance="subtle" size="small" onClick={() => downloadRaciExcel({ roles: raciState.roles, tasks: raciState.tasks })} icon={<ArrowDownload20Regular />}>Export Excel</Button>
-              <Button appearance="subtle" size="small" onClick={resetRaci} icon={<ArrowReset20Regular />}>Reset</Button>
+              <div className={styles.headerActions}>
+                <Button appearance="subtle" size="small" onClick={() => downloadCsv('phase1-raci-matrix.csv', { name: 'RACI Matrix', headers: ['Task', ...raciState.roles], rows: raciState.tasks.map(t => [t.task, ...t.raci]) })} icon={<ArrowDownload20Regular />}>Export CSV</Button>
+                <Button appearance="subtle" size="small" onClick={() => downloadRaciExcel({ roles: raciState.roles, tasks: raciState.tasks })} icon={<ArrowDownload20Regular />}>Export Excel</Button>
+                <Button appearance="subtle" size="small" onClick={resetRaci} icon={<ArrowReset20Regular />}>Reset</Button>
+              </div>
             </div>
             <p className={styles.subsectionDesc}>
               Clarify roles and responsibilities for BCDR tasks. Use this template
@@ -1084,8 +1100,11 @@ function Phase1Prepare() {
           <div className={styles.section}>
             <div className={styles.sectionHeader}>
               <h2 className={styles.sectionHeaderTitle}>Application Requirements Template</h2>
-              <Button appearance="subtle" size="small" onClick={() => downloadCsv('phase1-requirements.csv', { name: 'Requirements', headers: ['Category', 'Requirement', 'Priority'], rows: appReqs.map(([cat, req, pri]) => [cat, req, pri === 'danger' ? 'High' : pri === 'warning' ? 'Medium' : 'Low']) })} icon={<ArrowDownload20Regular />}>Export CSV</Button>
-              <Button appearance="subtle" size="small" onClick={resetAppReqs} icon={<ArrowReset20Regular />}>Reset</Button>
+              <div className={styles.headerActions}>
+                <Button appearance="subtle" size="small" onClick={() => downloadCsv('phase1-requirements.csv', { name: 'Requirements', headers: ['Category', 'Requirement', 'Priority'], rows: appReqs.map(([cat, req, pri]) => [cat, req, pri === 'danger' ? 'High' : pri === 'warning' ? 'Medium' : 'Low']) })} icon={<ArrowDownload20Regular />}>Export CSV</Button>
+                <Button appearance="subtle" size="small" onClick={() => downloadExcel({ name: 'Requirements', headers: ['Category', 'Requirement', 'Priority'], rows: appReqs.map(([cat, req, pri]) => [cat, req, pri === 'danger' ? 'High' : pri === 'warning' ? 'Medium' : 'Low']) }, 'phase1-requirements.xlsx')} icon={<ArrowDownload20Regular />}>Export Excel</Button>
+                <Button appearance="subtle" size="small" onClick={resetAppReqs} icon={<ArrowReset20Regular />}>Reset</Button>
+              </div>
             </div>
             <Card className={styles.card}>
               <div className={styles.cardTitle}>BCDR Requirements Gathering</div>
@@ -1132,8 +1151,11 @@ function Phase1Prepare() {
           <div className={styles.section}>
             <div className={styles.sectionHeader}>
               <h2 className={styles.sectionHeaderTitle}>Test Plans Template</h2>
-              <Button appearance="subtle" size="small" onClick={() => downloadCsv('phase1-test-plans.csv', { name: 'Test Plans', headers: ['Test Type', 'Description', 'Typical Frequency'], rows: testPlans.map(row => [row[0], row[1], row[2]]) })} icon={<ArrowDownload20Regular />}>Export CSV</Button>
-              <Button appearance="subtle" size="small" onClick={resetTestPlans} icon={<ArrowReset20Regular />}>Reset</Button>
+              <div className={styles.headerActions}>
+                <Button appearance="subtle" size="small" onClick={() => downloadCsv('phase1-test-plans.csv', { name: 'Test Plans', headers: ['Test Type', 'Description', 'Typical Frequency'], rows: testPlans.map(row => [row[0], row[1], row[2]]) })} icon={<ArrowDownload20Regular />}>Export CSV</Button>
+                <Button appearance="subtle" size="small" onClick={() => downloadExcel({ name: 'Test Plans', headers: ['Test Type', 'Description', 'Typical Frequency'], rows: testPlans.map(row => [row[0], row[1], row[2]]) }, 'phase1-test-plans.xlsx')} icon={<ArrowDownload20Regular />}>Export Excel</Button>
+                <Button appearance="subtle" size="small" onClick={resetTestPlans} icon={<ArrowReset20Regular />}>Reset</Button>
+              </div>
             </div>
             <Card className={styles.card}>
               <div className={styles.cardTitle}>BCDR Test Planning</div>
