@@ -11,6 +11,7 @@ import {
 import { useWorkbenchData } from '../hooks/useWorkbenchData'
 import { downloadCsv, objectsToCsvSheet } from '../utils/csvExport'
 import { getCriticalityColor } from '../utils/criticality'
+import type { PlanFocus } from '../utils/planFocus'
 import HelpIcon from './HelpIcon'
 
 /* ═══════ Styles ═══════ */
@@ -159,6 +160,7 @@ export default function Phase3BusinessContinuity() {
   const [biaPort, setBiaPort, resetBia] = useWorkbenchData<BiaPortRow[]>('phase3-bia-portfolio', defBiaPort)
   const [maint, setMaint, resetMaint] = useWorkbenchData<MaintRow[]>('phase3-maintenance', defMaint)
   const [activity, setActivity, resetActivity] = useWorkbenchData<ActivityRow[]>('phase3-activity', defActivity)
+  const [settings] = useWorkbenchData<{ planFocus?: PlanFocus }>('settings', { planFocus: 'bcdr' })
 
   const onTabSelect = (_: SelectTabEvent, d: SelectTabData) => setTab(d.value as string)
 
@@ -200,6 +202,12 @@ export default function Phase3BusinessContinuity() {
     <div className={s.container}>
       <h1 className={s.title}>Phase 3: Business Continuity</h1>
       <p className={s.desc}>Coordinate application continuity plans into a comprehensive business continuity strategy.</p>
+
+      {(settings.planFocus || 'bcdr') !== 'bcdr' && settings.planFocus !== 'bc' && (
+        <div style={{ backgroundColor: '#FFF4CE', border: '1px solid #FFD700', borderRadius: '4px', padding: '8px 16px', marginBottom: '16px', fontSize: '14px', color: '#6B5900' }}>
+          This phase focuses on Business Continuity and may not be required for your Disaster Recovery plan.
+        </div>
+      )}
 
       <div className={s.highlight}>
         <h3>Key Objective</h3>

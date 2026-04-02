@@ -12,6 +12,8 @@ import {
 import AssessTab from './phase2/AssessTab'
 import ImplementTab from './phase2/ImplementTab'
 import TestTab from './phase2/TestTab'
+import { useWorkbenchData } from '../hooks/useWorkbenchData'
+import type { PlanFocus } from '../utils/planFocus'
 
 const useStyles = makeStyles({
   container: {
@@ -64,6 +66,7 @@ const useStyles = makeStyles({
 export default function Phase2ApplicationContinuity() {
   const styles = useStyles()
   const [selectedTab, setSelectedTab] = useState<string>('assess')
+  const [settings] = useWorkbenchData<{ planFocus?: PlanFocus }>('settings', { planFocus: 'bcdr' })
 
   const onTabSelect = (_: SelectTabEvent, data: SelectTabData) => {
     setSelectedTab(data.value as string)
@@ -76,6 +79,12 @@ export default function Phase2ApplicationContinuity() {
         Iterative activities for creating continuity plans for individual
         applications. This phase includes assessment, implementation, and testing.
       </p>
+
+      {(settings.planFocus || 'bcdr') !== 'bcdr' && settings.planFocus !== 'dr' && (
+        <div style={{ backgroundColor: '#FFF4CE', border: '1px solid #FFD700', borderRadius: '4px', padding: '8px 16px', marginBottom: '16px', fontSize: '14px', color: '#6B5900' }}>
+          This phase focuses on Disaster Recovery and may not be required for your Business Continuity plan.
+        </div>
+      )}
 
       {/* Visual workflow indicators */}
       <div className={styles.phaseFlow}>

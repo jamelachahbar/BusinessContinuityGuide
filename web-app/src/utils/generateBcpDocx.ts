@@ -160,7 +160,7 @@ const defMaint = [
    ═════════════════════════════════════ */
 
 export function generateBcpDocx(): void {
-  const s = ld<AppSettings>('settings', { organizationName: '', guideName: '', primaryContact: '', primaryContactEmail: '', workloadDescription: '', dateFormat: 'YYYY-MM-DD', currency: 'USD', notes: '' })
+  const s = ld<AppSettings>('settings', { organizationName: '', guideName: '', primaryContact: '', primaryContactEmail: '', workloadDescription: '', dateFormat: 'YYYY-MM-DD', currency: 'USD', notes: '', planFocus: 'bcdr' })
   const org = s.organizationName || 'Organization'
   const app = getAppName()
   const date = new Date().toISOString().slice(0, 10)

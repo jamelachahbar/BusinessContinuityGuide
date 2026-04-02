@@ -99,6 +99,7 @@ export interface AppSettings {
   dateFormat: string
   currency: string
   notes: string
+  planFocus: 'bcdr' | 'dr' | 'bc'
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
@@ -110,6 +111,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   dateFormat: 'YYYY-MM-DD',
   currency: 'USD',
   notes: '',
+  planFocus: 'bcdr',
 }
 
 function Settings() {
@@ -220,6 +222,28 @@ function Settings() {
               <option value="CAD">CAD (C$)</option>
               <option value="JPY">JPY (&yen;)</option>
             </Select>
+          </div>
+        </div>
+      </Card>
+
+      <Card className={styles.card}>
+        <div className={styles.cardTitle}>Plan Focus</div>
+        <div className={styles.cardDesc}>
+          Select which type of plan you are building. Non-relevant sections will be visually dimmed but remain accessible.
+        </div>
+        <div className={styles.formGrid}>
+          <div className={styles.field}>
+            <Label className={styles.label} htmlFor="plan-focus">Plan Type</Label>
+            <Select
+              id="plan-focus"
+              value={settings.planFocus}
+              onChange={(_, d) => updateField('planFocus', d.value as 'bcdr' | 'dr' | 'bc')}
+            >
+              <option value="bcdr">Full BCDR (Business Continuity & Disaster Recovery)</option>
+              <option value="dr">DR Only (Disaster Recovery)</option>
+              <option value="bc">BC Only (Business Continuity)</option>
+            </Select>
+            <span className={styles.hint}>DR-focused plans emphasize Phase 2 (technical recovery). BC-focused plans emphasize Phase 3 (business operations).</span>
           </div>
         </div>
       </Card>

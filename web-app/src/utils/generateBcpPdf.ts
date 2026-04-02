@@ -166,7 +166,7 @@ const defMaintenance = [
    ═══════════════════════════════════════════════════════ */
 
 export function generateBcpPdf(): void {
-  const s = ld<AppSettings>('settings', { organizationName: '', guideName: 'Azure Business Continuity Guide', primaryContact: '', primaryContactEmail: '', workloadDescription: '', dateFormat: 'YYYY-MM-DD', currency: 'USD', notes: '' })
+  const s = ld<AppSettings>('settings', { organizationName: '', guideName: 'Azure Business Continuity Guide', primaryContact: '', primaryContactEmail: '', workloadDescription: '', dateFormat: 'YYYY-MM-DD', currency: 'USD', notes: '', planFocus: 'bcdr' })
   const org = s.organizationName || 'Organization'
   const appName = getAppName()
   const date = dt()

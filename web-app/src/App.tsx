@@ -5,6 +5,7 @@ import {
   shorthands,
   Button,
   Tooltip,
+  Badge,
   Dialog,
   DialogSurface,
   DialogBody,
@@ -48,6 +49,9 @@ import GuidedTour from './components/GuidedTour'
 import { exportAllPhasesToCsv } from './utils/exportAllCsv'
 import { generateBcpPdf } from './utils/generateBcpPdf'
 import { generateBcpDocx } from './utils/generateBcpDocx'
+import { isInScope, relevanceLabel, navRelevance } from './utils/planFocus'
+import type { PlanFocus } from './utils/planFocus'
+import { useWorkbenchData } from './hooks/useWorkbenchData'
 
 /* ═══════════════════════════════════════════════════════
    Design constants
@@ -435,6 +439,7 @@ function AppContent() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { exportJSON, importJSON, clearAll, hasData } = useWorkbenchContext()
   const { currentApp } = useAppContext()
+  const [settings] = useWorkbenchData<{ planFocus?: PlanFocus }>('settings', { planFocus: 'bcdr' })
 
   useEffect(() => {
     mainContentRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
@@ -535,15 +540,29 @@ function AppContent() {
                 {section.label}
               </div>
               {section.items.map((item) => {
+                const inScope = isInScope(navRelevance[item.value] || 'bcdr', settings.planFocus || 'bcdr')
                 const btn = (
                   <button
                     key={item.value}
                     className={`${styles.navItem} ${selectedTab === item.value ? styles.navItemActive : ''}`}
                     onClick={() => handleNav(item.value)}
                     data-tour={item.value}
+                    style={{ opacity: inScope ? 1 : 0.45 }}
                   >
                     <span className={styles.navIcon}>{item.icon}</span>
-                    <span className={`${styles.navLabel} ${hideText}`}>{item.label}</span>
+                    <span className={`${styles.navLabel} ${hideText}`}>
+                      {item.label}
+                      {(settings.planFocus || 'bcdr') !== 'bcdr' && (
+                        <Badge
+                          size="small"
+                          appearance="outline"
+                          color={inScope ? 'brand' : 'informative'}
+                          style={{ marginLeft: '8px', fontSize: '10px' }}
+                        >
+                          {relevanceLabel(navRelevance[item.value] || 'bcdr')}
+                        </Badge>
+                      )}
+                    </span>
                   </button>
                 )
                 return collapsed ? (

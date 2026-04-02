@@ -18,22 +18,25 @@
 - [x] Task-016: Dynamic impact columns for Criticality Model
 - [x] Task-017: Excel export for RACI Matrix with cell formatting
 - [x] Task-018: Excel export for all Phase 1 tabs + grouped action buttons
+- [x] Task-018b: Plan Focus filter with visual dimming and relevance badges
 
 ## Current Iteration
 
-- Iteration: 19
-- Working on: Next task
+- Iteration: 21
+- Working on: Task-018b (complete)
 - Branch: feature/interactive-workbench
-- Status: Awaiting assignment
+- Status: Complete
 
 ## Last Completed
 
-- Task-018: Excel export for all Phase 1 tabs + grouped action buttons
+- Task-018b: Plan Focus filter with visual dimming and relevance badges
 - Tests: Build passes
 - Key decisions:
-  - Added generic `downloadExcel()` function to excelExport.ts using CsvSheet interface
-  - Added `headerActions` style to group Export CSV, Export Excel, and Reset buttons together
-  - Applied to all 5 section headers + BcmSection sub-sections
+  - Added planFocus field to AppSettings ('bcdr' | 'dr' | 'bc')
+  - Created utils/planFocus.ts with relevance maps for nav and phase tabs
+  - Sidebar nav items get opacity dimming + relevance badges when focus != 'bcdr'
+  - Phase 1 tabs get per-tab badges and info banner for out-of-scope sections
+  - Phase 2 and Phase 3 show info banners when not relevant to current focus
 
 ## Blockers
 

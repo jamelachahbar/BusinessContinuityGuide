@@ -30,6 +30,8 @@ import { downloadCsv } from '../utils/csvExport'
 import { downloadRaciExcel, downloadExcel } from '../utils/excelExport'
 import { useWorkbenchData } from '../hooks/useWorkbenchData'
 import { getCriticalityColor, getCriticalityOptions } from '../utils/criticality'
+import { isInScope, relevanceLabel, phase1TabRelevance } from '../utils/planFocus'
+import type { PlanFocus } from '../utils/planFocus'
 
 const useStyles = makeStyles({
   container: {
@@ -627,6 +629,7 @@ function Phase1Prepare() {
   const [appReqs, setAppReqs, resetAppReqs] = useWorkbenchData('phase1_appRequirements', defaultAppRequirementsData)
   const [testPlans, setTestPlans, resetTestPlans] = useWorkbenchData('phase1_testPlans', defaultTestPlansData)
   const [faultRows, setFaultRows, resetFault] = useWorkbenchData('phase1_faultModel', defaultFaultModelData)
+  const [settings] = useWorkbenchData<{ planFocus?: PlanFocus }>('settings', { planFocus: 'bcdr' })
 
   const [editingCell, setEditingCell] = useState<string | null>(null)
 
@@ -766,14 +769,69 @@ function Phase1Prepare() {
       </p>
 
       <TabList selectedValue={selectedTab} onTabSelect={onTabSelect} appearance="subtle" size="large">
-        <Tab value="concepts">Concepts</Tab>
-        <Tab value="criticality">Criticality Model</Tab>
-        <Tab value="bcm">Business Commitment</Tab>
-        <Tab value="faultModel">Fault Model</Tab>
-        <Tab value="raci">RACI Matrix</Tab>
-        <Tab value="requirements">Requirements</Tab>
-        <Tab value="testPlans">Test Plans</Tab>
+        <Tab value="concepts" style={{ opacity: isInScope(phase1TabRelevance['concepts'] || 'bcdr', settings.planFocus || 'bcdr') ? 1 : 0.45 }}>
+          Concepts
+          {(settings.planFocus || 'bcdr') !== 'bcdr' && (
+            <Badge size="small" appearance="outline" color={isInScope(phase1TabRelevance['concepts'] || 'bcdr', settings.planFocus || 'bcdr') ? 'brand' : 'informative'} style={{ marginLeft: '6px', fontSize: '10px' }}>
+              {relevanceLabel(phase1TabRelevance['concepts'] || 'bcdr')}
+            </Badge>
+          )}
+        </Tab>
+        <Tab value="criticality" style={{ opacity: isInScope(phase1TabRelevance['criticality'] || 'bcdr', settings.planFocus || 'bcdr') ? 1 : 0.45 }}>
+          Criticality Model
+          {(settings.planFocus || 'bcdr') !== 'bcdr' && (
+            <Badge size="small" appearance="outline" color={isInScope(phase1TabRelevance['criticality'] || 'bcdr', settings.planFocus || 'bcdr') ? 'brand' : 'informative'} style={{ marginLeft: '6px', fontSize: '10px' }}>
+              {relevanceLabel(phase1TabRelevance['criticality'] || 'bcdr')}
+            </Badge>
+          )}
+        </Tab>
+        <Tab value="bcm" style={{ opacity: isInScope(phase1TabRelevance['bcm'] || 'bcdr', settings.planFocus || 'bcdr') ? 1 : 0.45 }}>
+          Business Commitment
+          {(settings.planFocus || 'bcdr') !== 'bcdr' && (
+            <Badge size="small" appearance="outline" color={isInScope(phase1TabRelevance['bcm'] || 'bcdr', settings.planFocus || 'bcdr') ? 'brand' : 'informative'} style={{ marginLeft: '6px', fontSize: '10px' }}>
+              {relevanceLabel(phase1TabRelevance['bcm'] || 'bcdr')}
+            </Badge>
+          )}
+        </Tab>
+        <Tab value="faultModel" style={{ opacity: isInScope(phase1TabRelevance['faultModel'] || 'bcdr', settings.planFocus || 'bcdr') ? 1 : 0.45 }}>
+          Fault Model
+          {(settings.planFocus || 'bcdr') !== 'bcdr' && (
+            <Badge size="small" appearance="outline" color={isInScope(phase1TabRelevance['faultModel'] || 'bcdr', settings.planFocus || 'bcdr') ? 'brand' : 'informative'} style={{ marginLeft: '6px', fontSize: '10px' }}>
+              {relevanceLabel(phase1TabRelevance['faultModel'] || 'bcdr')}
+            </Badge>
+          )}
+        </Tab>
+        <Tab value="raci" style={{ opacity: isInScope(phase1TabRelevance['raci'] || 'bcdr', settings.planFocus || 'bcdr') ? 1 : 0.45 }}>
+          RACI Matrix
+          {(settings.planFocus || 'bcdr') !== 'bcdr' && (
+            <Badge size="small" appearance="outline" color={isInScope(phase1TabRelevance['raci'] || 'bcdr', settings.planFocus || 'bcdr') ? 'brand' : 'informative'} style={{ marginLeft: '6px', fontSize: '10px' }}>
+              {relevanceLabel(phase1TabRelevance['raci'] || 'bcdr')}
+            </Badge>
+          )}
+        </Tab>
+        <Tab value="requirements" style={{ opacity: isInScope(phase1TabRelevance['requirements'] || 'bcdr', settings.planFocus || 'bcdr') ? 1 : 0.45 }}>
+          Requirements
+          {(settings.planFocus || 'bcdr') !== 'bcdr' && (
+            <Badge size="small" appearance="outline" color={isInScope(phase1TabRelevance['requirements'] || 'bcdr', settings.planFocus || 'bcdr') ? 'brand' : 'informative'} style={{ marginLeft: '6px', fontSize: '10px' }}>
+              {relevanceLabel(phase1TabRelevance['requirements'] || 'bcdr')}
+            </Badge>
+          )}
+        </Tab>
+        <Tab value="testPlans" style={{ opacity: isInScope(phase1TabRelevance['testPlans'] || 'bcdr', settings.planFocus || 'bcdr') ? 1 : 0.45 }}>
+          Test Plans
+          {(settings.planFocus || 'bcdr') !== 'bcdr' && (
+            <Badge size="small" appearance="outline" color={isInScope(phase1TabRelevance['testPlans'] || 'bcdr', settings.planFocus || 'bcdr') ? 'brand' : 'informative'} style={{ marginLeft: '6px', fontSize: '10px' }}>
+              {relevanceLabel(phase1TabRelevance['testPlans'] || 'bcdr')}
+            </Badge>
+          )}
+        </Tab>
       </TabList>
+
+      {(settings.planFocus || 'bcdr') !== 'bcdr' && !isInScope(phase1TabRelevance[selectedTab] || 'bcdr', settings.planFocus || 'bcdr') && (
+        <div style={{ backgroundColor: '#FFF4CE', border: '1px solid #FFD700', borderRadius: '4px', padding: '8px 16px', marginTop: '12px', fontSize: '14px', color: '#6B5900' }}>
+          This section is primarily for {phase1TabRelevance[selectedTab] === 'dr' ? 'Disaster Recovery' : phase1TabRelevance[selectedTab] === 'bc' ? 'Business Continuity' : 'BCDR'} planning and may not be required for your current plan focus.
+        </div>
+      )}
 
       <div className={styles.tabContent}>
         {/* ── Concepts (read-only) ── */}

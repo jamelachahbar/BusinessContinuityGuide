@@ -157,7 +157,31 @@ Use the `ArrowDownload20Regular` icon from `@fluentui/react-icons`.
 - Column widths are reasonable
 - `npm run build` succeeds
 
-### Task-018: Final build, commit, and merge to main
+### Task-018: Plan Focus filter with visual dimming and badges
+**Description:** Add a Plan Focus feature that lets users specify whether they're building a DR-only, BC-only, or full BCDR plan. Sections/tabs not relevant to their focus get visually dimmed with an info badge.
+
+Implementation:
+1. Add `planFocus` field to `AppSettings` in Settings.tsx with values: `'bcdr'` (default), `'dr'`, `'bc'`
+2. Add Plan Focus dropdown to Settings page under a new "Plan Focus" card
+3. Create a `planFocusMap` that tags every page and sub-tab with relevance:
+   - **Phase 1 tabs**: concepts=bcdr, criticality=bcdr, bcm=bcdr, faultModel=dr, raci=bcdr, requirements=bcdr, testPlans=bcdr
+   - **Phase 2** (whole phase): dr
+   - **Phase 3** (whole phase): bc
+   - **Top-level pages**: home=bcdr, personas=bcdr, glossary=bcdr, references=bcdr, settings=bcdr
+4. In the sidebar (App.tsx), add a small badge per nav item showing DR/BC/BCDR and dim non-relevant items with `opacity: 0.45`
+5. In Phase 1 TabList, add badges after tab names and dim irrelevant tabs
+6. When a dimmed section/tab is opened, show a subtle info bar at the top: "This section is primarily for [Business Continuity/Disaster Recovery] planning"
+7. Plan focus persisted via existing `useWorkbenchData('settings', ...)` in Settings
+
+**Acceptance Criteria:**
+- Settings page has Plan Focus dropdown (Full BCDR / DR Only / BC Only)
+- Sidebar nav items show DR/BC/BCDR badges and dim when not in scope
+- Phase 1 tabs show badges and dim when not in scope
+- Info banner shown on dimmed sections when visited
+- Default is Full BCDR (no dimming)
+- `npm run build` succeeds
+
+### Task-019: Final build, commit, and merge to main
 **Description:** Final verification and merge of the interactive workbench feature.
 **Acceptance Criteria:**
 - All editable features work correctly across all phases
