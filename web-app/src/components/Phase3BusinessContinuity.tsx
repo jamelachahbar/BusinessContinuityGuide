@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import {
   makeStyles, shorthands, mergeClasses, tokens,
-  Badge, Button, Checkbox, TabList, Tab,
+  Badge, Button, Checkbox, TabList, Tab, Select,
   type SelectTabData, type SelectTabEvent,
 } from '@fluentui/react-components'
 import {
@@ -10,7 +10,7 @@ import {
 } from '@fluentui/react-icons'
 import { useWorkbenchData } from '../hooks/useWorkbenchData'
 import { downloadCsv, objectsToCsvSheet } from '../utils/csvExport'
-import { getCriticalityColor } from '../utils/criticality'
+import { buildCriticalityMap, DEFAULT_CRITICALITY_LEVELS, type ConfigurableCriticalityLevel } from '../utils/criticality'
 import type { PlanFocus } from '../utils/planFocus'
 import HelpIcon from './HelpIcon'
 
@@ -161,6 +161,8 @@ export default function Phase3BusinessContinuity() {
   const [maint, setMaint, resetMaint] = useWorkbenchData<MaintRow[]>('phase3-maintenance', defMaint)
   const [activity, setActivity, resetActivity] = useWorkbenchData<ActivityRow[]>('phase3-activity', defActivity)
   const [settings] = useWorkbenchData<{ planFocus?: PlanFocus }>('settings', { planFocus: 'bcdr' })
+  const [critLevels] = useWorkbenchData<ConfigurableCriticalityLevel[]>('criticalityLevels', DEFAULT_CRITICALITY_LEVELS)
+  const getCriticalityColor = buildCriticalityMap(critLevels)
 
   const onTabSelect = (_: SelectTabEvent, d: SelectTabData) => setTab(d.value as string)
 
@@ -316,14 +318,14 @@ export default function Phase3BusinessContinuity() {
                         {cell(`risk-${i}-c`, r.category, v => setRisks(risks.map((x, j) => j === i ? { ...x, category: v } : x)), s.td, { fontWeight: 600 })}
                         {cell(`risk-${i}-d`, r.description, v => setRisks(risks.map((x, j) => j === i ? { ...x, description: v } : x)), s.td)}
                         <td className={s.tdC}>
-                          <select value={r.impact} onChange={ev => setRisks(risks.map((x, j) => j === i ? { ...x, impact: Number(ev.target.value) } : x))} style={{ width: 40, textAlign: 'center' }}>
+                          <Select size="small" value={String(r.impact)} onChange={(_, d) => setRisks(risks.map((x, j) => j === i ? { ...x, impact: Number(d.value) } : x))} style={{ minWidth: '60px' }}>
                             {[1,2,3,4,5].map(v => <option key={v} value={v}>{v}</option>)}
-                          </select>
+                          </Select>
                         </td>
                         <td className={s.tdC}>
-                          <select value={r.probability} onChange={ev => setRisks(risks.map((x, j) => j === i ? { ...x, probability: Number(ev.target.value) } : x))} style={{ width: 40, textAlign: 'center' }}>
+                          <Select size="small" value={String(r.probability)} onChange={(_, d) => setRisks(risks.map((x, j) => j === i ? { ...x, probability: Number(d.value) } : x))} style={{ minWidth: '60px' }}>
                             {[1,2,3,4,5].map(v => <option key={v} value={v}>{v}</option>)}
-                          </select>
+                          </Select>
                         </td>
                         <td className={s.tdC}><strong style={{ color: riskColor(sc) }}>{sc}</strong></td>
                         <td className={s.tdC}><Badge appearance="filled" style={{ backgroundColor: riskColor(sc), color: riskColor(sc) === '#ffc107' ? '#1a1a1a' : '#fff' }} size="small">{riskLevel(sc)}</Badge></td>
@@ -357,17 +359,20 @@ export default function Phase3BusinessContinuity() {
                 </tr></thead>
                 <tbody>
                   {mbco.map((r, i) => {
-                    const cc = getCriticalityColor(r.criticality)
                     return (
                       <tr key={i}>
                         <td className={s.tdC}>
-                          <select value={r.order} onChange={ev => setMbco(mbco.map((x, j) => j === i ? { ...x, order: Number(ev.target.value) } : x))} style={{ width: 40, textAlign: 'center' }}>
+                          <Select size="small" value={String(r.order)} onChange={(_, d) => setMbco(mbco.map((x, j) => j === i ? { ...x, order: Number(d.value) } : x))} style={{ minWidth: '60px' }}>
                             {[1,2,3,4,5,6,7,8,9,10].map(v => <option key={v} value={v}>{v}</option>)}
-                          </select>
+                          </Select>
                         </td>
                         {cell(`mb-${i}-app`, r.application, v => setMbco(mbco.map((x, j) => j === i ? { ...x, application: v } : x)), s.td, { fontWeight: 600 })}
                         {cell(`mb-${i}-fn`, r.businessFunction, v => setMbco(mbco.map((x, j) => j === i ? { ...x, businessFunction: v } : x)), s.td)}
-                        <td className={s.tdC}><Badge appearance="filled" style={{ backgroundColor: cc.color, color: cc.textColor, maxWidth: '100%', height: 'auto', minHeight: '20px', padding: '2px 6px', whiteSpace: 'normal', lineHeight: '1.3', textAlign: 'center' }} size="small">{r.criticality}</Badge></td>
+                        <td className={s.tdC}>
+                          <Select size="small" value={r.criticality} onChange={(_, d) => setMbco(mbco.map((x, j) => j === i ? { ...x, criticality: d.value } : x))} style={{ minWidth: '140px' }}>
+                            {critLevels.map(opt => <option key={opt.name} value={opt.name}>{opt.name}</option>)}
+                          </Select>
+                        </td>
                         {cell(`mb-${i}-w`, r.window, v => setMbco(mbco.map((x, j) => j === i ? { ...x, window: v } : x)), s.td)}
                         <td className={s.tdC}><Badge appearance="outline" color={r.env === 'Azure' ? 'brand' : 'warning'} size="small">{r.env}</Badge></td>
                         {cell(`mb-${i}-loc`, r.location, v => setMbco(mbco.map((x, j) => j === i ? { ...x, location: v } : x)), s.td)}

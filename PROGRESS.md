@@ -22,21 +22,21 @@
 
 ## Current Iteration
 
-- Iteration: 21
-- Working on: Task-018b (complete)
-- Branch: feature/interactive-workbench
+- Iteration: 22
+- Working on: Task-019: Configurable criticality levels and FluentUI select components
 - Status: Complete
 
 ## Last Completed
 
-- Task-018b: Plan Focus filter with visual dimming and relevance badges
+- Task-019: Configurable criticality levels and FluentUI select components
 - Tests: Build passes
 - Key decisions:
-  - Added planFocus field to AppSettings ('bcdr' | 'dr' | 'bc')
-  - Created utils/planFocus.ts with relevance maps for nav and phase tabs
-  - Sidebar nav items get opacity dimming + relevance badges when focus != 'bcdr'
-  - Phase 1 tabs get per-tab badges and info banner for out-of-scope sections
-  - Phase 2 and Phase 3 show info banners when not relevant to current focus
+  - Added ConfigurableCriticalityLevel interface and DEFAULT_CRITICALITY_LEVELS to criticality.ts
+  - Added buildCriticalityMap() for dynamic color lookups from user-configured levels
+  - Settings page gets new Criticality Levels card with inline editing, color pickers, add/delete/reset
+  - Phase1 and Phase3 criticality dropdowns now use configurable levels via useWorkbenchData
+  - All native <select> elements replaced with FluentUI Select component
+  - MBCO criticality column changed from Badge display to Select dropdown
 
 ## Blockers
 

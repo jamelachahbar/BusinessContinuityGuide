@@ -56,3 +56,33 @@ export function getCriticalityOptions(): { label: string; value: string; color: 
     { label: 'Unsupported', value: 'Unsupported', color: '#6c757d' },
   ]
 }
+
+/* ═══════ Configurable criticality levels ═══════ */
+
+export interface ConfigurableCriticalityLevel {
+  name: string
+  color: string
+  textColor: string
+}
+
+export const DEFAULT_CRITICALITY_LEVELS: ConfigurableCriticalityLevel[] = [
+  { name: 'Mission Critical',    color: '#dc3545', textColor: '#ffffff' },
+  { name: 'Business Critical',   color: '#dc3545', textColor: '#ffffff' },
+  { name: 'Compliance Critical', color: '#dc3545', textColor: '#ffffff' },
+  { name: 'Safety Critical',     color: '#dc3545', textColor: '#ffffff' },
+  { name: 'Security Critical',   color: '#fd7e14', textColor: '#ffffff' },
+  { name: 'Unit Critical',       color: '#fd7e14', textColor: '#ffffff' },
+  { name: 'High',                color: '#ffc107', textColor: '#1a1a1a' },
+  { name: 'Medium',              color: '#28a745', textColor: '#ffffff' },
+  { name: 'Low',                 color: '#28a745', textColor: '#ffffff' },
+  { name: 'Unsupported',         color: '#6c757d', textColor: '#ffffff' },
+]
+
+/** Build a color lookup from a dynamic levels array */
+export function buildCriticalityMap(levels: ConfigurableCriticalityLevel[]): (name: string) => CriticalityLevel {
+  const map: Record<string, CriticalityLevel> = {}
+  for (const l of levels) {
+    map[l.name.trim().toLowerCase()] = l
+  }
+  return (name: string) => map[name.trim().toLowerCase()] ?? { name, color: '#6c757d', textColor: '#ffffff' }
+}

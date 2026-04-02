@@ -13,8 +13,12 @@ import {
 import {
   Save24Regular,
   ArrowReset24Regular,
+  ArrowReset20Regular,
+  Add20Regular,
+  Delete20Regular,
 } from '@fluentui/react-icons'
 import { useWorkbenchData } from '../hooks/useWorkbenchData'
+import { DEFAULT_CRITICALITY_LEVELS, type ConfigurableCriticalityLevel } from '../utils/criticality'
 
 const useStyles = makeStyles({
   container: {
@@ -117,6 +121,7 @@ const DEFAULT_SETTINGS: AppSettings = {
 function Settings() {
   const styles = useStyles()
   const [settings, setSettings] = useWorkbenchData<AppSettings>('settings', DEFAULT_SETTINGS)
+  const [critLevels, setCritLevels, resetCritLevels] = useWorkbenchData<ConfigurableCriticalityLevel[]>('criticalityLevels', DEFAULT_CRITICALITY_LEVELS)
 
   const updateField = <K extends keyof AppSettings>(field: K, value: AppSettings[K]) => {
     setSettings({ ...settings, [field]: value })
@@ -246,6 +251,47 @@ function Settings() {
             <span className={styles.hint}>DR-focused plans emphasize Phase 2 (technical recovery). BC-focused plans emphasize Phase 3 (business operations).</span>
           </div>
         </div>
+      </Card>
+
+      <Card className={styles.card}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <div className={styles.cardTitle}>Criticality Levels</div>
+            <div className={styles.cardDesc}>
+              Define the criticality levels used throughout the workbench. Changes apply to all phases.
+            </div>
+          </div>
+          <Button appearance="subtle" size="small" onClick={resetCritLevels} icon={<ArrowReset20Regular />}>Reset</Button>
+        </div>
+        <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '12px' }}>
+          <thead>
+            <tr>
+              <th style={{ textAlign: 'left', padding: '8px', borderBottom: '2px solid #e0e0e0', fontSize: '13px', fontWeight: 600 }}>Level Name</th>
+              <th style={{ textAlign: 'center', padding: '8px', borderBottom: '2px solid #e0e0e0', fontSize: '13px', fontWeight: 600, width: '80px' }}>Color</th>
+              <th style={{ textAlign: 'center', padding: '8px', borderBottom: '2px solid #e0e0e0', fontSize: '13px', fontWeight: 600, width: '80px' }}>Text</th>
+              <th style={{ textAlign: 'center', padding: '8px', borderBottom: '2px solid #e0e0e0', width: '40px' }}></th>
+            </tr>
+          </thead>
+          <tbody>
+            {critLevels.map((level, i) => (
+              <tr key={i}>
+                <td style={{ padding: '6px 8px', borderBottom: '1px solid #f0f0f0' }}>
+                  <Input size="small" value={level.name} onChange={(_, d) => setCritLevels(critLevels.map((l, j) => j === i ? { ...l, name: d.value } : l))} style={{ width: '100%' }} />
+                </td>
+                <td style={{ padding: '6px 8px', borderBottom: '1px solid #f0f0f0', textAlign: 'center' }}>
+                  <input type="color" value={level.color} onChange={e => setCritLevels(critLevels.map((l, j) => j === i ? { ...l, color: e.target.value } : l))} style={{ width: '32px', height: '28px', border: 'none', cursor: 'pointer', borderRadius: '4px' }} />
+                </td>
+                <td style={{ padding: '6px 8px', borderBottom: '1px solid #f0f0f0', textAlign: 'center' }}>
+                  <input type="color" value={level.textColor} onChange={e => setCritLevels(critLevels.map((l, j) => j === i ? { ...l, textColor: e.target.value } : l))} style={{ width: '32px', height: '28px', border: 'none', cursor: 'pointer', borderRadius: '4px' }} />
+                </td>
+                <td style={{ padding: '6px 8px', borderBottom: '1px solid #f0f0f0', textAlign: 'center' }}>
+                  <Button appearance="subtle" size="small" icon={<Delete20Regular />} onClick={() => setCritLevels(critLevels.filter((_, j) => j !== i))} />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <Button appearance="subtle" size="small" icon={<Add20Regular />} onClick={() => setCritLevels([...critLevels, { name: 'New Level', color: '#6c757d', textColor: '#ffffff' }])} style={{ marginTop: '8px' }}>Add Level</Button>
       </Card>
 
       <Card className={styles.card}>

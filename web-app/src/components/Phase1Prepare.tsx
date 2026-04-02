@@ -16,6 +16,7 @@ import {
   Tab,
   type SelectTabData,
   type SelectTabEvent,
+  Select,
 } from '@fluentui/react-components'
 import {
   Checkmark16Filled,
@@ -29,7 +30,7 @@ import {
 import { downloadCsv } from '../utils/csvExport'
 import { downloadRaciExcel, downloadExcel } from '../utils/excelExport'
 import { useWorkbenchData } from '../hooks/useWorkbenchData'
-import { getCriticalityColor, getCriticalityOptions } from '../utils/criticality'
+import { buildCriticalityMap, DEFAULT_CRITICALITY_LEVELS, type ConfigurableCriticalityLevel } from '../utils/criticality'
 import { isInScope, relevanceLabel, phase1TabRelevance } from '../utils/planFocus'
 import type { PlanFocus } from '../utils/planFocus'
 
@@ -630,6 +631,8 @@ function Phase1Prepare() {
   const [testPlans, setTestPlans, resetTestPlans] = useWorkbenchData('phase1_testPlans', defaultTestPlansData)
   const [faultRows, setFaultRows, resetFault] = useWorkbenchData('phase1_faultModel', defaultFaultModelData)
   const [settings] = useWorkbenchData<{ planFocus?: PlanFocus }>('settings', { planFocus: 'bcdr' })
+  const [critLevels] = useWorkbenchData<ConfigurableCriticalityLevel[]>('criticalityLevels', DEFAULT_CRITICALITY_LEVELS)
+  const getCriticalityColor = buildCriticalityMap(critLevels)
 
   const [editingCell, setEditingCell] = useState<string | null>(null)
 
@@ -953,19 +956,19 @@ function Phase1Prepare() {
                           onClick={() => !isBadgeEditing && setEditingCell(badgeKey)}
                         >
                           {isBadgeEditing ? (
-                            <select
+                            <Select
                               autoFocus
                               value={row.criticality}
-                              onChange={(e) => { updateCritField(i, 'criticality', e.target.value); setEditingCell(null) }}
+                              onChange={(_, d) => { updateCritField(i, 'criticality', d.value); setEditingCell(null) }}
                               onBlur={() => setEditingCell(null)}
-                              className={styles.cellInput}
+                              size="small"
                               style={{ minWidth: '160px' }}
                             >
                               <option value="">-- Select --</option>
-                              {getCriticalityOptions().map(opt => (
-                                <option key={opt.value} value={opt.value}>{opt.label}</option>
+                              {critLevels.map(opt => (
+                                <option key={opt.name} value={opt.name}>{opt.name}</option>
                               ))}
-                            </select>
+                            </Select>
                           ) : (
                             <Badge
                               appearance="filled"
