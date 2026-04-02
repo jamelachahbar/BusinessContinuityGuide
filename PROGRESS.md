@@ -22,21 +22,20 @@
 
 ## Current Iteration
 
-- Iteration: 23
-- Working on: Task-020: Fix Fault Tree canvas sync, editable FMEA scores, and badge formatting
+- Iteration: 24
+- Working on: Task-021: Make outage communication plan editable
 - Status: Complete
 
 ## Last Completed
 
-- Task-020: Fix Fault Tree canvas sync, editable FMEA scores, and badge formatting
+- Task-021: Make outage communication plan editable with add/delete/export
 - Tests: Build passes
 - Key decisions:
-  - Added onNodeDragStop handler to persist dragged positions back to ftData
-  - Added useEffect syncs from ftData/ftEdges to React Flow nodes/edges state
-  - Removed useMemo wrappers from useNodesState/useEdgesState initial values
-  - Made FMEA S/O/D columns editable with FluentUI Select dropdowns
-  - Added updateFmeaScore helper that updates ftData by matching label
-  - Added long-text-friendly styles to Phase 3 MBCO env badge
+  - Replaced static commPlanData with persisted CommPlanRow[] via useWorkbenchData
+  - Click-to-edit scope titles and list items
+  - Add/delete scopes and individual items per phase
+  - CSV export flattens rows with max-length alignment
+  - Reset to defaults button
 
 ## Blockers
 

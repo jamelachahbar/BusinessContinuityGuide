@@ -118,7 +118,14 @@ const failbackSteps = [
   'Conduct post-drill review and update runbook with lessons learned',
 ]
 
-const commPlanData = [
+interface CommPlanRow {
+  scope: string
+  preOutage: string[]
+  duringOutage: string[]
+  postOutage: string[]
+}
+
+const defaultCommPlan: CommPlanRow[] = [
   { scope: 'Global / Geography', preOutage: ['Board and executive team pre-briefed', 'Customer communication templates prepared', 'Media / PR team on standby'], duringOutage: ['Hourly executive updates', 'Customer status page updated every 30 min', 'Media holding statement issued'], postOutage: ['Formal post-incident report to board', 'Customer impact letter with remediation steps', 'Regulatory notifications if applicable'] },
   { scope: 'Region',             preOutage: ['App business owner notified of planned drill', 'Support team briefed on customer impact', 'Status page pre-configured'], duringOutage: ['App business owner updated every 30 min', 'Support team handling queries', 'Status page shows real-time updates'], postOutage: ['Post-incident review within 48 hours', 'RCA shared with stakeholders', 'Runbook updated'] },
   { scope: 'Zone / Service',     preOutage: ['Operations team monitoring dashboards', 'Automated alerts configured', 'On-call engineer assigned'], duringOutage: ['On-call responds within 15 min', 'PagerDuty escalation active', 'Internal channel for coordination'], postOutage: ['Brief post-mortem within 24 hours', 'Monitoring thresholds adjusted', 'Automation improvements identified'] },
@@ -152,6 +159,7 @@ export default function TestTab() {
   const [testSummary, setTestSummary, resetTests] = useWorkbenchData<TestRow[]>('phase2-test-summary', defaultTestSummary)
   const [uatCases, setUatCases, resetUat] = useWorkbenchData<UatRow[]>('phase2-uat-cases', defaultUat)
   const [maintenance, setMaintenance, resetMaint] = useWorkbenchData<MaintenanceRow[]>('phase2-maintenance', defaultMaintenance)
+  const [commPlan, setCommPlan, resetCommPlan] = useWorkbenchData<CommPlanRow[]>('phase2-comm-plan', defaultCommPlan)
   const [editingCell, setEditingCell] = useState<string | null>(null)
 
   const editCell = (key: string, value: string, onSave: (v: string) => void, baseClass: string, extraStyle?: React.CSSProperties) => {
@@ -187,6 +195,26 @@ export default function TestTab() {
   const addMaintRow = () => setMaintenance([...maintenance, { document: '', frequency: '', nextReview: '', owner: '', approver: '' }])
   const deleteMaintRow = (idx: number) => setMaintenance(maintenance.filter((_, i) => i !== idx))
 
+  /* Comm plan helpers */
+  const updateCommScope = (idx: number, value: string) => {
+    setCommPlan(commPlan.map((r, i) => i === idx ? { ...r, scope: value } : r))
+  }
+  const updateCommItem = (idx: number, phase: 'preOutage' | 'duringOutage' | 'postOutage', itemIdx: number, value: string) => {
+    setCommPlan(commPlan.map((r, i) => i === idx ? { ...r, [phase]: r[phase].map((item, j) => j === itemIdx ? value : item) } : r))
+  }
+  const addCommItem = (idx: number, phase: 'preOutage' | 'duringOutage' | 'postOutage') => {
+    setCommPlan(commPlan.map((r, i) => i === idx ? { ...r, [phase]: [...r[phase], ''] } : r))
+  }
+  const deleteCommItem = (idx: number, phase: 'preOutage' | 'duringOutage' | 'postOutage', itemIdx: number) => {
+    setCommPlan(commPlan.map((r, i) => i === idx ? { ...r, [phase]: r[phase].filter((_, j) => j !== itemIdx) } : r))
+  }
+  const addCommScope = () => {
+    setCommPlan([...commPlan, { scope: 'New Scope', preOutage: [''], duringOutage: [''], postOutage: [''] }])
+  }
+  const deleteCommScope = (idx: number) => {
+    setCommPlan(commPlan.filter((_, i) => i !== idx))
+  }
+
   const passed = testSummary.filter(t => t.status === 'Passed').length
   const total = testSummary.length
 
@@ -194,6 +222,18 @@ export default function TestTab() {
   const exportTests = () => downloadCsv('phase2_test_summary.csv', objectsToCsvSheet('Tests', testSummary as unknown as Record<string, unknown>[]))
   const exportUat = () => downloadCsv('phase2_uat_test_plan.csv', objectsToCsvSheet('UAT', uatCases as unknown as Record<string, unknown>[]))
   const exportMaint = () => downloadCsv('phase2_maintenance.csv', objectsToCsvSheet('Maintenance', maintenance as unknown as Record<string, unknown>[]))
+  const exportCommPlan = () => {
+    const rows = commPlan.flatMap(p => {
+      const maxLen = Math.max(p.preOutage.length, p.duringOutage.length, p.postOutage.length)
+      return Array.from({ length: maxLen }, (_, i) => ({
+        Scope: i === 0 ? p.scope : '',
+        'Before Outage': p.preOutage[i] || '',
+        'During Outage': p.duringOutage[i] || '',
+        'After Outage': p.postOutage[i] || '',
+      }))
+    })
+    downloadCsv('phase2_comm_plan.csv', objectsToCsvSheet('CommPlan', rows as unknown as Record<string, unknown>[]))
+  }
 
   return (
     <div>
@@ -329,32 +369,66 @@ export default function TestTab() {
         </div>
       </div>
 
-      {/* ── 17. Outage Communication Plan (STATIC REFERENCE) ── */}
+      {/* ── 17. Outage Communication Plan (INTERACTIVE) ── */}
       <div className={styles.section}>
-        <h3 className={styles.sectionTitle}>17. Outage Communication Plan</h3>
-        <p className={styles.subsectionDesc}>Communication procedures organized by event scope for before, during, and after outages.</p>
-        {commPlanData.map((plan, i) => (
+        <div className={styles.sectionHeader}>
+          <h3 className={styles.sectionTitle}>17. Outage Communication Plan</h3>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <Button icon={<Add20Regular />} size="small" onClick={addCommScope}>Add Scope</Button>
+            <Button icon={<ArrowReset20Regular />} size="small" appearance="subtle" onClick={resetCommPlan}>Reset</Button>
+            <Button icon={<ArrowDownload20Regular />} size="small" appearance="subtle" onClick={exportCommPlan}>Export CSV</Button>
+          </div>
+        </div>
+        <p className={styles.subsectionDesc}>Communication procedures organized by event scope for before, during, and after outages. Click items to edit.</p>
+        {commPlan.map((plan, i) => (
           <Card key={i} className={styles.card}>
-            <div className={styles.cardTitle}>{plan.scope}</div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <div className={styles.cardTitle} style={{ marginBottom: 0 }}>
+                {editingCell === `comm-${i}-scope` ? (
+                  <input
+                    autoFocus
+                    defaultValue={plan.scope}
+                    onBlur={e => { updateCommScope(i, e.target.value); setEditingCell(null) }}
+                    onKeyDown={e => { if (e.key === 'Enter') e.currentTarget.blur(); if (e.key === 'Escape') setEditingCell(null) }}
+                    className={styles.cellInput}
+                    style={{ fontSize: '18px', fontWeight: 600 }}
+                  />
+                ) : (
+                  <span onClick={() => setEditingCell(`comm-${i}-scope`)} style={{ cursor: 'pointer' }}>{plan.scope}</span>
+                )}
+              </div>
+              <Button icon={<Delete20Regular />} size="small" appearance="subtle" onClick={() => deleteCommScope(i)} />
+            </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
-              <div>
-                <strong style={{ fontSize: '13px', color: tokens.colorNeutralForeground3 }}>Before Outage</strong>
-                <ul className={styles.list}>
-                  {plan.preOutage.map((item, j) => <li key={j} style={{ fontSize: '13px', marginBottom: '4px' }}>{item}</li>)}
-                </ul>
-              </div>
-              <div>
-                <strong style={{ fontSize: '13px', color: '#fd7e14' }}>During Outage</strong>
-                <ul className={styles.list}>
-                  {plan.duringOutage.map((item, j) => <li key={j} style={{ fontSize: '13px', marginBottom: '4px' }}>{item}</li>)}
-                </ul>
-              </div>
-              <div>
-                <strong style={{ fontSize: '13px', color: '#28a745' }}>After Outage</strong>
-                <ul className={styles.list}>
-                  {plan.postOutage.map((item, j) => <li key={j} style={{ fontSize: '13px', marginBottom: '4px' }}>{item}</li>)}
-                </ul>
-              </div>
+              {(['preOutage', 'duringOutage', 'postOutage'] as const).map((phase) => {
+                const phaseLabel = phase === 'preOutage' ? 'Before Outage' : phase === 'duringOutage' ? 'During Outage' : 'After Outage'
+                const phaseColor = phase === 'preOutage' ? tokens.colorNeutralForeground3 : phase === 'duringOutage' ? '#fd7e14' : '#28a745'
+                return (
+                  <div key={phase}>
+                    <strong style={{ fontSize: '13px', color: phaseColor }}>{phaseLabel}</strong>
+                    <ul className={styles.list}>
+                      {plan[phase].map((item, j) => (
+                        <li key={j} style={{ fontSize: '13px', marginBottom: '4px', display: 'flex', alignItems: 'flex-start', gap: '4px' }}>
+                          {editingCell === `comm-${i}-${phase}-${j}` ? (
+                            <input
+                              autoFocus
+                              defaultValue={item}
+                              onBlur={e => { updateCommItem(i, phase, j, e.target.value); setEditingCell(null) }}
+                              onKeyDown={e => { if (e.key === 'Enter') e.currentTarget.blur(); if (e.key === 'Escape') setEditingCell(null) }}
+                              className={styles.cellInput}
+                              style={{ flex: 1 }}
+                            />
+                          ) : (
+                            <span onClick={() => setEditingCell(`comm-${i}-${phase}-${j}`)} style={{ cursor: 'pointer', flex: 1 }}>{item || '\u00A0'}</span>
+                          )}
+                          <Button icon={<Delete20Regular />} size="small" appearance="subtle" onClick={() => deleteCommItem(i, phase, j)} style={{ minWidth: 'auto', padding: 0, height: '20px' }} />
+                        </li>
+                      ))}
+                    </ul>
+                    <Button icon={<Add20Regular />} size="small" appearance="subtle" onClick={() => addCommItem(i, phase)} style={{ fontSize: '12px', marginTop: '4px' }}>Add</Button>
+                  </div>
+                )
+              })}
             </div>
           </Card>
         ))}
