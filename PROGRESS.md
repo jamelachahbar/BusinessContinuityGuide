@@ -16,25 +16,23 @@
 - [x] Task-012: Redesign Phase 1 with tabbed layout and FluentUI status icons
 - [x] Task-014: Add CSV export buttons to Phase 1 Prepare tabs (commit: 4612075)
 - [x] Task-016: Dynamic impact columns for Criticality Model
+- [x] Task-017: Excel export for RACI Matrix with cell formatting
 
 ## Current Iteration
 
-- Iteration: 16
-- Working on: None
+- Iteration: 18
+- Working on: Next task
 - Branch: feature/interactive-workbench
-- Status: Complete
+- Status: Awaiting assignment
 
 ## Last Completed
 
-- Task-016: Dynamic impact columns for Criticality Model
+- Task-017: Excel export for RACI Matrix with cell formatting
 - Tests: Build passes
 - Key decisions:
-  - Replaced hardcoded boolean fields (brand, trust, exp, injury, prod) with dynamic `impacts: boolean[]` array
-  - Added persisted `phase1_impactColumns` state for column names
-  - Column headers are click-to-edit with delete buttons
-  - Add Column button creates new impact column across all rows
-  - Reset button resets both columns and row data
-  - CSV export uses dynamic column names
+  - Used exceljs library for .xlsx generation with colored RACI cells
+  - Color scheme: R=dark blue, A=medium blue, C=light blue, I=lightest blue
+  - Added Export Excel button next to existing Export CSV in RACI section
 
 ## Blockers
 

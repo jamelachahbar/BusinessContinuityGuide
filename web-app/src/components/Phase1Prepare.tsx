@@ -27,6 +27,7 @@ import {
   ArrowDownload20Regular,
 } from '@fluentui/react-icons'
 import { downloadCsv } from '../utils/csvExport'
+import { downloadRaciExcel } from '../utils/excelExport'
 import { useWorkbenchData } from '../hooks/useWorkbenchData'
 import { getCriticalityColor, getCriticalityOptions } from '../utils/criticality'
 
@@ -1007,6 +1008,7 @@ function Phase1Prepare() {
             <div className={styles.sectionHeader}>
               <h2 className={styles.sectionHeaderTitle}>RACI Matrix</h2>
               <Button appearance="subtle" size="small" onClick={() => downloadCsv('phase1-raci-matrix.csv', { name: 'RACI Matrix', headers: ['Task', ...raciState.roles], rows: raciState.tasks.map(t => [t.task, ...t.raci]) })} icon={<ArrowDownload20Regular />}>Export CSV</Button>
+              <Button appearance="subtle" size="small" onClick={() => downloadRaciExcel({ roles: raciState.roles, tasks: raciState.tasks })} icon={<ArrowDownload20Regular />}>Export Excel</Button>
               <Button appearance="subtle" size="small" onClick={resetRaci} icon={<ArrowReset20Regular />}>Reset</Button>
             </div>
             <p className={styles.subsectionDesc}>
