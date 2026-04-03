@@ -40,6 +40,8 @@ const useStyles = makeStyles({
   meta: { display: 'flex', gap: '12px', marginBottom: '10px', fontSize: '12px', color: tokens.colorNeutralForeground3 },
   legend: { display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '10px', ...shorthands.padding('8px', '12px'), backgroundColor: '#f8f9fa', ...shorthands.borderRadius('8px'), fontSize: '11px' },
   legendItem: { display: 'flex', alignItems: 'center', gap: '5px' },
+  connBox: { ...shorthands.padding('10px', '14px'), backgroundColor: '#f8f9fa', ...shorthands.border('1px', 'solid', '#e2e8f0'), ...shorthands.borderRadius('8px'), marginBottom: '10px' },
+  connTitle: { fontSize: '12px', fontWeight: '600', color: tokens.colorNeutralForeground2 },
   hint: { ...shorthands.padding('10px', '14px'), backgroundColor: '#f8f9fa', ...shorthands.borderRadius('8px'), fontSize: '12px', lineHeight: '1.5', color: tokens.colorNeutralForeground3, marginTop: '10px' },
 })
 
@@ -205,9 +207,53 @@ export default function FaultTree({ storageKey = 'phase2-fta', afterBcdr = false
   const [newOcc, setNewOcc] = useState(2)
   const [newDet, setNewDet] = useState(3)
 
+  // Node editing state
+  const [editingNode, setEditingNode] = useState<string | null>(null)
+  const [editNodeLabel, setEditNodeLabel] = useState('')
+  const [editNodeType, setEditNodeType] = useState<FtaType>('basic')
+  const [editNodeSev, setEditNodeSev] = useState(3)
+  const [editNodeOcc, setEditNodeOcc] = useState(2)
+  const [editNodeDet, setEditNodeDet] = useState(3)
+
+  // Edge editing state
+  const [editingEdge, setEditingEdge] = useState<string | null>(null)
+
   const onNodeDragStop = useCallback((_: React.MouseEvent, node: Node) => {
     setFtData(ftData.map(n => n.id === node.id ? { ...n, x: node.position.x, y: node.position.y } : n))
   }, [ftData, setFtData])
+
+  const onNodeDoubleClick = useCallback((_: React.MouseEvent, node: Node) => {
+    const nd = ftData.find(n => n.id === node.id)
+    if (!nd) return
+    setEditingNode(node.id)
+    setEditNodeLabel(nd.label.replace(/\n/g, ' '))
+    setEditNodeType(nd.ftaType)
+    setEditNodeSev(nd.severity ?? 3)
+    setEditNodeOcc(nd.occurrence ?? 2)
+    setEditNodeDet(nd.detection ?? 3)
+  }, [ftData])
+
+  const applyNodeEdit = useCallback(() => {
+    if (!editingNode) return
+    setFtData(ftData.map(n => n.id === editingNode ? {
+      ...n,
+      label: editNodeLabel,
+      ftaType: editNodeType,
+      ...(editNodeType === 'intermediate' || editNodeType === 'basic' ? { severity: editNodeSev, occurrence: editNodeOcc, detection: editNodeDet } : { severity: undefined, occurrence: undefined, detection: undefined }),
+    } : n))
+    setEditingNode(null)
+  }, [editingNode, editNodeLabel, editNodeType, editNodeSev, editNodeOcc, editNodeDet, ftData, setFtData])
+
+  const onEdgeClick = useCallback((_: React.MouseEvent, edge: Edge) => {
+    setEditingEdge(edge.id)
+  }, [])
+
+  const deleteEdge = useCallback(() => {
+    if (!editingEdge) return
+    setFtEdges(ftEdges.filter(e => !(e[0] === edges.find(ed => ed.id === editingEdge)?.source && e[1] === edges.find(ed => ed.id === editingEdge)?.target)))
+    setEdges(eds => eds.filter(e => e.id !== editingEdge))
+    setEditingEdge(null)
+  }, [editingEdge, ftEdges, edges, setFtEdges, setEdges])
 
   const updateFmeaScore = useCallback((eventLabel: string, field: 'severity' | 'occurrence' | 'detection', value: number) => {
     setFtData(ftData.map(n => {
@@ -300,9 +346,40 @@ export default function FaultTree({ storageKey = 'phase2-fta', afterBcdr = false
         <Badge appearance="outline" size="small">{edges.length} links</Badge>
       </div>
 
+      {/* Node editing panel */}
+      {editingNode && (
+        <div className={st.connBox} style={{ marginBottom: '10px' }}>
+          <div className={st.connTitle} style={{ marginBottom: '8px', fontWeight: 600 }}>Edit Node (double-click a node to open)</div>
+          <div className={st.row}>
+            <div className={st.field}><span className={st.label}>Label</span><input autoFocus value={editNodeLabel} onChange={e => setEditNodeLabel(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') applyNodeEdit(); if (e.key === 'Escape') setEditingNode(null) }} style={{ fontSize: 13, padding: '4px 8px', border: '1px solid #e2e8f0', borderRadius: 4, width: 150 }} /></div>
+            <div className={st.field}><span className={st.label}>Symbol</span><Select size="small" value={editNodeType} onChange={(_, d) => setEditNodeType(d.value as FtaType)}>{ftaKeys.map(k => <option key={k} value={k}>{FTA_TYPES[k].label}</option>)}</Select></div>
+            {(editNodeType === 'intermediate' || editNodeType === 'basic') && (
+              <>
+                <div className={st.field}><span className={st.label}>Severity</span><Select size="small" value={String(editNodeSev)} onChange={(_, d) => setEditNodeSev(Number(d.value))}>{[1,2,3,4,5].map(v => <option key={v} value={v}>{v}</option>)}</Select></div>
+                <div className={st.field}><span className={st.label}>Occurrence</span><Select size="small" value={String(editNodeOcc)} onChange={(_, d) => setEditNodeOcc(Number(d.value))}>{[1,2,3,4,5].map(v => <option key={v} value={v}>{v}</option>)}</Select></div>
+                <div className={st.field}><span className={st.label}>Detection</span><Select size="small" value={String(editNodeDet)} onChange={(_, d) => setEditNodeDet(Number(d.value))}>{[1,2,3,4,5].map(v => <option key={v} value={v}>{v}</option>)}</Select></div>
+              </>
+            )}
+            <Button size="small" appearance="primary" onClick={applyNodeEdit}>Apply</Button>
+            <Button size="small" appearance="subtle" onClick={() => setEditingNode(null)}>Close</Button>
+          </div>
+        </div>
+      )}
+
+      {/* Edge editing panel */}
+      {editingEdge && (
+        <div className={st.connBox} style={{ marginBottom: '10px' }}>
+          <div className={st.connTitle} style={{ marginBottom: '8px', fontWeight: 600 }}>Edit Connection (click a connection line to select)</div>
+          <div className={st.row}>
+            <Button size="small" appearance="subtle" style={{ color: '#dc3545' }} onClick={deleteEdge}>Delete Connection</Button>
+            <Button size="small" appearance="subtle" onClick={() => setEditingEdge(null)}>Cancel</Button>
+          </div>
+        </div>
+      )}
+
       {/* Canvas */}
       <div className={st.canvas} ref={ref}>
-        <ReactFlow nodes={nodes} edges={edges} onNodesChange={onNC} onEdgesChange={onEC} onConnect={onConnect} onNodeDragStop={onNodeDragStop} nodeTypes={nodeTypes} fitView snapToGrid snapGrid={[16, 16]} defaultEdgeOptions={{ style: { strokeWidth: 2, stroke: '#718096' }, markerEnd: { type: MarkerType.ArrowClosed, color: '#718096' } }} attributionPosition="bottom-left">
+        <ReactFlow nodes={nodes} edges={edges} onNodesChange={onNC} onEdgesChange={onEC} onConnect={onConnect} onNodeDragStop={onNodeDragStop} onNodeDoubleClick={onNodeDoubleClick} onEdgeClick={onEdgeClick} nodeTypes={nodeTypes} fitView snapToGrid snapGrid={[16, 16]} defaultEdgeOptions={{ style: { strokeWidth: 2, stroke: '#718096' }, markerEnd: { type: MarkerType.ArrowClosed, color: '#718096' } }} attributionPosition="bottom-left">
           <Controls />
           <Background gap={16} size={1} color="#e2e8f0" />
         </ReactFlow>
