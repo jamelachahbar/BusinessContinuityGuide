@@ -523,12 +523,12 @@ export default function AssessTab() {
           {/* Donut chart */}
           <div className={styles.chartCard}>
             <h4 style={{ marginBottom: '12px' }}>Gap Status Distribution</h4>
-            <ResponsiveContainer width="100%" height={260}>
+            <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
                   data={gapChartData}
                   cx="50%"
-                  cy="50%"
+                  cy="55%"
                   innerRadius={60}
                   outerRadius={100}
                   dataKey="value"
