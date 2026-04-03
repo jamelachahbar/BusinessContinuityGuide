@@ -149,6 +149,7 @@ export default function ServiceMap() {
   const [editingEdge, setEditingEdge] = useState<string | null>(null)
   // Node editing state
   const [editingNode, setEditingNode] = useState<string | null>(null)
+  const [editNodeName, setEditNodeName] = useState('')
 
   const onConnect = useCallback((p: Connection) => {
     if (!p.source || !p.target) return
@@ -225,6 +226,7 @@ export default function ServiceMap() {
 
   const onNodeDoubleClick = useCallback((_: React.MouseEvent, node: Node) => {
     setEditingNode(node.id)
+    setEditNodeName(node.data.label as string)
   }, [])
 
   const renameNode = useCallback((id: string, newLabel: string) => {
@@ -324,27 +326,28 @@ export default function ServiceMap() {
         if (!node) return null
         return (
           <div className={s.connBox}>
-            <div className={s.connTitle}>Edit Service Node</div>
+            <div className={s.connTitle}>Edit Service Node (double-click a node to open)</div>
             <div className={s.row}>
               <div className={s.field}>
                 <span className={s.label}>Name</span>
                 <input
                   autoFocus
-                  defaultValue={node.data.label as string}
-                  onBlur={e => { renameNode(editingNode, e.target.value); setEditingNode(null) }}
-                  onKeyDown={e => { if (e.key === 'Enter') e.currentTarget.blur(); if (e.key === 'Escape') setEditingNode(null) }}
+                  value={editNodeName}
+                  onChange={e => setEditNodeName(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') { renameNode(editingNode, editNodeName); setEditingNode(null) }; if (e.key === 'Escape') setEditingNode(null) }}
                   style={{ fontSize: 13, padding: '4px 8px', border: '1px solid #e2e8f0', borderRadius: 4, width: 200 }}
                 />
               </div>
               <div className={s.field}>
                 <span className={s.label}>Category</span>
-                <Select size="small" value={node.data.category as string} onChange={(_, d) => { updateNodeCategory(editingNode, d.value); setEditingNode(null) }}>
+                <Select size="small" value={node.data.category as string} onChange={(_, d) => updateNodeCategory(editingNode, d.value)}>
                   {AZURE_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                   <option value="On-Premises">On-Premises</option>
                   <option value="Third Party">Third Party</option>
                   <option value="Custom">Custom</option>
                 </Select>
               </div>
+              <Button size="small" appearance="primary" onClick={() => { renameNode(editingNode, editNodeName); setEditingNode(null) }}>Apply</Button>
               <Button size="small" appearance="subtle" onClick={() => setEditingNode(null)}>Close</Button>
             </div>
           </div>
