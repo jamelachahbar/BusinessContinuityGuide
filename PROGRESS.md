@@ -22,20 +22,19 @@
 
 ## Current Iteration
 
-- Iteration: 24
-- Working on: Task-021: Make outage communication plan editable
+- Iteration: 25
+- Working on: Task-022: Service map persistence, node editing, position tracking
 - Status: Complete
 
 ## Last Completed
 
-- Task-021: Make outage communication plan editable with add/delete/export
+- Task-022: Service map persistence, node editing, and position tracking
 - Tests: Build passes
 - Key decisions:
-  - Replaced static commPlanData with persisted CommPlanRow[] via useWorkbenchData
-  - Click-to-edit scope titles and list items
-  - Add/delete scopes and individual items per phase
-  - CSV export flattens rows with max-length alignment
-  - Reset to defaults button
+  - Serialized nodes/edges stored via useWorkbenchData for localStorage persistence
+  - onNodeDragStop persists position changes
+  - Double-click node opens edit panel for name and category
+  - All mutations (add, remove, connect, update, delete, reset) persist changes
 
 ## Blockers
 

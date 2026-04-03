@@ -15,6 +15,7 @@ import {
 } from '@fluentui/react-icons'
 import { AZURE_SERVICES, AZURE_CATEGORIES, CATEGORY_COLORS, type AzureCategory } from '../../utils/azureCatalog'
 import { downloadCsv, objectsToCsvSheet } from '../../utils/csvExport'
+import { useWorkbenchData } from '../../hooks/useWorkbenchData'
 
 /* ═══════ Styles ═══════ */
 
@@ -100,13 +101,39 @@ const defaultEdges: Edge[] = [
   mkEdge('e10','functions','appInsights','monitoring',''),
 ]
 
+/* ═══════ Serialization ═══════ */
+
+interface SerializedNode { id: string; label: string; category: string; x: number; y: number }
+interface SerializedEdge { id: string; source: string; target: string; connType: ConnType; connLabel: string; direction: Dir; sourceHandle?: string; targetHandle?: string }
+
+function serializeNodes(nodes: Node[]): SerializedNode[] {
+  return nodes.map(n => ({ id: n.id, label: n.data.label as string, category: n.data.category as string, x: n.position.x, y: n.position.y }))
+}
+function deserializeNodes(data: SerializedNode[]): Node[] {
+  return data.map(d => mkNode(d.id, d.label, d.category, d.x, d.y))
+}
+function serializeEdges(edges: Edge[]): SerializedEdge[] {
+  return edges.map(e => ({ id: e.id, source: e.source, target: e.target, connType: (e.data?.connType as ConnType) ?? 'dependency', connLabel: (e.data?.connLabel as string) ?? '', direction: (e.data?.direction as Dir) ?? 'forward', sourceHandle: e.sourceHandle ?? undefined, targetHandle: e.targetHandle ?? undefined }))
+}
+function deserializeEdges(data: SerializedEdge[]): Edge[] {
+  return data.map(d => mkEdge(d.id, d.source, d.target, d.connType, d.connLabel, d.direction))
+}
+
+const defaultSerializedNodes = serializeNodes(defaultNodes)
+const defaultSerializedEdges = serializeEdges(defaultEdges)
+
 /* ═══════ Component ═══════ */
 
 export default function ServiceMap() {
   const s = useStyles()
   const ref = useRef<HTMLDivElement>(null)
-  const [nodes, setNodes, onNC] = useNodesState(defaultNodes)
-  const [edges, setEdges, onEC] = useEdgesState(defaultEdges)
+  const [savedNodes, setSavedNodes] = useWorkbenchData<SerializedNode[]>('phase2-servicemap-nodes', defaultSerializedNodes)
+  const [savedEdges, setSavedEdges] = useWorkbenchData<SerializedEdge[]>('phase2-servicemap-edges', defaultSerializedEdges)
+  const [nodes, setNodes, onNC] = useNodesState(deserializeNodes(savedNodes))
+  const [edges, setEdges, onEC] = useEdgesState(deserializeEdges(savedEdges))
+
+  const persistNodes = useCallback((nds: Node[]) => setSavedNodes(serializeNodes(nds)), [setSavedNodes])
+  const persistEdges = useCallback((eds: Edge[]) => setSavedEdges(serializeEdges(eds)), [setSavedEdges])
 
   // Add service
   const [selCat, setSelCat] = useState<AzureCategory>('Compute')
@@ -120,11 +147,13 @@ export default function ServiceMap() {
 
   // Edge editing state
   const [editingEdge, setEditingEdge] = useState<string | null>(null)
+  // Node editing state
+  const [editingNode, setEditingNode] = useState<string | null>(null)
 
   const onConnect = useCallback((p: Connection) => {
     if (!p.source || !p.target) return
     const c = CONN_TYPES[ct]
-    setEdges(eds => addEdge({
+    const newEdge = {
       id: `e-${Date.now()}`, source: p.source!, target: p.target!,
       sourceHandle: p.sourceHandle ?? undefined, targetHandle: p.targetHandle ?? undefined,
       label: cl || undefined, animated: c.anim,
@@ -132,9 +161,10 @@ export default function ServiceMap() {
       data: { connType: ct, direction: cd, connLabel: cl },
       markerEnd: cd !== 'reverse' ? { type: MarkerType.ArrowClosed, color: c.color } : undefined,
       markerStart: cd !== 'forward' ? { type: MarkerType.ArrowClosed, color: c.color } : undefined,
-    }, eds))
+    }
+    setEdges(eds => { const updated = addEdge(newEdge, eds); persistEdges(updated); return updated })
     setCl('')
-  }, [setEdges, ct, cl, cd])
+  }, [setEdges, ct, cl, cd, persistEdges])
 
   const onEdgeClick = useCallback((_: React.MouseEvent, edge: Edge) => {
     setEditingEdge(edge.id)
@@ -147,33 +177,71 @@ export default function ServiceMap() {
   const updateEdge = useCallback(() => {
     if (!editingEdge) return
     const c = CONN_TYPES[ct]
-    setEdges(eds => eds.map(e => e.id === editingEdge ? {
-      ...e,
-      label: cl || undefined,
-      animated: c.anim,
-      style: { strokeWidth: 2, stroke: c.color, ...(c.dash ? { strokeDasharray: '6 3' } : {}) },
-      data: { connType: ct, direction: cd, connLabel: cl },
-      markerEnd: cd !== 'reverse' ? { type: MarkerType.ArrowClosed, color: c.color } : undefined,
-      markerStart: cd !== 'forward' ? { type: MarkerType.ArrowClosed, color: c.color } : undefined,
-    } : e))
+    setEdges(eds => {
+      const updated = eds.map(e => e.id === editingEdge ? {
+        ...e, label: cl || undefined, animated: c.anim,
+        style: { strokeWidth: 2, stroke: c.color, ...(c.dash ? { strokeDasharray: '6 3' } : {}) },
+        data: { connType: ct, direction: cd, connLabel: cl },
+        markerEnd: cd !== 'reverse' ? { type: MarkerType.ArrowClosed, color: c.color } : undefined,
+        markerStart: cd !== 'forward' ? { type: MarkerType.ArrowClosed, color: c.color } : undefined,
+      } : e)
+      persistEdges(updated)
+      return updated
+    })
     setEditingEdge(null)
-  }, [editingEdge, ct, cl, cd, setEdges])
+  }, [editingEdge, ct, cl, cd, setEdges, persistEdges])
 
   const deleteEdge = useCallback(() => {
     if (!editingEdge) return
-    setEdges(eds => eds.filter(e => e.id !== editingEdge))
+    setEdges(eds => { const updated = eds.filter(e => e.id !== editingEdge); persistEdges(updated); return updated })
     setEditingEdge(null)
-  }, [editingEdge, setEdges])
+  }, [editingEdge, setEdges, persistEdges])
 
   const addSvc = useCallback(() => {
     if (!selSvc) return
     const cat = AZURE_SERVICES.find(s => s.name === selSvc)?.category ?? selCat
-    setNodes(nds => [...nds, mkNode(`svc-${Date.now()}`, selSvc, cat, 200 + Math.random() * 400, 100 + Math.random() * 300)])
+    const newNode = mkNode(`svc-${Date.now()}`, selSvc, cat, 200 + Math.random() * 400, 100 + Math.random() * 300)
+    setNodes(nds => { const updated = [...nds, newNode]; persistNodes(updated); return updated })
     setSelSvc('')
-  }, [selSvc, selCat, setNodes])
+  }, [selSvc, selCat, setNodes, persistNodes])
 
-  const rmNode = useCallback((id: string) => { setNodes(n => n.filter(x => x.id !== id)); setEdges(e => e.filter(x => x.source !== id && x.target !== id)) }, [setNodes, setEdges])
-  const reset = useCallback(() => { setNodes(defaultNodes); setEdges(defaultEdges) }, [setNodes, setEdges])
+  const rmNode = useCallback((id: string) => {
+    setNodes(n => { const updated = n.filter(x => x.id !== id); persistNodes(updated); return updated })
+    setEdges(e => { const updated = e.filter(x => x.source !== id && x.target !== id); persistEdges(updated); return updated })
+  }, [setNodes, setEdges, persistNodes, persistEdges])
+
+  const reset = useCallback(() => {
+    setNodes(defaultNodes); setEdges(defaultEdges)
+    setSavedNodes(defaultSerializedNodes); setSavedEdges(defaultSerializedEdges)
+  }, [setNodes, setEdges, setSavedNodes, setSavedEdges])
+
+  const onNodeDragStop = useCallback((_: React.MouseEvent, node: Node) => {
+    setNodes(nds => {
+      const updated = nds.map(n => n.id === node.id ? { ...n, position: node.position } : n)
+      persistNodes(updated)
+      return updated
+    })
+  }, [setNodes, persistNodes])
+
+  const onNodeDoubleClick = useCallback((_: React.MouseEvent, node: Node) => {
+    setEditingNode(node.id)
+  }, [])
+
+  const renameNode = useCallback((id: string, newLabel: string) => {
+    setNodes(nds => {
+      const updated = nds.map(n => n.id === id ? { ...n, data: { ...n.data, label: newLabel } } : n)
+      persistNodes(updated)
+      return updated
+    })
+  }, [setNodes, persistNodes])
+
+  const updateNodeCategory = useCallback((id: string, newCat: string) => {
+    setNodes(nds => {
+      const updated = nds.map(n => n.id === id ? { ...n, data: { ...n.data, category: newCat } } : n)
+      persistNodes(updated)
+      return updated
+    })
+  }, [setNodes, persistNodes])
 
   const exportCsv = () => downloadCsv('service_map.csv', objectsToCsvSheet('Dependencies', edges.map(e => {
     const sn = nodes.find(n => n.id === e.source); const tn = nodes.find(n => n.id === e.target)
@@ -250,6 +318,39 @@ export default function ServiceMap() {
         <Badge appearance="outline" size="small">{edges.length} connections</Badge>
       </div>
 
+      {/* Node editing panel */}
+      {editingNode && (() => {
+        const node = nodes.find(n => n.id === editingNode)
+        if (!node) return null
+        return (
+          <div className={s.connBox}>
+            <div className={s.connTitle}>Edit Service Node</div>
+            <div className={s.row}>
+              <div className={s.field}>
+                <span className={s.label}>Name</span>
+                <input
+                  autoFocus
+                  defaultValue={node.data.label as string}
+                  onBlur={e => { renameNode(editingNode, e.target.value); setEditingNode(null) }}
+                  onKeyDown={e => { if (e.key === 'Enter') e.currentTarget.blur(); if (e.key === 'Escape') setEditingNode(null) }}
+                  style={{ fontSize: 13, padding: '4px 8px', border: '1px solid #e2e8f0', borderRadius: 4, width: 200 }}
+                />
+              </div>
+              <div className={s.field}>
+                <span className={s.label}>Category</span>
+                <Select size="small" value={node.data.category as string} onChange={(_, d) => { updateNodeCategory(editingNode, d.value); setEditingNode(null) }}>
+                  {AZURE_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                  <option value="On-Premises">On-Premises</option>
+                  <option value="Third Party">Third Party</option>
+                  <option value="Custom">Custom</option>
+                </Select>
+              </div>
+              <Button size="small" appearance="subtle" onClick={() => setEditingNode(null)}>Close</Button>
+            </div>
+          </div>
+        )
+      })()}
+
       {/* Edge editing panel */}
       {editingEdge && (
         <div className={s.connBox}>
@@ -267,7 +368,7 @@ export default function ServiceMap() {
 
       {/* 4. Canvas */}
       <div className={s.canvas} ref={ref}>
-        <ReactFlow nodes={nodes} edges={edges} onNodesChange={onNC} onEdgesChange={onEC} onConnect={onConnect} onEdgeClick={onEdgeClick} nodeTypes={nodeTypes} fitView snapToGrid snapGrid={[16, 16]} connectionLineStyle={{ strokeWidth: 2, stroke: CONN_TYPES[ct].color }} attributionPosition="bottom-left">
+        <ReactFlow nodes={nodes} edges={edges} onNodesChange={onNC} onEdgesChange={onEC} onConnect={onConnect} onEdgeClick={onEdgeClick} onNodeDragStop={onNodeDragStop} onNodeDoubleClick={onNodeDoubleClick} nodeTypes={nodeTypes} fitView snapToGrid snapGrid={[16, 16]} connectionLineStyle={{ strokeWidth: 2, stroke: CONN_TYPES[ct].color }} attributionPosition="bottom-left">
           <Controls />
           <Background gap={16} size={1} color="#e2e8f0" />
           <MiniMap nodeColor={n => CATEGORY_COLORS[(n.data?.category as string)]?.accent ?? '#667eea'} maskColor="rgba(248,249,250,0.85)" style={{ borderRadius: 6, border: '1px solid #e2e8f0' }} />
@@ -275,7 +376,7 @@ export default function ServiceMap() {
       </div>
 
       <div className={s.hint}>
-        Click any connection line to edit its type, label, and direction. Click Apply to save or Delete to remove it. Drag between node handles to create new connections.
+        Double-click any service node to edit its name and category. Click any connection line to edit its type, label, and direction. Drag between node handles to create new connections.
       </div>
     </div>
   )
