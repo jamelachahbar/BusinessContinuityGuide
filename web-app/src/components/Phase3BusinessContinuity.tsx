@@ -328,7 +328,7 @@ export default function Phase3BusinessContinuity() {
                           </Select>
                         </td>
                         <td className={s.tdC}><strong style={{ color: riskColor(sc) }}>{sc}</strong></td>
-                        <td className={s.tdC}><Badge appearance="filled" style={{ backgroundColor: riskColor(sc), color: riskColor(sc) === '#ffc107' ? '#1a1a1a' : '#fff' }} size="small">{riskLevel(sc)}</Badge></td>
+                        <td className={s.tdC}><Badge appearance="filled" style={{ backgroundColor: riskColor(sc), color: riskColor(sc) === '#ffc107' ? '#1a1a1a' : '#fff', textAlign: 'center', justifyContent: 'center' }} size="small">{riskLevel(sc)}</Badge></td>
                         <td className={s.del}><Button icon={<Delete20Regular />} size="small" appearance="subtle" onClick={() => setRisks(risks.filter((_, j) => j !== i))} /></td>
                       </tr>
                     )
@@ -533,7 +533,7 @@ export default function Phase3BusinessContinuity() {
                       {cell(`mt-${i}-own`, r.owner, v => setMaint(maint.map((x, j) => j === i ? { ...x, owner: v } : x)), s.td)}
                       {cell(`mt-${i}-app`, r.approver, v => setMaint(maint.map((x, j) => j === i ? { ...x, approver: v } : x)), s.td)}
                       <td className={s.tdC} style={{ cursor: 'pointer' }} onClick={() => setMaint(maint.map((x, j) => j === i ? { ...x, status: statusValues[(statusValues.indexOf(x.status) + 1) % statusValues.length] } : x))}>
-                        <Badge appearance="filled" style={{ backgroundColor: statusColor(r.status), color: r.status === 'due-soon' ? '#1a1a1a' : '#fff' }}>
+                        <Badge appearance="filled" style={{ backgroundColor: statusColor(r.status), color: r.status === 'due-soon' ? '#1a1a1a' : '#fff', textAlign: 'center', justifyContent: 'center' }}>
                           <StatusIcon s={r.status} />&nbsp;{statusLabel(r.status)}
                         </Badge>
                       </td>

@@ -137,16 +137,16 @@ const defaultCommPlan: CommPlanRow[] = [
    ═══════════════════════════════════════════ */
 
 function StatusBadge({ status }: { status: 'Passed' | 'Degraded' | 'Failed' }) {
-  if (status === 'Passed') return <Badge appearance="filled" style={{ backgroundColor: '#28a745', color: '#fff' }}><Checkmark16Filled style={{ fontSize: 12, marginRight: 4 }} />Passed</Badge>
-  if (status === 'Degraded') return <Badge appearance="filled" style={{ backgroundColor: '#ffc107', color: '#1a1a1a' }}><Warning16Filled style={{ fontSize: 12, marginRight: 4 }} />Degraded</Badge>
-  return <Badge appearance="filled" style={{ backgroundColor: '#dc3545', color: '#fff' }}><Dismiss16Filled style={{ fontSize: 12, marginRight: 4 }} />Failed</Badge>
+  if (status === 'Passed') return <Badge appearance="filled" style={{ backgroundColor: '#28a745', color: '#fff', textAlign: 'center', justifyContent: 'center' }}><Checkmark16Filled style={{ fontSize: 12, marginRight: 4 }} />Passed</Badge>
+  if (status === 'Degraded') return <Badge appearance="filled" style={{ backgroundColor: '#ffc107', color: '#1a1a1a', textAlign: 'center', justifyContent: 'center' }}><Warning16Filled style={{ fontSize: 12, marginRight: 4 }} />Degraded</Badge>
+  return <Badge appearance="filled" style={{ backgroundColor: '#dc3545', color: '#fff', textAlign: 'center', justifyContent: 'center' }}><Dismiss16Filled style={{ fontSize: 12, marginRight: 4 }} />Failed</Badge>
 }
 
 const statusValues: TestRow['status'][] = ['Passed', 'Degraded', 'Failed']
 
 function PriorityBadge({ priority }: { priority: 'High' | 'Medium' | 'Low' }) {
   const colors = { High: '#dc3545', Medium: '#ffc107', Low: '#28a745' }
-  return <Badge appearance="filled" size="small" style={{ backgroundColor: colors[priority], color: priority === 'Medium' ? '#1a1a1a' : '#fff' }}>{priority}</Badge>
+  return <Badge appearance="filled" size="small" style={{ backgroundColor: colors[priority], color: priority === 'Medium' ? '#1a1a1a' : '#fff', textAlign: 'center', justifyContent: 'center' }}>{priority}</Badge>
 }
 
 /* ═══════════════════════════════════════════

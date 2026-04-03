@@ -280,8 +280,8 @@ export default function ImplementTab() {
                   {cell(`d-${i}-rem`, r.remediation, v => updDesign(i, 'remediation', v), s.td)}
                   <td className={s.tdC} style={{ cursor: 'pointer' }} onClick={() => updDesign(i, 'status', r.status === 'met' ? 'new' : 'met')}>
                     {r.status === 'met'
-                      ? <Badge appearance="filled" style={{ backgroundColor: '#28a745', color: '#fff' }}><Checkmark16Filled style={{ fontSize: 11, marginRight: 3 }} />Met</Badge>
-                      : <Badge appearance="filled" style={{ backgroundColor: '#0078d4', color: '#fff' }}>NEW</Badge>}
+                      ? <Badge appearance="filled" style={{ backgroundColor: '#28a745', color: '#fff', textAlign: 'center', justifyContent: 'center' }}><Checkmark16Filled style={{ fontSize: 11, marginRight: 3 }} />Met</Badge>
+                      : <Badge appearance="filled" style={{ backgroundColor: '#0078d4', color: '#fff', textAlign: 'center', justifyContent: 'center' }}>NEW</Badge>}
                   </td>
                   <td className={s.del}><Button icon={<Delete20Regular />} size="small" appearance="subtle" onClick={() => setDesign(design.filter((_, j) => j !== i))} /></td>
                 </tr>

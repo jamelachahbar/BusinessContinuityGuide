@@ -1202,7 +1202,9 @@ function Phase1Prepare() {
                         {editCell(`req-${i}-cat`, cat, (v) => updateAppReq(i, 0, v), styles.td, { fontWeight: 600 })}
                         {editCell(`req-${i}-req`, req, (v) => updateAppReq(i, 1, v), styles.td)}
                         <td className={mergeClasses(styles.tdCenter, styles.editableCellCenter)} onClick={() => updateAppReq(i, 2, cyclePriority(pri))}>
-                          <Badge appearance="filled" color={pri}>
+                          <Badge appearance="filled" color={pri}
+                            style={{ textAlign: 'center', justifyContent: 'center' }}
+                          >
                             {pri === 'danger' ? 'High' : pri === 'warning' ? 'Medium' : 'Low'}
                           </Badge>
                         </td>
