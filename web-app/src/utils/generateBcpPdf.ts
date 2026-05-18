@@ -130,6 +130,47 @@ const defContingency = [
   'Conduct post-contingency review',
 ]
 
+const defFailoverSteps = [
+  { action: 'Detect incident', owner: 'Monitoring / Operations', validation: 'Alert fired by monitoring tool or user report received' },
+  { action: 'Assess severity', owner: 'Incident Manager', validation: 'Severity level determined using Incident Classification Table' },
+  { action: 'Declare outage (if needed)', owner: 'Senior Ops / BCDR Lead', validation: 'Outage formally declared for High/Critical severity' },
+  { action: 'Notify stakeholders', owner: 'Communications Lead', validation: 'Notifications sent per Communication Plan' },
+  { action: 'Initiate runbook execution', owner: 'Operations Team', validation: 'Automated runbooks triggered; manual steps in progress' },
+  { action: 'Prepare secondary infrastructure', owner: 'Operations Team', validation: 'Secondary region scaled up; configuration validated' },
+  { action: 'Ensure data integrity', owner: 'Operations Team', validation: 'Backups restored if needed; RPO adherence confirmed' },
+  { action: 'Recover applications', owner: 'Ops / QA Team', validation: 'Applications activated in secondary; dependencies verified' },
+  { action: 'Traffic cutover', owner: 'Operations Team', validation: 'DNS / load balancer updated; users on secondary' },
+  { action: 'Close incident and document', owner: 'Incident Manager', validation: 'Post-mortem completed; incident record updated' },
+]
+
+const defFailbackSteps = [
+  { action: 'Monitor primary region health', owner: 'Operations / Cloud Team', validation: 'Primary region passes all automated and manual health checks' },
+  { action: 'Assess business impact', owner: 'App Owner / Business Continuity', validation: 'Low-traffic window confirmed; approvals obtained' },
+  { action: 'Review data synchronization', owner: 'Database / Infra Team', validation: 'Replication lag within RPO; data consistency verified' },
+  { action: 'Communicate failback plan', owner: 'Incident Manager', validation: 'Stakeholders notified of timeline and impact' },
+  { action: 'Prepare primary region', owner: 'Infra / Cloud Team', validation: 'Pre-failback checklist complete; infrastructure ready' },
+  { action: 'Initiate failback', owner: 'Operations / Cloud Team', validation: 'Approved change request executed; traffic shift started' },
+  { action: 'Monitor failback progress', owner: 'Operations / Cloud Team', validation: 'No errors, latency spikes, or data loss observed' },
+  { action: 'Validate application functionality', owner: 'App Owner / QA', validation: 'Smoke and regression tests pass on primary region' },
+  { action: 'Finalize and close incident', owner: 'Incident Manager', validation: 'Systems stable; documentation and lessons learned captured' },
+]
+
+const defSeverity = [
+  { severity: 'Low', description: 'Minor service degradation', example: 'Brief latency spike', declaration: 'No formal declaration', stakeholders: 'Operations Team' },
+  { severity: 'Medium', description: 'Partial service degradation', example: 'Single service errors', declaration: 'Incident logged, under observation', stakeholders: 'Ops, Business Leads' },
+  { severity: 'High', description: 'Major outage, widespread impact', example: 'Multi-service failure', declaration: 'Formal outage declaration', stakeholders: 'All stakeholders, Customers' },
+  { severity: 'Critical', description: 'Total loss, business-critical', example: 'Complete regional Azure failure', declaration: 'Immediate declaration, C-level', stakeholders: 'All stakeholders, Exec Team' },
+]
+
+const defComms = [
+  { audience: 'Executive Leadership', channel: 'Email + Teams (priority channel)', frequency: 'On declaration + every 30 min', template: 'Exec status template — business impact, ETA, decisions needed', owner: 'Incident Commander' },
+  { audience: 'Internal Business Users', channel: 'Email distribution + intranet banner', frequency: 'On declaration + hourly', template: 'Internal outage notice — affected systems, workarounds, ETA', owner: 'Communications Lead' },
+  { audience: 'Operations / Engineering', channel: 'Incident bridge (Teams / Slack)', frequency: 'Continuous', template: 'Technical updates — runbook step, blockers, next action', owner: 'Technical Lead' },
+  { audience: 'Customers (external)', channel: 'Status page + email', frequency: 'On declaration + every 2 hours', template: 'Customer notice — symptoms, scope, realistic restoration timeframe', owner: 'Communications Lead' },
+  { audience: 'Partners / Vendors', channel: 'Email + phone (named contact)', frequency: 'As needed', template: 'Partner advisory — integration impact, escalation contacts', owner: 'Business Liaison' },
+  { audience: 'Regulators / Compliance', channel: 'Formal notification (email + signed)', frequency: 'Per regulatory SLA', template: 'Regulatory notice — incident type, scope, mitigation, timeline', owner: 'Compliance Officer' },
+]
+
 const defRoles = [
   { role: 'Incident Commander', name: '', team: 'Operations', responsibility: 'Overall coordination and decision-making', escalation: 'CTO' },
   { role: 'Technical Lead', name: '', team: 'Engineering', responsibility: 'Technical response and root cause analysis', escalation: 'Incident Commander' },
@@ -183,6 +224,10 @@ export function generateBcpPdf(): void {
   const metricComp = ld('phase2-metric-comparison', defMetrics)
   const contingency = ld('phase2-contingency-steps', defContingency)
   const roles = ld('phase2-role-assignment', defRoles)
+  const failover = ld('phase2-runbook-failover', defFailoverSteps)
+  const failback = ld('phase2-runbook-failback', defFailbackSteps)
+  const severity = ld('phase2-severity-matrix', defSeverity)
+  const comms = ld('phase2-comm-plan', defComms)
   const tests = ld('phase2-test-summary', defTests)
   const uat = ld('phase2-uat-cases', defUat)
   const maintenance = ld('phase2-maintenance', defMaintenance)
@@ -299,6 +344,36 @@ export function generateBcpPdf(): void {
     sec.push(`<div class="scope-row" style="background:${scopeColors[i % scopeColors.length]}"><strong>${e(r.scope)}</strong></div>`)
     sec.push(`<table><tr><td><strong>Availability:</strong> ${e(r.availability)}</td><td><strong>Recoverability:</strong> ${e(r.recoverability)}</td></tr><tr><td><strong>Resources:</strong> ${e(r.resources)}</td><td><strong>Continuity:</strong> ${e(r.continuity)}</td></tr><tr><td colspan="2"><strong>Preparation:</strong> ${e(r.preparation)}</td></tr></table>`)
   })
+
+  // 10.1 DR Runbook — Failover
+  sec.push(`<h2>10.1 DR Runbook &mdash; Failover Procedure</h2>`)
+  sec.push(`<p>Step-by-step failover procedure aligned with Microsoft Azure Well-Architected Framework DR guidance.</p>`)
+  sec.push(tbl(['#', 'Action', 'Owner', 'Validation'],
+    failover.map((r: { action: string; owner: string; validation: string }, i: number) => [`<strong>${i + 1}</strong>`, `<strong>${e(r.action)}</strong>`, e(r.owner), e(r.validation)]),
+    { centerCols: [0] }))
+
+  // 10.2 DR Runbook — Failback
+  sec.push(`<h2>10.2 DR Runbook &mdash; Failback Procedure</h2>`)
+  sec.push(`<p>Controlled return to the primary region once it has been fully restored and validated.</p>`)
+  sec.push(tbl(['#', 'Action', 'Owner', 'Validation'],
+    failback.map((r: { action: string; owner: string; validation: string }, i: number) => [`<strong>${i + 1}</strong>`, `<strong>${e(r.action)}</strong>`, e(r.owner), e(r.validation)]),
+    { centerCols: [0] }))
+
+  // 10.3 Escalation & Severity Matrix
+  sec.push(`<h2>10.3 Escalation &amp; Severity Matrix</h2>`)
+  sec.push(`<p>Incident classification used to determine declaration thresholds and stakeholder notification scope.</p>`)
+  sec.push(tbl(['Severity', 'Description', 'Example', 'Declaration', 'Stakeholders Notified'],
+    severity.map((r: { severity: string; description: string; example: string; declaration: string; stakeholders: string }) => {
+      const sevColor = r.severity.toLowerCase() === 'critical' ? '#dc3545' : r.severity.toLowerCase() === 'high' ? '#fd7e14' : r.severity.toLowerCase() === 'medium' ? '#ffc107' : '#28a745'
+      const sevText = r.severity.toLowerCase() === 'medium' ? '#1a1a1a' : '#fff'
+      return [badge(r.severity || 'TBD', sevColor, sevText), e(r.description), e(r.example), e(r.declaration), e(r.stakeholders)]
+    }), { centerCols: [0] }))
+
+  // 10.4 Communication Plan
+  sec.push(`<h2>10.4 Communication Plan</h2>`)
+  sec.push(`<p>Audiences, channels, frequency, and message ownership for internal and external stakeholders during a disruption.</p>`)
+  sec.push(tbl(['Audience', 'Channel', 'Frequency', 'Template / Message', 'Owner'],
+    comms.map((r: { audience: string; channel: string; frequency: string; template: string; owner: string }) => [`<strong>${e(r.audience)}</strong>`, e(r.channel), e(r.frequency), e(r.template), e(r.owner)])))
 
   // 11. Contingency
   sec.push(`<h1>11. Contingency Plan</h1>`)

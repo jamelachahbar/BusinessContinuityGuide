@@ -347,7 +347,7 @@ const defaultCriticalityData: CriticalityRow[] = [
    Business Commitment Model data (7 sub-sections)
    ──────────────────────────────────────────────────── */
 
-const bcmHeaders = ['Requirement', 'Tier 1 Enhanced', 'Tier 2 Standard', 'Tier 3 Base', 'Tier 4 Base', 'Tier 5 None']
+const defaultBcmTierHeaders = ['Tier 1 Enhanced', 'Tier 2 Standard', 'Tier 3 Base', 'Tier 4 Base', 'Tier 5 None']
 
 const defaultGeneralRows: string[][] = [
   ['SLA', '99.999%', '99.99%', '99.9%', '99.9%', 'not-required'],
@@ -530,10 +530,11 @@ function cyclePriority(current: 'danger' | 'warning' | 'success'): 'danger' | 'w
    BCM Sub-section component
    ──────────────────────────────────────────────────── */
 
-function BcmSection({ storageKey, defaultRows, description, sectionKey }: { storageKey: string; defaultRows: string[][]; description: string; sectionKey: string }) {
+function BcmSection({ storageKey, defaultRows, description, sectionKey, tierHeaders }: { storageKey: string; defaultRows: string[][]; description: string; sectionKey: string; tierHeaders: string[] }) {
   const styles = useStyles()
   const [rows, setRows, resetRows] = useWorkbenchData(storageKey, defaultRows)
   const [editingCell, setEditingCell] = useState<string | null>(null)
+  const bcmHeaders = ['Requirement', ...tierHeaders]
 
   const updateCell = (ri: number, ci: number, value: string) => {
     const updated = rows.map((row, r) => r === ri ? row.map((cell, c) => c === ci ? value : cell) : row)
@@ -633,6 +634,15 @@ function Phase1Prepare() {
   const [settings] = useWorkbenchData<{ planFocus?: PlanFocus }>('settings', { planFocus: 'bcdr' })
   const [critLevels] = useWorkbenchData<ConfigurableCriticalityLevel[]>('criticalityLevels', DEFAULT_CRITICALITY_LEVELS)
   const getCriticalityColor = buildCriticalityMap(critLevels)
+
+  // Derive BCM tier headers from the Criticality Model (first 5 tiers)
+  const bcmTierHeaders = Array.from({ length: 5 }, (_, i) => {
+    const row = criticalityRows[i]
+    if (row && (row.tier || row.criticality)) {
+      return [row.tier, row.criticality].filter(Boolean).join(' ').trim() || defaultBcmTierHeaders[i]
+    }
+    return defaultBcmTierHeaders[i]
+  })
 
   const [editingCell, setEditingCell] = useState<string | null>(null)
 
@@ -1033,7 +1043,7 @@ function Phase1Prepare() {
                 <AccordionItem key={section.key} value={section.key}>
                   <AccordionHeader>{section.title}</AccordionHeader>
                   <AccordionPanel>
-                    <BcmSection storageKey={section.storageKey} defaultRows={section.defaultRows} description={section.description} sectionKey={section.key} />
+                    <BcmSection storageKey={section.storageKey} defaultRows={section.defaultRows} description={section.description} sectionKey={section.key} tierHeaders={bcmTierHeaders} />
                   </AccordionPanel>
                 </AccordionItem>
               ))}

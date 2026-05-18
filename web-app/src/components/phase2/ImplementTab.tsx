@@ -52,6 +52,9 @@ interface DesignRow { component: string; category: string; sla: string; ha: stri
 interface CostRow { component: string; currentCost: number; bcdrCost: number }
 interface MetricRow { component: string; beforeAvail: string; afterAvail: string; beforeRel: string; afterRel: string; beforeSec: string; afterSec: string }
 interface RoleRow { role: string; name: string; team: string; responsibility: string; escalation: string }
+interface RunbookStep { action: string; owner: string; validation: string }
+interface SeverityRow { severity: string; description: string; example: string; declaration: string; stakeholders: string }
+interface CommRow { audience: string; channel: string; frequency: string; template: string; owner: string }
 
 /* ═══════ Defaults ═══════ */
 
@@ -122,6 +125,50 @@ const defaultRoles: RoleRow[] = [
   { role: 'QA / Validation', name: '', team: 'QA', responsibility: 'Post-recovery validation and UAT', escalation: 'Technical Lead' },
 ]
 
+// WAF-aligned: failover runbook (https://learn.microsoft.com/azure/well-architected/design-guides/disaster-recovery#dr-runbook)
+const defaultFailoverSteps: RunbookStep[] = [
+  { action: 'Detect incident', owner: 'Monitoring / Operations', validation: 'Alert fired by monitoring tool or user report received' },
+  { action: 'Assess severity', owner: 'Incident Manager', validation: 'Severity level determined using Incident Classification Table' },
+  { action: 'Declare outage (if needed)', owner: 'Senior Ops / BCDR Lead', validation: 'Outage formally declared for High/Critical severity' },
+  { action: 'Notify stakeholders', owner: 'Communications Lead', validation: 'Notifications sent per Communication Plan' },
+  { action: 'Initiate runbook execution', owner: 'Operations Team', validation: 'Automated runbooks triggered; manual steps in progress' },
+  { action: 'Prepare secondary infrastructure', owner: 'Operations Team', validation: 'Secondary region scaled up; configuration validated' },
+  { action: 'Ensure data integrity', owner: 'Operations Team', validation: 'Backups restored if needed; RPO adherence confirmed' },
+  { action: 'Recover applications', owner: 'Ops / QA Team', validation: 'Applications activated in secondary; dependencies verified' },
+  { action: 'Traffic cutover', owner: 'Operations Team', validation: 'DNS / load balancer updated; users on secondary' },
+  { action: 'Close incident and document', owner: 'Incident Manager', validation: 'Post-mortem completed; incident record updated' },
+]
+
+const defaultFailbackSteps: RunbookStep[] = [
+  { action: 'Monitor primary region health', owner: 'Operations / Cloud Team', validation: 'Primary region passes all automated and manual health checks' },
+  { action: 'Assess business impact', owner: 'App Owner / Business Continuity', validation: 'Low-traffic window confirmed; approvals obtained' },
+  { action: 'Review data synchronization', owner: 'Database / Infra Team', validation: 'Replication lag within RPO; data consistency verified' },
+  { action: 'Communicate failback plan', owner: 'Incident Manager', validation: 'Stakeholders notified of timeline and impact' },
+  { action: 'Prepare primary region', owner: 'Infra / Cloud Team', validation: 'Pre-failback checklist complete; infrastructure ready' },
+  { action: 'Initiate failback', owner: 'Operations / Cloud Team', validation: 'Approved change request executed; traffic shift started' },
+  { action: 'Monitor failback progress', owner: 'Operations / Cloud Team', validation: 'No errors, latency spikes, or data loss observed' },
+  { action: 'Validate application functionality', owner: 'App Owner / QA', validation: 'Smoke and regression tests pass on primary region' },
+  { action: 'Finalize and close incident', owner: 'Incident Manager', validation: 'Systems stable; documentation and lessons learned captured' },
+]
+
+// WAF-aligned: incident severity matrix
+const defaultSeverity: SeverityRow[] = [
+  { severity: 'Low', description: 'Minor service degradation', example: 'Brief latency spike', declaration: 'No formal declaration', stakeholders: 'Operations Team' },
+  { severity: 'Medium', description: 'Partial service degradation', example: 'Single service errors', declaration: 'Incident logged, under observation', stakeholders: 'Ops, Business Leads' },
+  { severity: 'High', description: 'Major outage, widespread impact', example: 'Multi-service failure', declaration: 'Formal outage declaration', stakeholders: 'All stakeholders, Customers' },
+  { severity: 'Critical', description: 'Total loss, business-critical', example: 'Complete regional Azure failure', declaration: 'Immediate declaration, C-level', stakeholders: 'All stakeholders, Exec Team' },
+]
+
+// WAF-aligned: communication plan
+const defaultComms: CommRow[] = [
+  { audience: 'Executive Leadership', channel: 'Email + Teams (priority channel)', frequency: 'On declaration + every 30 min', template: 'Exec status template — business impact, ETA, decisions needed', owner: 'Incident Commander' },
+  { audience: 'Internal Business Users', channel: 'Email distribution + intranet banner', frequency: 'On declaration + hourly', template: 'Internal outage notice — affected systems, workarounds, ETA', owner: 'Communications Lead' },
+  { audience: 'Operations / Engineering', channel: 'Incident bridge (Teams / Slack)', frequency: 'Continuous', template: 'Technical updates — runbook step, blockers, next action', owner: 'Technical Lead' },
+  { audience: 'Customers (external)', channel: 'Status page + email', frequency: 'On declaration + every 2 hours', template: 'Customer notice — symptoms, scope, realistic restoration timeframe', owner: 'Communications Lead' },
+  { audience: 'Partners / Vendors', channel: 'Email + phone (named contact)', frequency: 'As needed', template: 'Partner advisory — integration impact, escalation contacts', owner: 'Business Liaison' },
+  { audience: 'Regulators / Compliance', channel: 'Formal notification (email + signed)', frequency: 'Per regulatory SLA', template: 'Regulatory notice — incident type, scope, mitigation, timeline', owner: 'Compliance Officer' },
+]
+
 /* ═══════ Component ═══════ */
 
 export default function ImplementTab() {
@@ -135,6 +182,10 @@ export default function ImplementTab() {
   const [metrics, setMetrics, resetMetrics] = useWorkbenchData<MetricRow[]>('phase2-metric-comparison', defaultMetrics)
   const [steps, setSteps, resetSteps] = useWorkbenchData<string[]>('phase2-contingency-steps', defaultContingency)
   const [roles, setRoles, resetRoles] = useWorkbenchData<RoleRow[]>('phase2-role-assignment', defaultRoles)
+  const [failover, setFailover, resetFailover] = useWorkbenchData<RunbookStep[]>('phase2-runbook-failover', defaultFailoverSteps)
+  const [failback, setFailback, resetFailback] = useWorkbenchData<RunbookStep[]>('phase2-runbook-failback', defaultFailbackSteps)
+  const [severity, setSeverity, resetSeverity] = useWorkbenchData<SeverityRow[]>('phase2-severity-matrix', defaultSeverity)
+  const [comms, setComms, resetComms] = useWorkbenchData<CommRow[]>('phase2-comm-plan', defaultComms)
 
   // Sync: Design components ↔ Cost rows (add new, remove deleted, keep existing costs)
   // Only sync when user explicitly changes design (not on first mount with defaults)
@@ -185,6 +236,16 @@ export default function ImplementTab() {
   const updCost = (i: number, f: keyof CostRow, v: string) => setCost(cost.map((r, j) => j === i ? { ...r, [f]: f === 'component' ? v : (parseFloat(v) || 0) } as CostRow : r))
   const updMetric = <K extends keyof MetricRow>(i: number, f: K, v: string) => setMetrics(metrics.map((r, j) => j === i ? { ...r, [f]: v } : r))
   const updRole = <K extends keyof RoleRow>(i: number, f: K, v: string) => setRoles(roles.map((r, j) => j === i ? { ...r, [f]: v } : r))
+  const updFailover = <K extends keyof RunbookStep>(i: number, f: K, v: string) => setFailover(failover.map((r, j) => j === i ? { ...r, [f]: v } : r))
+  const updFailback = <K extends keyof RunbookStep>(i: number, f: K, v: string) => setFailback(failback.map((r, j) => j === i ? { ...r, [f]: v } : r))
+  const updSeverity = <K extends keyof SeverityRow>(i: number, f: K, v: string) => setSeverity(severity.map((r, j) => j === i ? { ...r, [f]: v } : r))
+  const updComm = <K extends keyof CommRow>(i: number, f: K, v: string) => setComms(comms.map((r, j) => j === i ? { ...r, [f]: v } : r))
+  const moveRunbook = (list: RunbookStep[], setList: (v: RunbookStep[]) => void, i: number, dir: -1 | 1) => {
+    const j = i + dir
+    if (j < 0 || j >= list.length) return
+    const arr = [...list]; [arr[i], arr[j]] = [arr[j], arr[i]]
+    setList(arr)
+  }
 
   // Cost calculations
   const totB = useMemo(() => cost.reduce((a, r) => a + r.currentCost, 0), [cost])
@@ -201,6 +262,10 @@ export default function ImplementTab() {
   const expMetrics = () => downloadCsv('metric_comparison.csv', objectsToCsvSheet('Metrics', metrics as unknown as Record<string, unknown>[]))
   const expSteps = () => downloadCsv('contingency_plan.csv', objectsToCsvSheet('Contingency', steps.map((st, i) => ({ Step: i + 1, Procedure: st }))))
   const expRoles = () => downloadCsv('role_assignment.csv', objectsToCsvSheet('Roles', roles as unknown as Record<string, unknown>[]))
+  const expFailover = () => downloadCsv('runbook_failover.csv', objectsToCsvSheet('Failover', failover.map((r, i) => ({ Step: i + 1, Action: r.action, Owner: r.owner, Validation: r.validation }))))
+  const expFailback = () => downloadCsv('runbook_failback.csv', objectsToCsvSheet('Failback', failback.map((r, i) => ({ Step: i + 1, Action: r.action, Owner: r.owner, Validation: r.validation }))))
+  const expSeverity = () => downloadCsv('severity_matrix.csv', objectsToCsvSheet('Severity', severity as unknown as Record<string, unknown>[]))
+  const expComms = () => downloadCsv('communication_plan.csv', objectsToCsvSheet('Comms', comms as unknown as Record<string, unknown>[]))
 
   // Contingency step helpers
   const moveStep = (i: number, dir: -1 | 1) => {
@@ -428,6 +493,164 @@ export default function ImplementTab() {
                   {cell(`r-${i}-d`, r.responsibility, v => updRole(i, 'responsibility', v), s.td)}
                   {cell(`r-${i}-e`, r.escalation, v => updRole(i, 'escalation', v), s.td)}
                   <td className={s.del}><Button icon={<Delete20Regular />} size="small" appearance="subtle" onClick={() => setRoles(roles.filter((_, j) => j !== i))} /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* ──── 14. DR Runbook (Failover + Failback) — WAF aligned ──── */}
+      <div className={s.section}>
+        <h3 className={s.sectionTitle}>14. DR Runbook</h3>
+        <p className={s.desc}>Step-by-step failover and failback procedures aligned to the Azure Well-Architected guidance. Each step has an owner and a validation criterion. Reorder steps with the arrows.</p>
+
+        {/* Failover */}
+        <div className={s.sectionHeader} style={{ marginTop: 8 }}>
+          <h4 style={{ fontSize: 15, fontWeight: 600, margin: 0 }}>14a. Failover Procedure</h4>
+          <div style={{ display: 'flex', gap: '6px' }}>
+            <Button icon={<Add20Regular />} size="small" onClick={() => setFailover([...failover, { action: '', owner: '', validation: '' }])}>Add Step</Button>
+            <Button icon={<ArrowReset20Regular />} size="small" appearance="subtle" onClick={resetFailover}>Reset</Button>
+            <Button icon={<ArrowDownload20Regular />} size="small" appearance="subtle" onClick={expFailover}>CSV</Button>
+          </div>
+        </div>
+        <div className={s.tableWrap}>
+          <table className={s.table}>
+            <thead><tr>
+              <th className={s.thC} style={{ width: 48 }}>#</th>
+              <th className={s.thW}>Action</th>
+              <th className={s.th}>Owner</th>
+              <th className={s.thW}>Validation</th>
+              <th className={s.thC} style={{ width: 96 }}>Reorder</th>
+              <th className={s.thC} style={{ width: 36 }}></th>
+            </tr></thead>
+            <tbody>
+              {failover.map((r, i) => (
+                <tr key={i}>
+                  <td className={s.tdC} style={{ fontWeight: 700, color: tokens.colorBrandForeground1 }}>{i + 1}</td>
+                  {cell(`fo-${i}-a`, r.action, v => updFailover(i, 'action', v), s.td, { fontWeight: 600 })}
+                  {cell(`fo-${i}-o`, r.owner, v => updFailover(i, 'owner', v), s.td)}
+                  {cell(`fo-${i}-v`, r.validation, v => updFailover(i, 'validation', v), s.td)}
+                  <td className={s.tdC}>
+                    <Button icon={<ArrowUp20Regular />} size="small" appearance="subtle" disabled={i === 0} onClick={() => moveRunbook(failover, setFailover, i, -1)} />
+                    <Button icon={<ArrowDown20Regular />} size="small" appearance="subtle" disabled={i === failover.length - 1} onClick={() => moveRunbook(failover, setFailover, i, 1)} />
+                  </td>
+                  <td className={s.del}><Button icon={<Delete20Regular />} size="small" appearance="subtle" onClick={() => setFailover(failover.filter((_, j) => j !== i))} /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Failback */}
+        <div className={s.sectionHeader} style={{ marginTop: 16 }}>
+          <h4 style={{ fontSize: 15, fontWeight: 600, margin: 0 }}>14b. Failback Procedure</h4>
+          <div style={{ display: 'flex', gap: '6px' }}>
+            <Button icon={<Add20Regular />} size="small" onClick={() => setFailback([...failback, { action: '', owner: '', validation: '' }])}>Add Step</Button>
+            <Button icon={<ArrowReset20Regular />} size="small" appearance="subtle" onClick={resetFailback}>Reset</Button>
+            <Button icon={<ArrowDownload20Regular />} size="small" appearance="subtle" onClick={expFailback}>CSV</Button>
+          </div>
+        </div>
+        <div className={s.tableWrap}>
+          <table className={s.table}>
+            <thead><tr>
+              <th className={s.thC} style={{ width: 48 }}>#</th>
+              <th className={s.thW}>Action</th>
+              <th className={s.th}>Owner</th>
+              <th className={s.thW}>Validation</th>
+              <th className={s.thC} style={{ width: 96 }}>Reorder</th>
+              <th className={s.thC} style={{ width: 36 }}></th>
+            </tr></thead>
+            <tbody>
+              {failback.map((r, i) => (
+                <tr key={i}>
+                  <td className={s.tdC} style={{ fontWeight: 700, color: tokens.colorBrandForeground1 }}>{i + 1}</td>
+                  {cell(`fb-${i}-a`, r.action, v => updFailback(i, 'action', v), s.td, { fontWeight: 600 })}
+                  {cell(`fb-${i}-o`, r.owner, v => updFailback(i, 'owner', v), s.td)}
+                  {cell(`fb-${i}-v`, r.validation, v => updFailback(i, 'validation', v), s.td)}
+                  <td className={s.tdC}>
+                    <Button icon={<ArrowUp20Regular />} size="small" appearance="subtle" disabled={i === 0} onClick={() => moveRunbook(failback, setFailback, i, -1)} />
+                    <Button icon={<ArrowDown20Regular />} size="small" appearance="subtle" disabled={i === failback.length - 1} onClick={() => moveRunbook(failback, setFailback, i, 1)} />
+                  </td>
+                  <td className={s.del}><Button icon={<Delete20Regular />} size="small" appearance="subtle" onClick={() => setFailback(failback.filter((_, j) => j !== i))} /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className={s.note}>Tip: treat the runbook like production code — version it in Git and keep an offline copy so it's reachable during an outage.</div>
+      </div>
+
+      {/* ──── 15. Escalation & Severity Matrix — WAF aligned ──── */}
+      <div className={s.section}>
+        <div className={s.sectionHeader}>
+          <h3 className={s.sectionTitle}>15. Escalation &amp; Severity Matrix</h3>
+          <div style={{ display: 'flex', gap: '6px' }}>
+            <Button icon={<Add20Regular />} size="small" onClick={() => setSeverity([...severity, { severity: '', description: '', example: '', declaration: '', stakeholders: '' }])}>Add</Button>
+            <Button icon={<ArrowReset20Regular />} size="small" appearance="subtle" onClick={resetSeverity}>Reset</Button>
+            <Button icon={<ArrowDownload20Regular />} size="small" appearance="subtle" onClick={expSeverity}>CSV</Button>
+          </div>
+        </div>
+        <p className={s.desc}>Classify incidents by impact so minor issues don't clog the system and major ones get immediate leadership attention. Aligned with WAF DR escalation guidance.</p>
+        <div className={s.tableWrap}>
+          <table className={s.table}>
+            <thead><tr>
+              <th className={s.th}>Severity</th>
+              <th className={s.thW}>Description</th>
+              <th className={s.thW}>Example</th>
+              <th className={s.thW}>Declaration</th>
+              <th className={s.thW}>Stakeholders Notified</th>
+              <th className={s.thC} style={{ width: 36 }}></th>
+            </tr></thead>
+            <tbody>
+              {severity.map((r, i) => {
+                const sevColor = r.severity.toLowerCase() === 'critical' ? '#dc3545' : r.severity.toLowerCase() === 'high' ? '#fd7e14' : r.severity.toLowerCase() === 'medium' ? '#ffc107' : '#28a745'
+                return (
+                  <tr key={i} style={{ borderLeft: `4px solid ${sevColor}` }}>
+                    {cell(`sv-${i}-s`, r.severity, v => updSeverity(i, 'severity', v), s.td, { fontWeight: 700, color: sevColor })}
+                    {cell(`sv-${i}-d`, r.description, v => updSeverity(i, 'description', v), s.td)}
+                    {cell(`sv-${i}-e`, r.example, v => updSeverity(i, 'example', v), s.td)}
+                    {cell(`sv-${i}-dec`, r.declaration, v => updSeverity(i, 'declaration', v), s.td)}
+                    {cell(`sv-${i}-st`, r.stakeholders, v => updSeverity(i, 'stakeholders', v), s.td)}
+                    <td className={s.del}><Button icon={<Delete20Regular />} size="small" appearance="subtle" onClick={() => setSeverity(severity.filter((_, j) => j !== i))} /></td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* ──── 16. Communication Plan — WAF aligned ──── */}
+      <div className={s.section}>
+        <div className={s.sectionHeader}>
+          <h3 className={s.sectionTitle}>16. Communication Plan</h3>
+          <div style={{ display: 'flex', gap: '6px' }}>
+            <Button icon={<Add20Regular />} size="small" onClick={() => setComms([...comms, { audience: '', channel: '', frequency: '', template: '', owner: '' }])}>Add</Button>
+            <Button icon={<ArrowReset20Regular />} size="small" appearance="subtle" onClick={resetComms}>Reset</Button>
+            <Button icon={<ArrowDownload20Regular />} size="small" appearance="subtle" onClick={expComms}>CSV</Button>
+          </div>
+        </div>
+        <p className={s.desc}>Define audiences, channels, frequency, message templates, and owners so the right information reaches the right people during a disruption. Covers internal and external stakeholders per WAF guidance.</p>
+        <div className={s.tableWrap}>
+          <table className={s.table}>
+            <thead><tr>
+              <th className={s.th}>Audience</th>
+              <th className={s.thW}>Channel</th>
+              <th className={s.th}>Frequency</th>
+              <th className={s.thW}>Template / Message</th>
+              <th className={s.th}>Owner</th>
+              <th className={s.thC} style={{ width: 36 }}></th>
+            </tr></thead>
+            <tbody>
+              {comms.map((r, i) => (
+                <tr key={i}>
+                  {cell(`cm-${i}-a`, r.audience, v => updComm(i, 'audience', v), s.td, { fontWeight: 600 })}
+                  {cell(`cm-${i}-c`, r.channel, v => updComm(i, 'channel', v), s.td)}
+                  {cell(`cm-${i}-f`, r.frequency, v => updComm(i, 'frequency', v), s.td)}
+                  {cell(`cm-${i}-t`, r.template, v => updComm(i, 'template', v), s.td)}
+                  {cell(`cm-${i}-o`, r.owner, v => updComm(i, 'owner', v), s.td)}
+                  <td className={s.del}><Button icon={<Delete20Regular />} size="small" appearance="subtle" onClick={() => setComms(comms.filter((_, j) => j !== i))} /></td>
                 </tr>
               ))}
             </tbody>
