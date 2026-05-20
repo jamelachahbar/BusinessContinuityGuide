@@ -23,6 +23,7 @@
   <a href="#features">Features</a> &bull;
   <a href="#phases">BCDR Phases</a> &bull;
   <a href="#exports">Exports</a> &bull;
+  <a href="#deploy-to-azure">Deploy to Azure</a> &bull;
   <a href="docs/walkthrough.html">Walkthrough</a> &bull;
   <a href="docs/BCDR-Usage-Guideline.md">Usage Guideline</a> &bull;
   <a href="#architecture">Architecture</a> &bull;
@@ -48,6 +49,7 @@
 - [Features](#features)
 - [BCDR Phases](#phases)
 - [Exports](#exports)
+- [Deploy to Azure](#deploy-to-azure)
 - [Architecture](#architecture)
 - [Development](#development)
 - [License](#license)
@@ -65,6 +67,7 @@
 | **Visual Walkthrough** &mdash; single-file HTML tour you can open in any browser | [`docs/walkthrough.html`](docs/walkthrough.html) |
 | **BCDR Usage Guideline** &mdash; ISO 22301 / WAF Reliability / NIST 800-34 / DORA crosswalk with phase-by-phase exit criteria | [`docs/BCDR-Usage-Guideline.md`](docs/BCDR-Usage-Guideline.md) |
 | **Dynamic criticality** &mdash; renaming a tier propagates to BCM headers, severity matrix, and recovery order | Phase 1 &rarr; Criticality Model |
+| **One-command Azure deploy** &mdash; `azd up` provisions a Static Web App in public or private (Entra ID-protected) mode | [`DEPLOY.md`](DEPLOY.md) |
 
 <p align="right">(<a href="#boltplan">back to top</a>)</p>
 
@@ -226,6 +229,36 @@ Generate a full Business Continuity Plan &mdash; 13 sections + appendices, all p
 | **PNG** | Service Map and Fault Tree diagrams | Per-diagram buttons |
 
 > For practitioner guidance on **how** to use BoltPlan to build an ISO 22301 / WAF Reliability-aligned program, see [docs/BCDR-Usage-Guideline.md](docs/BCDR-Usage-Guideline.md).
+
+---
+
+## Deploy to Azure
+
+BoltPlan ships an [Azure Developer CLI (`azd`)](https://aka.ms/azd-install) template. **One command, two modes** &mdash; full instructions in [`DEPLOY.md`](DEPLOY.md).
+
+| Mode | SKU | Access | Cost | Command |
+|------|-----|--------|------|---------|
+| **Public** | Static Web Apps **Free** | Anonymous | **$0** | `azd env set DEPLOYMENT_MODE public && azd up` |
+| **Private** | Static Web Apps **Standard** + Entra ID | Microsoft sign-in required, route-level RBAC | **~$9/mo** | `azd env set DEPLOYMENT_MODE private && azd up` |
+
+Both modes deploy the same source &mdash; only the SKU and `staticwebapp.config.json` differ. Switching is a re-deploy, no code change.
+
+```pwsh
+# Public
+azd auth login
+azd env new boltplan-public
+azd env set DEPLOYMENT_MODE public
+azd up
+
+# Private (Entra ID protected)
+azd env new boltplan-private
+azd env set DEPLOYMENT_MODE private
+azd up
+```
+
+**What gets provisioned:** one resource group + one Static Web App (region-pinned). SPA routing, free SSL, and security headers are configured automatically via the predeploy hook. For tenant-locking, private endpoints, and CI/CD, see [DEPLOY.md](DEPLOY.md).
+
+<p align="right">(<a href="#boltplan">back to top</a>)</p>
 
 ---
 
