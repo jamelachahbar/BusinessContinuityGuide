@@ -21,6 +21,8 @@ interface AppContextType {
   addApp: (name: string) => void
   renameApp: (id: string, name: string) => void
   deleteApp: (id: string) => void
+  /** Register (or update) an imported solution and select it. Returns the id actually used. */
+  importApp: (id: string, name: string) => string
 }
 
 const AppContext = createContext<AppContextType | null>(null)
@@ -80,6 +82,27 @@ export function AppProvider({ children }: { children: ReactNode }) {
     saveRegistry(updated)
   }, [apps])
 
+  const importApp = useCallback((id: string, name: string): string => {
+    // If an entry with this id exists, keep it (and update its name to match the file).
+    // If a different entry already uses this name but different id, still respect the file's id.
+    const existing = apps.find(a => a.id === id)
+    let updated: AppEntry[]
+    let finalId = id
+    if (existing) {
+      updated = apps.map(a => a.id === id ? { ...a, name } : a)
+    } else {
+      // Avoid id collision (shouldn't happen since we just checked, but be safe).
+      finalId = id || `${slugify(name)}-${Date.now()}`
+      const entry: AppEntry = { id: finalId, name, createdAt: new Date().toISOString() }
+      updated = [...apps, entry]
+    }
+    setApps(updated)
+    saveRegistry(updated)
+    setCurrentId(finalId)
+    localStorage.setItem(CURRENT_KEY, finalId)
+    return finalId
+  }, [apps])
+
   const deleteApp = useCallback((id: string) => {
     // Remove ALL data for this app
     const prefix = `abcg_${id}_`
@@ -98,7 +121,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [apps, currentId])
 
   return (
-    <AppContext.Provider value={{ apps, currentApp, selectApp, addApp, renameApp, deleteApp }}>
+    <AppContext.Provider value={{ apps, currentApp, selectApp, addApp, renameApp, deleteApp, importApp }}>
       {children}
     </AppContext.Provider>
   )

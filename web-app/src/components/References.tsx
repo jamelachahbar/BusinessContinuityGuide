@@ -80,6 +80,12 @@ const REFERENCE_CATEGORIES: ReferenceCategory[] = [
     color: '#e53e3e',
     links: [
       {
+        title: 'Disaster recovery — Well-Architected Framework',
+        url: 'https://learn.microsoft.com/azure/well-architected/design-guides/disaster-recovery',
+        description:
+          'WAF design guide for DR strategy, runbooks, escalation matrix, and communication plans',
+      },
+      {
         title: 'Azure to Azure disaster recovery architecture',
         url: 'https://learn.microsoft.com/azure/site-recovery/azure-to-azure-architecture',
         description:

@@ -453,7 +453,13 @@ function AppContent() {
   const handleImport = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-    try { await importJSON(file) } catch (err) { console.error('Import failed:', err) }
+    try {
+      await importJSON(file)
+      alert(`Imported "${file.name}" successfully. Data refreshed.`)
+    } catch (err) {
+      console.error('Import failed:', err)
+      alert(`Import failed: ${err instanceof Error ? err.message : 'Unknown error'}`)
+    }
     e.target.value = ''
   }, [importJSON])
 

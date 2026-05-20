@@ -25,7 +25,7 @@ export interface WorkbenchContextType {
 const WorkbenchContext = createContext<WorkbenchContextType | null>(null)
 
 export function WorkbenchProvider({ children }: { children: ReactNode }) {
-  const { currentApp } = useAppContext()
+  const { currentApp, importApp } = useAppContext()
   const prefix = `${BASE_PREFIX}${currentApp.id}_`
 
   function getKeys(): string[] {
@@ -100,18 +100,33 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
     if (typeof parsed !== 'object' || parsed === null || !('_meta' in parsed) || !('data' in parsed)) {
       throw new Error('Invalid workbench export file')
     }
-    const { data } = parsed as { data: Record<string, unknown> }
+    const { data, _meta } = parsed as { data: Record<string, unknown>; _meta: Record<string, unknown> }
     if (typeof data !== 'object' || data === null) throw new Error('Invalid data')
+
+    // Determine target solution from export metadata. Fall back to current solution.
+    const metaId = typeof _meta?.appId === 'string' ? _meta.appId : ''
+    const metaName = typeof _meta?.appName === 'string' && _meta.appName.trim() ? _meta.appName : 'Imported Solution'
+    const targetId = metaId ? importApp(metaId, metaName) : currentApp.id
+    const targetPrefix = `${BASE_PREFIX}${targetId}_`
+
+    // Clear any existing data under the target prefix so removed entries don't linger
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const k = localStorage.key(i)
+      if (k?.startsWith(targetPrefix)) localStorage.removeItem(k)
+    }
     for (const [key, value] of Object.entries(data)) {
-      localStorage.setItem(`${prefix}${key}`, JSON.stringify(value))
+      localStorage.setItem(`${targetPrefix}${key}`, JSON.stringify(value))
     }
     setHasData(true)
-  }, [prefix])
+    // Notify all useWorkbenchData hooks to re-read from localStorage
+    window.dispatchEvent(new Event('workbench-data-changed'))
+  }, [prefix, currentApp.id, importApp])
 
   const clearAll = useCallback(() => {
     const keys = getKeys()
     for (const key of keys) localStorage.removeItem(key)
     setHasData(false)
+    window.dispatchEvent(new Event('workbench-data-changed'))
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prefix])
 
