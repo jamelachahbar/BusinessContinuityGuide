@@ -67,7 +67,7 @@
 | **Visual Walkthrough** &mdash; single-file HTML tour you can open in any browser | [`docs/walkthrough.html`](docs/walkthrough.html) |
 | **BCDR Usage Guideline** &mdash; ISO 22301 / WAF Reliability / NIST 800-34 / DORA crosswalk with phase-by-phase exit criteria | [`docs/BCDR-Usage-Guideline.md`](docs/BCDR-Usage-Guideline.md) |
 | **Dynamic criticality** &mdash; renaming a tier propagates to BCM headers, severity matrix, and recovery order | Phase 1 &rarr; Criticality Model |
-| **One-command Azure deploy** &mdash; `azd up` provisions a Static Web App in public or private (Entra ID-protected) mode | [`DEPLOY.md`](DEPLOY.md) |
+| **One-command Azure deploy** &mdash; `azd up` provisions a Static Web App in public or private (Entra ID-protected) mode. Verified end-to-end. | [`DEPLOY.md`](DEPLOY.md) |
 
 <p align="right">(<a href="#boltplan">back to top</a>)</p>
 
@@ -234,7 +234,7 @@ Generate a full Business Continuity Plan &mdash; 13 sections + appendices, all p
 
 ## Deploy to Azure
 
-BoltPlan ships an [Azure Developer CLI (`azd`)](https://aka.ms/azd-install) template. **One command, two modes** &mdash; full instructions in [`DEPLOY.md`](DEPLOY.md).
+BoltPlan ships an [Azure Developer CLI (`azd`)](https://aka.ms/azd-install) template. **One command, two modes** &mdash; full instructions in [`DEPLOY.md`](DEPLOY.md). Verified end-to-end on Azure Static Web Apps (Free + Standard SKUs).
 
 | Mode | SKU | Access | Cost | Command |
 |------|-----|--------|------|---------|
@@ -247,11 +247,13 @@ Both modes deploy the same source &mdash; only the SKU and `staticwebapp.config.
 # Public
 azd auth login
 azd env new boltplan-public
+azd env set AZURE_LOCATION westeurope     # or eastus2, centralus, westus2, eastasia
 azd env set DEPLOYMENT_MODE public
 azd up
 
 # Private (Entra ID protected)
 azd env new boltplan-private
+azd env set AZURE_LOCATION westeurope
 azd env set DEPLOYMENT_MODE private
 azd up
 ```
