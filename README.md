@@ -23,6 +23,8 @@
   <a href="#features">Features</a> &bull;
   <a href="#phases">BCDR Phases</a> &bull;
   <a href="#exports">Exports</a> &bull;
+  <a href="docs/walkthrough.html">Walkthrough</a> &bull;
+  <a href="docs/BCDR-Usage-Guideline.md">Usage Guideline</a> &bull;
   <a href="#architecture">Architecture</a> &bull;
   <a href="LICENSE">License</a>
 </p>
@@ -40,7 +42,9 @@
 <summary><strong>Table of Contents</strong></summary>
 
 - [Why BoltPlan?](#why-boltplan)
+- [What's New](#whats-new)
 - [Quick Start](#quick-start)
+- [Documentation &amp; Guides](#documentation--guides)
 - [Features](#features)
 - [BCDR Phases](#phases)
 - [Exports](#exports)
@@ -49,6 +53,20 @@
 - [License](#license)
 
 </details>
+
+---
+
+## What's New
+
+| Update | Where |
+|--------|-------|
+| **WAF-aligned DR sections** &mdash; DR Runbook (Failover &amp; Failback), Severity Matrix, Communication Plan | Phase 2 &rarr; Implement |
+| **Reliable Import / Export** &mdash; JSON round-trips every persisted key including Service Map and Fault Tree diagrams. Imported solutions are auto-registered and selected in the chip bar | Toolbar &rarr; JSON |
+| **Visual Walkthrough** &mdash; single-file HTML tour you can open in any browser | [`docs/walkthrough.html`](docs/walkthrough.html) |
+| **BCDR Usage Guideline** &mdash; ISO 22301 / WAF Reliability / NIST 800-34 / DORA crosswalk with phase-by-phase exit criteria | [`docs/BCDR-Usage-Guideline.md`](docs/BCDR-Usage-Guideline.md) |
+| **Dynamic criticality** &mdash; renaming a tier propagates to BCM headers, severity matrix, and recovery order | Phase 1 &rarr; Criticality Model |
+
+<p align="right">(<a href="#boltplan">back to top</a>)</p>
 
 ---
 
@@ -86,6 +104,19 @@ Open [http://localhost:5173](http://localhost:5173) &mdash; a guided tour starts
 | npm | 9+ | Included with Node.js |
 
 No backend required &mdash; all data stored in browser localStorage.
+
+<p align="right">(<a href="#boltplan">back to top</a>)</p>
+
+---
+
+## Documentation &amp; Guides
+
+| Resource | Format | What it's for |
+|----------|--------|---------------|
+| [Visual Walkthrough](docs/walkthrough.html) | Single-file HTML (open in browser) | Self-guided tour with screenshots, step cards, and a compliance crosswalk. The fastest way to onboard. |
+| [BCDR Usage Guideline](docs/BCDR-Usage-Guideline.md) | Markdown | Practitioner reference mapping every BoltPlan artifact to **ISO 22301**, **WAF Reliability**, **NIST 800-34**, **ISO 27001 A.5.29/30**, and **DORA**. Phase-by-phase exit criteria + operating cadence. |
+| [AGENTS.md](AGENTS.md) | Markdown | Architecture, conventions, and contributor guide for AI agents and humans extending the app. |
+| [Getting Started (source workbook)](getting-started.md) | Markdown | Section-by-section notes from the original Azure BCDR Excel workbook. |
 
 <p align="right">(<a href="#boltplan">back to top</a>)</p>
 
@@ -168,7 +199,7 @@ Generate a full Business Continuity Plan &mdash; 13 sections + appendices, all p
 | Sub-tab | Sections | Key Features |
 |---------|----------|-------------|
 | **Assess** (6) | Requirements, Service Map, BIA, Fault Tree, Gap Assessment, Metrics | React Flow, composite SLA, FMEA |
-| **Implement** (7) | Response Plan, Architecture, Cost, Metrics, Fault Tree +BCDR, Contingency, Roles | Auto-sync, charts, reorderable steps |
+| **Implement** (10) | Response Plan, Architecture, Cost, Metrics, Fault Tree +BCDR, Contingency, Roles, **DR Runbook (Failover / Failback)**, **Severity Matrix**, **Communication Plan** | Auto-sync, charts, reorderable steps, WAF-aligned |
 | **Test** (5) | Test Summary, Drill, UAT, Communication, Maintenance | Clickable status cycling |
 
 ### Phase 3: Business Continuity
@@ -191,8 +222,10 @@ Generate a full Business Continuity Plan &mdash; 13 sections + appendices, all p
 | **PDF** | Full ISO 22301 BCP (13 sections + appendices) | Toolbar: PDF |
 | **Word (.docx)** | Same ISO 22301 structure as PDF | Toolbar: DOCX |
 | **CSV** | All phase data | Toolbar: CSV or per-section |
-| **JSON** | Full workbench backup per solution | Toolbar: JSON |
+| **JSON** | Full workbench backup per solution (includes Service Map and Fault Tree diagrams). On import the solution from the file is registered and selected automatically. | Toolbar: JSON |
 | **PNG** | Service Map and Fault Tree diagrams | Per-diagram buttons |
+
+> For practitioner guidance on **how** to use BoltPlan to build an ISO 22301 / WAF Reliability-aligned program, see [docs/BCDR-Usage-Guideline.md](docs/BCDR-Usage-Guideline.md).
 
 ---
 
