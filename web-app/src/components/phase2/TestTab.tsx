@@ -159,7 +159,16 @@ export default function TestTab() {
   const [testSummary, setTestSummary, resetTests] = useWorkbenchData<TestRow[]>('phase2-test-summary', defaultTestSummary)
   const [uatCases, setUatCases, resetUat] = useWorkbenchData<UatRow[]>('phase2-uat-cases', defaultUat)
   const [maintenance, setMaintenance, resetMaint] = useWorkbenchData<MaintenanceRow[]>('phase2-maintenance', defaultMaintenance)
-  const [commPlan, setCommPlan, resetCommPlan] = useWorkbenchData<CommPlanRow[]>('phase2-comm-plan', defaultCommPlan)
+  const [rawCommPlan, setCommPlan, resetCommPlan] = useWorkbenchData<CommPlanRow[]>('phase2-test-comm-plan', defaultCommPlan)
+  // Defensive: if storage was previously written with a different schema (older build shared a key),
+  // coerce malformed entries back to defaults so the page renders.
+  const commPlan: CommPlanRow[] = Array.isArray(rawCommPlan) && rawCommPlan.every(r =>
+    r && typeof r === 'object'
+    && typeof (r as CommPlanRow).scope === 'string'
+    && Array.isArray((r as CommPlanRow).preOutage)
+    && Array.isArray((r as CommPlanRow).duringOutage)
+    && Array.isArray((r as CommPlanRow).postOutage)
+  ) ? rawCommPlan : defaultCommPlan
   const [editingCell, setEditingCell] = useState<string | null>(null)
 
   const editCell = (key: string, value: string, onSave: (v: string) => void, baseClass: string, extraStyle?: React.CSSProperties) => {
