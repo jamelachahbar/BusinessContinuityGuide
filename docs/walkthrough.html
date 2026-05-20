@@ -1,0 +1,691 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>BoltPlan — Interactive Walkthrough</title>
+<style>
+  :root {
+    --brand-1: #667eea;
+    --brand-2: #764ba2;
+    --ink: #1f2937;
+    --ink-soft: #4b5563;
+    --line: #e5e7eb;
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --accent: #28a745;
+    --warn: #f59e0b;
+    --danger: #dc2626;
+    --info: #0ea5e9;
+    --shadow: 0 10px 30px rgba(102, 126, 234, 0.12);
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: var(--ink);
+    background: var(--bg);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--brand-1); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { background: #eef2ff; color: #3730a3; padding: 1px 6px; border-radius: 4px; font-size: 0.9em; }
+  kbd { background:#111827; color:#fff; padding:2px 6px; border-radius:4px; font-size:.8em; font-family: monospace; }
+
+  /* Layout */
+  header.hero {
+    background: linear-gradient(135deg, var(--brand-1) 0%, var(--brand-2) 100%);
+    color: white;
+    padding: 56px 24px 80px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  header.hero::after {
+    content: "";
+    position: absolute; inset: auto 0 -1px 0; height: 60px;
+    background: linear-gradient(to bottom right, transparent 49.5%, var(--bg) 50%);
+  }
+  header.hero h1 {
+    font-size: clamp(2.2rem, 5vw, 3.4rem);
+    margin: 0 0 12px;
+    letter-spacing: -0.02em;
+  }
+  header.hero .tag {
+    opacity: 0.9;
+    font-size: 1.1rem;
+    max-width: 720px;
+    margin: 0 auto;
+  }
+  header.hero .badges { margin-top: 22px; display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+  header.hero .badge {
+    background: rgba(255,255,255,0.18);
+    border:1px solid rgba(255,255,255,0.3);
+    padding:6px 12px; border-radius:999px; font-size:.85rem;
+    backdrop-filter: blur(6px);
+  }
+
+  main {
+    max-width: 1100px;
+    margin: -50px auto 0;
+    padding: 0 20px 80px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Nav pill bar */
+  nav.toc {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 16px;
+    box-shadow: var(--shadow);
+    margin-bottom: 32px;
+    position: sticky;
+    top: 12px;
+    z-index: 10;
+  }
+  nav.toc a {
+    background: #eef2ff;
+    color: var(--brand-2);
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: .85rem;
+    font-weight: 600;
+    border: 1px solid transparent;
+    transition: all .15s;
+  }
+  nav.toc a:hover { background: var(--brand-1); color: #fff; text-decoration: none; }
+
+  /* Section / card */
+  section {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 32px 32px 28px;
+    box-shadow: var(--shadow);
+    margin-bottom: 28px;
+    scroll-margin-top: 80px;
+  }
+  section h2 {
+    font-size: 1.7rem;
+    margin: 0 0 6px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  section h2 .num {
+    background: linear-gradient(135deg, var(--brand-1), var(--brand-2));
+    color: #fff;
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    display: inline-flex; align-items:center; justify-content:center;
+    font-size: 1rem; font-weight: 700;
+  }
+  section .lede {
+    color: var(--ink-soft);
+    margin: 0 0 22px;
+    font-size: 1.02rem;
+  }
+
+  /* Image frame */
+  figure.shot {
+    margin: 18px 0 6px;
+    background: linear-gradient(135deg, #f1f5fe, #f5edff);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 10px;
+    overflow: hidden;
+    text-align: center;
+  }
+  figure.shot img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 6px 20px rgba(102,126,234,.15);
+    display: block;
+    margin: 0 auto;
+  }
+  figure.shot figcaption {
+    color: var(--ink-soft);
+    font-size: .85rem;
+    margin-top: 10px;
+    font-style: italic;
+  }
+
+  /* Step list */
+  ol.steps {
+    list-style: none;
+    counter-reset: step;
+    padding: 0;
+    margin: 18px 0 4px;
+    display: grid;
+    gap: 14px;
+  }
+  ol.steps > li {
+    counter-increment: step;
+    background: #f8fafc;
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--brand-1);
+    border-radius: 10px;
+    padding: 14px 18px 14px 56px;
+    position: relative;
+  }
+  ol.steps > li::before {
+    content: counter(step);
+    position: absolute;
+    left: 14px; top: 12px;
+    background: linear-gradient(135deg, var(--brand-1), var(--brand-2));
+    color: #fff;
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: .9rem; font-weight: 700;
+  }
+  ol.steps > li strong { display: block; margin-bottom: 4px; }
+
+  /* Feature grid */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+    margin: 14px 0 4px;
+  }
+  .tile {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px;
+    background: #fff;
+    transition: transform .15s, box-shadow .15s;
+  }
+  .tile:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+  .tile .icon {
+    width: 38px; height: 38px;
+    border-radius: 10px;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #eef2ff, #f5edff);
+    margin-bottom: 10px;
+    font-size: 1.2rem;
+  }
+  .tile h4 { margin: 0 0 4px; font-size: 1rem; }
+  .tile p { margin: 0; color: var(--ink-soft); font-size: .9rem; }
+
+  /* Callout */
+  .callout {
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin: 14px 0;
+    border-left: 4px solid var(--info);
+    background: #ecfeff;
+  }
+  .callout.tip { border-left-color: var(--accent); background: #ecfdf5; }
+  .callout.warn { border-left-color: var(--warn); background: #fffbeb; }
+  .callout strong { display: block; margin-bottom: 4px; }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0 4px;
+    font-size: .92rem;
+  }
+  table th, table td {
+    border-bottom: 1px solid var(--line);
+    padding: 10px 12px;
+    text-align: left;
+    vertical-align: top;
+  }
+  table thead th {
+    background: #f9fafb;
+    color: var(--brand-2);
+    font-weight: 700;
+    border-bottom: 2px solid var(--line);
+  }
+  table tr:hover td { background: #fafbff; }
+
+  /* Phase chips */
+  .phases {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 14px;
+    margin: 16px 0;
+  }
+  .phase-card {
+    border-radius: 12px;
+    padding: 18px;
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+  }
+  .phase-card.p1 { background: linear-gradient(135deg, #4f46e5, #7c3aed); }
+  .phase-card.p2 { background: linear-gradient(135deg, #0ea5e9, #2563eb); }
+  .phase-card.p3 { background: linear-gradient(135deg, #16a34a, #0d9488); }
+  .phase-card h3 { margin: 0 0 6px; font-size: 1.1rem; }
+  .phase-card p { margin: 0; opacity: .95; font-size: .92rem; }
+  .phase-card .pill {
+    position: absolute; top: 14px; right: 14px;
+    background: rgba(255,255,255,.2);
+    border: 1px solid rgba(255,255,255,.35);
+    padding: 3px 10px; border-radius: 999px; font-size: .75rem;
+  }
+
+  /* Footer */
+  footer {
+    text-align: center;
+    color: var(--ink-soft);
+    padding: 30px 20px 60px;
+    font-size: .9rem;
+  }
+  footer a { color: var(--brand-2); font-weight: 600; }
+
+  /* Progress bar at top */
+  .progress {
+    position: fixed; top: 0; left: 0; height: 4px; width: 0%;
+    background: linear-gradient(90deg, var(--brand-1), var(--brand-2));
+    z-index: 100;
+    transition: width .12s linear;
+  }
+
+  /* Tab cycle visual */
+  .tablist {
+    display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 14px;
+  }
+  .tablist span {
+    background: #eef2ff; color: var(--brand-2);
+    padding: 4px 10px; border-radius: 6px; font-size: .82rem; font-weight: 600;
+  }
+  .tablist span.active {
+    background: linear-gradient(135deg, var(--brand-1), var(--brand-2)); color: #fff;
+  }
+
+  /* Crosswalk mini-table styling */
+  .crosswalk td:first-child { font-weight: 600; color: var(--brand-2); }
+
+  @media (max-width: 640px) {
+    section { padding: 22px; }
+    header.hero { padding: 40px 16px 70px; }
+    nav.toc { position: static; }
+  }
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+
+<header class="hero">
+  <h1>BoltPlan — Visual Walkthrough</h1>
+  <p class="tag">An interactive BCDR workbench for Azure. ISO 22301-compliant. Built around the Microsoft Azure Well-Architected Reliability pillar.</p>
+  <div class="badges">
+    <span class="badge">ISO 22301</span>
+    <span class="badge">WAF Reliability</span>
+    <span class="badge">NIST 800-34</span>
+    <span class="badge">DORA-ready</span>
+    <span class="badge">100+ Azure services</span>
+  </div>
+</header>
+
+<main>
+
+  <nav class="toc" aria-label="On-this-page">
+    <a href="#start">1. Get Started</a>
+    <a href="#tour">2. Guided Tour</a>
+    <a href="#solutions">3. Solutions</a>
+    <a href="#phase1">4. Phase 1 — Prepare</a>
+    <a href="#phase2">5. Phase 2 — Application Continuity</a>
+    <a href="#servicemap">6. Service Map</a>
+    <a href="#faulttree">7. Fault Tree</a>
+    <a href="#runbook">8. Runbook & Severity</a>
+    <a href="#phase3">9. Phase 3 — Business Continuity</a>
+    <a href="#exports">10. Exports & Backup</a>
+    <a href="#cadence">11. Operating Cadence</a>
+    <a href="#compliance">12. Compliance Crosswalk</a>
+  </nav>
+
+  <!-- ====================================================== -->
+  <section id="start">
+    <h2><span class="num">1</span>Get Started in 60 seconds</h2>
+    <p class="lede">BoltPlan runs entirely in your browser. No backend, no install. All data lives in <code>localStorage</code>, namespaced per solution.</p>
+
+    <ol class="steps">
+      <li><strong>Clone & install</strong>
+        <code>git clone &lt;repo&gt; &amp;&amp; cd web-app &amp;&amp; npm install</code>
+      </li>
+      <li><strong>Run the dev server</strong>
+        <code>npm run dev</code> — then open <a href="http://localhost:5173">http://localhost:5173</a>.
+      </li>
+      <li><strong>Take the guided tour</strong> — it launches automatically on first run. Re-launch any time from the <em>Tour</em> button.</li>
+      <li><strong>Start with the <span style="color:var(--brand-2)">Sample Solution</span></strong> to learn the patterns, then create your own with <kbd>+ New Solution</kbd>.</li>
+    </ol>
+
+    <figure class="shot">
+      <img src="dashboard.png" alt="BoltPlan home dashboard" />
+      <figcaption>Home dashboard — progress card on the left, plan focus and shortcuts on the right.</figcaption>
+    </figure>
+  </section>
+
+  <!-- ====================================================== -->
+  <section id="tour">
+    <h2><span class="num">2</span>Take the Guided Tour</h2>
+    <p class="lede">A branded React Joyride walkthrough explains every section in context. Skip and re-run any time.</p>
+    <figure class="shot">
+      <img src="guided-tour.png" alt="Guided tour overlay" />
+      <figcaption>Tour overlays highlight each toolbar action and the BCDR phases sidebar.</figcaption>
+    </figure>
+
+    <div class="callout tip">
+      <strong>Tip</strong>
+      Use the <em>Tour</em> button on the right side of the toolbar to re-launch the tour after configuring the app — it points to the exact features that ship now.
+    </div>
+  </section>
+
+  <!-- ====================================================== -->
+  <section id="solutions">
+    <h2><span class="num">3</span>Work With Multiple Solutions</h2>
+    <p class="lede">Each <em>Solution</em> is an isolated workspace — its own BIA, its own diagrams, its own BCP. Switch instantly from the chip bar.</p>
+
+    <div class="grid">
+      <div class="tile">
+        <div class="icon">🧩</div>
+        <h4>Isolated data</h4>
+        <p>Every key is stored under <code>abcg_{solutionId}_…</code>.</p>
+      </div>
+      <div class="tile">
+        <div class="icon">➕</div>
+        <h4>New Solution</h4>
+        <p>Click <kbd>+ New Solution</kbd> in the toolbar to scaffold a fresh workbench.</p>
+      </div>
+      <div class="tile">
+        <div class="icon">✏️</div>
+        <h4>Rename</h4>
+        <p><kbd>Rename</kbd> updates display name without touching data.</p>
+      </div>
+      <div class="tile">
+        <div class="icon">⇄</div>
+        <h4>Switch instantly</h4>
+        <p>Clicking a chip remounts the active page so all data is fresh.</p>
+      </div>
+    </div>
+
+    <div class="callout">
+      <strong>Import / Export</strong>
+      Use <kbd>JSON</kbd> in the toolbar. The export captures <em>every</em> persisted key for the current solution (including the Service Map and Fault Tree diagrams). On import, BoltPlan reads the solution name + id from the file, registers it as a new solution (or updates the existing one), and selects it automatically — you'll see it in the chip bar.
+    </div>
+  </section>
+
+  <!-- ====================================================== -->
+  <section id="phase1">
+    <h2><span class="num">4</span>Phase 1 — Prepare</h2>
+    <p class="lede">Set the foundations: criticality tiers, business commitments, RACI, and test cadence. Maps to ISO 22301 Clauses 4–7.</p>
+
+    <div class="tablist">
+      <span class="active">Concepts</span>
+      <span>Criticality Model</span>
+      <span>Business Commitment</span>
+      <span>Fault Model</span>
+      <span>RACI Matrix</span>
+      <span>Requirements</span>
+      <span>Test Plans</span>
+    </div>
+
+    <figure class="shot">
+      <img src="phase1-criticality.png" alt="Criticality Model with multi-solution selector" />
+      <figcaption>Criticality tiers — colors propagate everywhere that references criticality.</figcaption>
+    </figure>
+
+    <div class="callout tip">
+      <strong>Why start here?</strong>
+      Your criticality tiers drive the BIA, the composite SLA targets, the recovery order, and the severity matrix. Get the model right before you touch architecture.
+    </div>
+
+    <h4 style="margin-top: 22px;">Exit checklist</h4>
+    <ol class="steps">
+      <li>Criticality tiers approved by business sponsor.</li>
+      <li>Business Commitment signed off by legal / product.</li>
+      <li>RACI matrix populated with <em>named individuals</em>, not just role titles.</li>
+      <li>Test cadence agreed.</li>
+    </ol>
+  </section>
+
+  <!-- ====================================================== -->
+  <section id="phase2">
+    <h2><span class="num">5</span>Phase 2 — Application Continuity</h2>
+    <p class="lede">The heart of BoltPlan — three sub-tabs that mirror the WAF Reliability flow: <em>Assess → Implement → Test</em>.</p>
+
+    <div class="phases">
+      <div class="phase-card p2">
+        <span class="pill">6 sections</span>
+        <h3>Assess</h3>
+        <p>Requirements · Service Map · BIA · Fault Tree · Gap Assessment · Metrics</p>
+      </div>
+      <div class="phase-card p2">
+        <span class="pill">10 sections</span>
+        <h3>Implement</h3>
+        <p>Response · Architecture · Cost · Metrics · Fault Tree +BCDR · Contingency · Roles · DR Runbook · Severity Matrix · Comms Plan</p>
+      </div>
+      <div class="phase-card p2">
+        <span class="pill">5 sections</span>
+        <h3>Test</h3>
+        <p>Test Summary · Drill · UAT · Communication · Maintenance</p>
+      </div>
+    </div>
+
+    <figure class="shot">
+      <img src="cost-comparison.png" alt="Cost comparison chart" />
+      <figcaption>Cost Comparison chart — auto-synced from your Architecture Design table.</figcaption>
+    </figure>
+  </section>
+
+  <!-- ====================================================== -->
+  <section id="servicemap">
+    <h2><span class="num">6</span>Build the Service Map</h2>
+    <p class="lede">Drag-and-drop React Flow canvas with 100+ Azure services across 14 categories. Seven connection types let you express read/write, sync/async, control-plane, etc.</p>
+
+    <figure class="shot">
+      <img src="service-map.png" alt="Service Map dependency diagram" />
+      <figcaption>Service Map — click-to-edit labels, reroute connections, export PNG or CSV.</figcaption>
+    </figure>
+
+    <ol class="steps">
+      <li><strong>Pick services</strong> from the Azure catalog drawer and drop them on the canvas.</li>
+      <li><strong>Connect them</strong> using one of 7 typed edges. Set direction, label, and color.</li>
+      <li><strong>Layout</strong> auto-snaps. Use the toolbar to fit-to-view and align.</li>
+      <li><strong>Export PNG</strong> for ADR documents or audit packages — the diagram is also embedded in the PDF/DOCX BCP.</li>
+    </ol>
+
+    <div class="callout">
+      <strong>Why React Flow?</strong>
+      The graph is serialized to localStorage, so it round-trips through JSON export/import. Diagrams are first-class data, not screenshots.
+    </div>
+  </section>
+
+  <!-- ====================================================== -->
+  <section id="faulttree">
+    <h2><span class="num">7</span>Run Fault Tree Analysis (IEC 61025)</h2>
+    <p class="lede">Top-down deductive failure analysis using official symbols. Score each leaf with FMEA (Severity × Occurrence × Detection = RPN), then compare <em>−BCDR</em> and <em>+BCDR</em>.</p>
+
+    <figure class="shot">
+      <img src="fault-tree.png" alt="Fault tree analysis diagram with FMEA scoring" />
+      <figcaption>Fault Tree with FMEA — leaf nodes show RPN; the +BCDR tree should show a lower RPN.</figcaption>
+    </figure>
+
+    <table>
+      <thead>
+        <tr><th>FMEA dimension</th><th>Scale</th><th>What it asks</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Severity</td><td>1–10</td><td>How bad is the impact if this failure happens?</td></tr>
+        <tr><td>Occurrence</td><td>1–10</td><td>How often is it likely to happen?</td></tr>
+        <tr><td>Detection</td><td>1–10</td><td>How likely are you to catch it before customers do? (10 = very unlikely)</td></tr>
+        <tr><td><strong>RPN</strong></td><td>1–1000</td><td>S × O × D — prioritize anything ≥ 100.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout tip">
+      <strong>Use it twice</strong>
+      Build the tree under <em>Assess</em> with no mitigations (−BCDR). Re-score under <em>Implement</em> with your design choices in place (+BCDR). The delta is your reliability investment ROI.
+    </div>
+  </section>
+
+  <!-- ====================================================== -->
+  <section id="runbook">
+    <h2><span class="num">8</span>DR Runbook · Severity Matrix · Comms Plan</h2>
+    <p class="lede">The three WAF-aligned sections in <em>Phase 2 Implement</em> that auditors look at first. Keep them consistent — Sev 1 in the matrix must equal P0 in the comms plan.</p>
+
+    <div class="grid">
+      <div class="tile">
+        <div class="icon">📋</div>
+        <h4>Failover Runbook</h4>
+        <p>Numbered, owner-stamped, time-boxed steps for activating DR.</p>
+      </div>
+      <div class="tile">
+        <div class="icon">↩️</div>
+        <h4>Failback Runbook</h4>
+        <p>Mirror of failover with explicit data-consistency checks before cutover.</p>
+      </div>
+      <div class="tile">
+        <div class="icon">🚦</div>
+        <h4>Severity Matrix</h4>
+        <p>Sev 1–4 with examples, response SLAs, and escalation paths.</p>
+      </div>
+      <div class="tile">
+        <div class="icon">📣</div>
+        <h4>Communication Plan</h4>
+        <p>Who is told, via which channel, at which milestone.</p>
+      </div>
+    </div>
+
+    <div class="callout warn">
+      <strong>Golden rule</strong>
+      Write the runbook <em>before</em> the drill, not after. The runbook is the artifact under test. Every drill closes with a finding log + runbook diff.
+    </div>
+  </section>
+
+  <!-- ====================================================== -->
+  <section id="phase3">
+    <h2><span class="num">9</span>Phase 3 — Business Continuity</h2>
+    <p class="lede">The business-level view: portfolio recovery order, risk register, calendar, and ongoing maintenance.</p>
+
+    <div class="phases">
+      <div class="phase-card p3">
+        <span class="pill">Plan</span>
+        <h3>Planning &amp; Risk</h3>
+        <p>BCP checklist (with progress %) and 5×5 risk matrix.</p>
+      </div>
+      <div class="phase-card p3">
+        <span class="pill">Portfolio</span>
+        <h3>MBCO &amp; Recovery Order</h3>
+        <p>Minimum viable services + sequence to bring them back.</p>
+      </div>
+      <div class="phase-card p3">
+        <span class="pill">Run</span>
+        <h3>Operations</h3>
+        <p>Calendar, dashboard (auto-populated), and append-only activity log.</p>
+      </div>
+      <div class="phase-card p3">
+        <span class="pill">Improve</span>
+        <h3>Maintenance</h3>
+        <p>Review schedule with status cycling. Plan reviews, BIA refreshes, drills.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================================================== -->
+  <section id="exports">
+    <h2><span class="num">10</span>Exports &amp; Backup</h2>
+    <p class="lede">Generate audit-ready artifacts in one click. The PDF and DOCX both follow the ISO 22301 outline section-for-section.</p>
+
+    <table>
+      <thead><tr><th>Format</th><th>Use case</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><strong>PDF</strong></td><td>Annual BCP sign-off, audit pack</td><td>13 sections + appendices, all populated from your data.</td></tr>
+        <tr><td><strong>DOCX</strong></td><td>Redlining with legal / compliance</td><td>Same outline as PDF, fully editable.</td></tr>
+        <tr><td><strong>CSV</strong></td><td>Bulk review in Excel</td><td>BOM-prefixed for proper Excel rendering.</td></tr>
+        <tr><td><strong>JSON</strong></td><td>Backup, version control, peer review</td><td>Round-trips Service Map &amp; Fault Tree diagrams. Import re-creates the solution.</td></tr>
+        <tr><td><strong>PNG</strong></td><td>Slides, ADRs, ticket attachments</td><td>Direct from React Flow viewport.</td></tr>
+      </tbody>
+    </table>
+
+    <figure class="shot">
+      <img src="pdf-export.png" alt="PDF export cover page" />
+      <figcaption>ISO 22301-aligned PDF cover &mdash; produced from the same data you edit in the app.</figcaption>
+    </figure>
+  </section>
+
+  <!-- ====================================================== -->
+  <section id="cadence">
+    <h2><span class="num">11</span>Operating Cadence</h2>
+    <p class="lede">A monthly heartbeat plus an annual full cycle keeps the plan alive instead of shelfware.</p>
+
+    <table>
+      <thead><tr><th>Week</th><th>Activity</th></tr></thead>
+      <tbody>
+        <tr><td>Week 1</td><td>Review open findings from the last drill.</td></tr>
+        <tr><td>Week 2</td><td>Walk one runbook with the on-call team.</td></tr>
+        <tr><td>Week 3</td><td>Verify Composite SLA still matches the deployed architecture.</td></tr>
+        <tr><td>Week 4</td><td>Export PDF + JSON. Attach to the monthly governance pack.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout tip">
+      <strong>Annual full cycle</strong>
+      BIA refresh → Architecture review → Full failover drill → BCP re-issue. Track each step in <em>Phase 3 → Maintenance</em>.
+    </div>
+  </section>
+
+  <!-- ====================================================== -->
+  <section id="compliance">
+    <h2><span class="num">12</span>Compliance Crosswalk</h2>
+    <p class="lede">Each BoltPlan artifact maps cleanly to the controls auditors expect to see.</p>
+
+    <table class="crosswalk">
+      <thead><tr><th>BoltPlan artifact</th><th>ISO 22301</th><th>WAF Reliability</th><th>NIST 800-34</th><th>DORA</th></tr></thead>
+      <tbody>
+        <tr><td>Criticality Model</td><td>8.2.2</td><td>Tier targets</td><td>Step 2</td><td>Art. 8</td></tr>
+        <tr><td>BIA</td><td>8.2.2</td><td>Define targets</td><td>Step 2</td><td>Art. 8</td></tr>
+        <tr><td>Service Map</td><td>8.2.3</td><td>Identify flows</td><td>Step 2</td><td>—</td></tr>
+        <tr><td>Fault Tree (±BCDR)</td><td>8.3.3</td><td>Failure-mode analysis</td><td>Step 3</td><td>Art. 25</td></tr>
+        <tr><td>Composite SLA</td><td>8.3.3</td><td>Composite SLA</td><td>Step 3</td><td>Art. 11</td></tr>
+        <tr><td>DR Runbook</td><td>8.4.3</td><td>Document procedures</td><td>Step 4</td><td>Art. 11</td></tr>
+        <tr><td>Severity Matrix</td><td>8.4.2</td><td>Severity model</td><td>Step 4</td><td>Art. 17</td></tr>
+        <tr><td>Communication Plan</td><td>8.4.3 d)</td><td>—</td><td>Step 4</td><td>Art. 14</td></tr>
+        <tr><td>Drill record</td><td>8.5</td><td>Test for resiliency</td><td>Step 5</td><td>Art. 24–26</td></tr>
+        <tr><td>BCP (PDF/DOCX)</td><td>8.4</td><td>—</td><td>Step 4</td><td>Art. 11</td></tr>
+      </tbody>
+    </table>
+
+    <p style="margin-top:18px;">For the full guideline with framework definitions, exit criteria per phase, and an extended reference list, see <a href="BCDR-Usage-Guideline.md">BCDR-Usage-Guideline.md</a>.</p>
+  </section>
+
+  <section style="text-align:center; background:linear-gradient(135deg,#eef2ff,#f5edff);">
+    <h2 style="justify-content:center;"><span class="num">✓</span>You're ready to build a BCP</h2>
+    <p class="lede" style="margin: 8px auto 18px;">Launch the app, pick a solution, and follow Phase 1 → 2 → 3 in order. The PDF will be ready when you are.</p>
+    <p>
+      <a href="../README.md" style="background:linear-gradient(135deg,var(--brand-1),var(--brand-2));color:#fff;padding:12px 22px;border-radius:10px;font-weight:700;">Open the README →</a>
+      &nbsp;
+      <a href="BCDR-Usage-Guideline.md" style="background:#fff;border:1px solid var(--brand-1);color:var(--brand-2);padding:12px 22px;border-radius:10px;font-weight:700;">Read the full Guideline</a>
+    </p>
+  </section>
+
+</main>
+
+<footer>
+  BoltPlan &middot; Interactive BCDR Workbench for Azure &middot; ISO 22301-aligned &middot; <a href="../LICENSE">MIT License</a>
+</footer>
+
+<script>
+  // Reading progress bar
+  const bar = document.getElementById('progress');
+  function update() {
+    const h = document.documentElement;
+    const scrolled = h.scrollTop;
+    const max = h.scrollHeight - h.clientHeight;
+    bar.style.width = (max > 0 ? (scrolled / max) * 100 : 0) + '%';
+  }
+  window.addEventListener('scroll', update, { passive: true });
+  window.addEventListener('resize', update);
+  update();
+</script>
+</body>
+</html>
