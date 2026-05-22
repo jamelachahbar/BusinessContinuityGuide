@@ -305,35 +305,35 @@ export default function FaultTree({ storageKey = 'phase2-fta', afterBcdr = false
     const el = root ?? viewport
     if (!el) return
     try { await (document as Document & { fonts?: { ready: Promise<unknown> } }).fonts?.ready } catch { /* noop */ }
-    const styleEl = document.createElement('style')
-    styleEl.setAttribute('data-png-export', '1')
-    styleEl.textContent = `
-      .react-flow__edge-text { font: 500 11px Arial, Helvetica, sans-serif !important; fill: #1a202c !important; }
-      .react-flow__edge-textbg { fill: #ffffff !important; }
-    `
-    document.head.appendChild(styleEl)
-    try {
-      const url = await toPng(el, {
-        backgroundColor: '#fafbfc',
-        pixelRatio: 2,
-        cacheBust: true,
-        filter: (node) => {
-          if (node instanceof HTMLElement) {
-            if (node.classList?.contains('react-flow__attribution')) return false
-            if (node.classList?.contains('react-flow__minimap')) return false
-            if (node.classList?.contains('react-flow__controls')) return false
-            if (node.classList?.contains('react-flow__panel')) return false
-          }
-          return true
-        },
-      })
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `fault_tree_${new Date().toISOString().slice(0,10)}.png`
-      a.click()
-    } finally {
-      styleEl.remove()
-    }
+    el.querySelectorAll('.react-flow__edge-textbg').forEach(n => {
+      n.setAttribute('fill', '#ffffff')
+      n.setAttribute('stroke', '#e2e8f0')
+      n.setAttribute('stroke-width', '1')
+    })
+    el.querySelectorAll('.react-flow__edge-text').forEach(n => {
+      n.setAttribute('fill', '#1a202c')
+      n.setAttribute('font-family', 'Arial, Helvetica, sans-serif')
+      n.setAttribute('font-size', '11')
+      n.setAttribute('font-weight', '500')
+    })
+    const url = await toPng(el, {
+      backgroundColor: '#fafbfc',
+      pixelRatio: 2,
+      cacheBust: true,
+      filter: (node) => {
+        if (node instanceof HTMLElement) {
+          if (node.classList?.contains('react-flow__attribution')) return false
+          if (node.classList?.contains('react-flow__minimap')) return false
+          if (node.classList?.contains('react-flow__controls')) return false
+          if (node.classList?.contains('react-flow__panel')) return false
+        }
+        return true
+      },
+    })
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `fault_tree_${new Date().toISOString().slice(0,10)}.png`
+    a.click()
   }, [])
 
   return (

@@ -255,19 +255,21 @@ export default function ServiceMap() {
     const viewport = ref.current?.querySelector('.react-flow__viewport') as HTMLElement | null
     const el = root ?? viewport
     if (!el) return
-    // Wait for fonts to load – html-to-image serializes SVG text using the
-    // computed font; if fonts aren't ready, SVG <text> renders as black blocks.
+    // html-to-image drops React Flow's <rect fill="white"> attribute on edge
+    // label backgrounds (renders as default black). Set SVG attributes
+    // directly on the live DOM – attributes always survive the clone.
     try { await (document as Document & { fonts?: { ready: Promise<unknown> } }).fonts?.ready } catch { /* noop */ }
-    // Inject an inline style sheet so the serialized SVG has guaranteed
-    // font + fill for edge labels and node text.
-    const styleEl = document.createElement('style')
-    styleEl.setAttribute('data-png-export', '1')
-    styleEl.textContent = `
-      .react-flow__edge-text { font: 500 11px Arial, Helvetica, sans-serif !important; fill: #1a202c !important; }
-      .react-flow__edge-textbg { fill: #ffffff !important; }
-      .react-flow__edge-textwrapper text { font-family: Arial, Helvetica, sans-serif !important; }
-    `
-    document.head.appendChild(styleEl)
+    el.querySelectorAll('.react-flow__edge-textbg').forEach(n => {
+      n.setAttribute('fill', '#ffffff')
+      n.setAttribute('stroke', '#e2e8f0')
+      n.setAttribute('stroke-width', '1')
+    })
+    el.querySelectorAll('.react-flow__edge-text').forEach(n => {
+      n.setAttribute('fill', '#1a202c')
+      n.setAttribute('font-family', 'Arial, Helvetica, sans-serif')
+      n.setAttribute('font-size', '11')
+      n.setAttribute('font-weight', '500')
+    })
     try {
       const url = await toPng(el, {
         backgroundColor: '#fafbfc',
@@ -287,9 +289,7 @@ export default function ServiceMap() {
       a.href = url
       a.download = `service_map_${new Date().toISOString().slice(0, 10)}.png`
       a.click()
-    } finally {
-      styleEl.remove()
-    }
+    } finally { /* attributes left in place – they match the on-screen rendering */ }
   }, [])
 
   return (
