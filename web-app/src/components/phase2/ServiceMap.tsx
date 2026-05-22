@@ -56,10 +56,10 @@ function ServiceNode({ data }: NodeProps) {
     <div style={{ background: '#fff', border: `2px solid ${c.accent}`, borderRadius: 8, minWidth: 160, maxWidth: 210, boxShadow: '0 1px 4px rgba(0,0,0,0.06)', fontFamily: 'system-ui, sans-serif' }}>
       <div style={{ background: c.accent, padding: '4px 10px', fontSize: 10, fontWeight: 600, color: '#fff', textTransform: 'uppercase', letterSpacing: 0.4 }}>{data.category as string}</div>
       <div style={{ padding: '8px 10px', fontSize: 12, fontWeight: 600, color: '#1a202c' }}>{data.label as string}</div>
-      <Handle type="target" position={Position.Top} style={{ background: c.accent, width: 7, height: 7, border: '2px solid #fff' }} />
-      <Handle type="source" position={Position.Bottom} style={{ background: c.accent, width: 7, height: 7, border: '2px solid #fff' }} />
-      <Handle type="target" position={Position.Left} id="left" style={{ background: c.accent, width: 7, height: 7, border: '2px solid #fff' }} />
-      <Handle type="source" position={Position.Right} id="right" style={{ background: c.accent, width: 7, height: 7, border: '2px solid #fff' }} />
+      <Handle type="target" position={Position.Top} id="t" style={{ background: c.accent, width: 10, height: 10, border: '2px solid #fff' }} />
+      <Handle type="source" position={Position.Bottom} id="b" style={{ background: c.accent, width: 10, height: 10, border: '2px solid #fff' }} />
+      <Handle type="target" position={Position.Left} id="l" style={{ background: c.accent, width: 10, height: 10, border: '2px solid #fff' }} />
+      <Handle type="source" position={Position.Right} id="r" style={{ background: c.accent, width: 10, height: 10, border: '2px solid #fff' }} />
     </div>
   )
 }
@@ -70,10 +70,12 @@ const nodeTypes = { service: ServiceNode }
 function mkNode(id: string, label: string, cat: string, x: number, y: number): Node {
   return { id, type: 'service', data: { label, category: cat }, position: { x, y } }
 }
-function mkEdge(id: string, src: string, tgt: string, ct: ConnType, lbl: string, dir: Dir = 'forward'): Edge {
+function mkEdge(id: string, src: string, tgt: string, ct: ConnType, lbl: string, dir: Dir = 'forward', sourceHandle?: string, targetHandle?: string): Edge {
   const c = CONN_TYPES[ct]
   return {
-    id, source: src, target: tgt, label: lbl || undefined, animated: c.anim,
+    id, source: src, target: tgt,
+    sourceHandle, targetHandle,
+    label: lbl || undefined, animated: c.anim,
     style: { strokeWidth: 2, stroke: c.color, ...(c.dash ? { strokeDasharray: '6 3' } : {}) },
     data: { connType: ct, direction: dir, connLabel: lbl },
     markerEnd: dir !== 'reverse' ? { type: MarkerType.ArrowClosed, color: c.color } : undefined,
@@ -116,7 +118,7 @@ function serializeEdges(edges: Edge[]): SerializedEdge[] {
   return edges.map(e => ({ id: e.id, source: e.source, target: e.target, connType: (e.data?.connType as ConnType) ?? 'dependency', connLabel: (e.data?.connLabel as string) ?? '', direction: (e.data?.direction as Dir) ?? 'forward', sourceHandle: e.sourceHandle ?? undefined, targetHandle: e.targetHandle ?? undefined }))
 }
 function deserializeEdges(data: SerializedEdge[]): Edge[] {
-  return data.map(d => mkEdge(d.id, d.source, d.target, d.connType, d.connLabel, d.direction))
+  return data.map(d => mkEdge(d.id, d.source, d.target, d.connType, d.connLabel, d.direction, d.sourceHandle, d.targetHandle))
 }
 
 const defaultSerializedNodes = serializeNodes(defaultNodes)
@@ -446,7 +448,7 @@ export default function ServiceMap() {
 
       {/* 4. Canvas */}
       <div className={s.canvas} ref={ref}>
-        <ReactFlow nodes={nodes} edges={edges} onNodesChange={onNC} onEdgesChange={onEC} onConnect={onConnect} onEdgeClick={onEdgeClick} onNodeDragStop={onNodeDragStop} onNodeDoubleClick={onNodeDoubleClick} nodeTypes={nodeTypes} fitView snapToGrid snapGrid={[16, 16]} connectionLineStyle={{ strokeWidth: 2, stroke: CONN_TYPES[ct].color }} attributionPosition="bottom-left">
+        <ReactFlow nodes={nodes} edges={edges} onNodesChange={onNC} onEdgesChange={onEC} onConnect={onConnect} onEdgeClick={onEdgeClick} onNodeDragStop={onNodeDragStop} onNodeDoubleClick={onNodeDoubleClick} nodeTypes={nodeTypes} fitView snapToGrid snapGrid={[16, 16]} connectionRadius={28} connectionLineStyle={{ strokeWidth: 2, stroke: CONN_TYPES[ct].color }} attributionPosition="bottom-left">
           <Controls />
           <Background gap={16} size={1} color="#e2e8f0" />
           <MiniMap nodeColor={n => CATEGORY_COLORS[(n.data?.category as string)]?.accent ?? '#667eea'} maskColor="rgba(248,249,250,0.85)" style={{ borderRadius: 6, border: '1px solid #e2e8f0' }} />
