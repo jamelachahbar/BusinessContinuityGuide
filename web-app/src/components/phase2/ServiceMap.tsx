@@ -13,7 +13,7 @@ import {
   Add20Regular, ArrowReset20Regular, Dismiss12Regular,
   ArrowDownload20Regular, Image20Regular,
 } from '@fluentui/react-icons'
-import { AZURE_SERVICES, AZURE_CATEGORIES, CATEGORY_COLORS, type AzureCategory } from '../../utils/azureCatalog'
+import { AZURE_SERVICES, AZURE_CATEGORIES, CATEGORY_COLORS } from '../../utils/azureCatalog'
 import { downloadCsv, objectsToCsvSheet } from '../../utils/csvExport'
 import { useWorkbenchData } from '../../hooks/useWorkbenchData'
 
@@ -136,9 +136,17 @@ export default function ServiceMap() {
   const persistEdges = useCallback((eds: Edge[]) => setSavedEdges(serializeEdges(eds)), [setSavedEdges])
 
   // Add service
-  const [selCat, setSelCat] = useState<AzureCategory>('Compute')
+  const CUSTOM_CAT = '__custom__'
+  const CUSTOM_SVC = '__custom__'
+  const [selCat, setSelCat] = useState<string>('Compute')
   const [selSvc, setSelSvc] = useState('')
-  const svcsInCat = useMemo(() => AZURE_SERVICES.filter(s => s.category === selCat), [selCat])
+  const [customCat, setCustomCat] = useState('')
+  const [customSvc, setCustomSvc] = useState('')
+  const effectiveCat = selCat === CUSTOM_CAT ? customCat.trim() : selCat
+  const svcsInCat = useMemo(
+    () => AZURE_SERVICES.filter(s => s.category === effectiveCat),
+    [effectiveCat],
+  )
 
   // Connection config
   const [ct, setCt] = useState<ConnType>('dependency')
@@ -199,12 +207,20 @@ export default function ServiceMap() {
   }, [editingEdge, setEdges, persistEdges])
 
   const addSvc = useCallback(() => {
-    if (!selSvc) return
-    const cat = AZURE_SERVICES.find(s => s.name === selSvc)?.category ?? selCat
-    const newNode = mkNode(`svc-${Date.now()}`, selSvc, cat, 200 + Math.random() * 400, 100 + Math.random() * 300)
+    const cat = effectiveCat || 'Custom'
+    let svcName = ''
+    if (selSvc === CUSTOM_SVC) {
+      svcName = customSvc.trim()
+    } else if (selSvc) {
+      svcName = selSvc
+    }
+    if (!svcName) return
+    const resolvedCat = AZURE_SERVICES.find(s => s.name === svcName)?.category ?? cat
+    const newNode = mkNode(`svc-${Date.now()}`, svcName, resolvedCat, 200 + Math.random() * 400, 100 + Math.random() * 300)
     setNodes(nds => { const updated = [...nds, newNode]; persistNodes(updated); return updated })
     setSelSvc('')
-  }, [selSvc, selCat, setNodes, persistNodes])
+    setCustomSvc('')
+  }, [selSvc, customSvc, effectiveCat, setNodes, persistNodes])
 
   const rmNode = useCallback((id: string) => {
     setNodes(n => { const updated = n.filter(x => x.id !== id); persistNodes(updated); return updated })
@@ -298,20 +314,56 @@ export default function ServiceMap() {
       <div className={s.row}>
         <div className={s.field}>
           <span className={s.label}>Category</span>
-          <Select size="small" value={selCat} onChange={(_, d) => { setSelCat(d.value as AzureCategory); setSelSvc('') }}>
+          <Select size="small" value={selCat} onChange={(_, d) => { setSelCat(d.value); setSelSvc('') }}>
             {AZURE_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
             <option value="On-Premises">On-Premises</option>
             <option value="Third Party">Third Party</option>
+            <option value={CUSTOM_CAT}>+ Custom category…</option>
           </Select>
         </div>
+        {selCat === CUSTOM_CAT && (
+          <div className={s.field}>
+            <span className={s.label}>Custom Category</span>
+            <input
+              value={customCat}
+              onChange={e => setCustomCat(e.target.value)}
+              placeholder="e.g. Mainframe"
+              style={{ fontSize: 13, padding: '4px 8px', border: '1px solid #e2e8f0', borderRadius: 4, width: 160 }}
+            />
+          </div>
+        )}
         <div className={s.field}>
           <span className={s.label}>Service</span>
           <Select size="small" value={selSvc} onChange={(_, d) => setSelSvc(d.value)} style={{ minWidth: 200 }}>
             <option value="">-- select --</option>
             {svcsInCat.map(svc => <option key={svc.name} value={svc.name}>{svc.name}</option>)}
+            <option value={CUSTOM_SVC}>+ Custom service…</option>
           </Select>
         </div>
-        <Button icon={<Add20Regular />} size="small" appearance="primary" onClick={addSvc} disabled={!selSvc}>Add</Button>
+        {selSvc === CUSTOM_SVC && (
+          <div className={s.field}>
+            <span className={s.label}>Custom Service</span>
+            <input
+              value={customSvc}
+              onChange={e => setCustomSvc(e.target.value)}
+              placeholder="e.g. Oracle DB"
+              style={{ fontSize: 13, padding: '4px 8px', border: '1px solid #e2e8f0', borderRadius: 4, width: 180 }}
+            />
+          </div>
+        )}
+        <Button
+          icon={<Add20Regular />}
+          size="small"
+          appearance="primary"
+          onClick={addSvc}
+          disabled={
+            !selSvc ||
+            (selSvc === CUSTOM_SVC && !customSvc.trim()) ||
+            (selCat === CUSTOM_CAT && !customCat.trim())
+          }
+        >
+          Add
+        </Button>
         <Button icon={<ArrowReset20Regular />} size="small" appearance="subtle" onClick={reset}>Reset</Button>
         <Button icon={<ArrowDownload20Regular />} size="small" appearance="subtle" onClick={exportCsv}>CSV</Button>
         <Button icon={<Image20Regular />} size="small" appearance="subtle" onClick={exportPng}>PNG</Button>

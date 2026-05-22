@@ -145,7 +145,7 @@ Define criticality tiers with auto-colored badges. Switch between solutions with
 
 ### Service Map (React Flow)
 
-Build your architecture with 100+ Azure services across 14 categories. 7 connection types with editable labels, direction, and click-to-edit. Export as PNG or CSV.
+Build your architecture with 100+ Azure services across 14 categories, or add **custom categories and services** for on-premises, third-party, mainframe, or any non-Azure component. 7 connection types with editable labels, direction, and click-to-edit. Export as PNG or CSV.
 
 <p align="center">
   <img src="docs/service-map.png" alt="Service Map dependency diagram" width="900"/>

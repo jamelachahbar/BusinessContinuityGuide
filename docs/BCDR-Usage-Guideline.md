@@ -147,7 +147,7 @@ These set the policy floor for the rest of the workbench. Requirements categoriz
 | Section | Purpose | Compliance hook |
 |---------|---------|-----------------|
 | **Requirements** | Per-component RTO / RPO / availability target. | ISO 22301 8.2.2; WAF "Define reliability targets". |
-| **Service Map** | Visual dependency model (React Flow). Each node = an Azure service. | WAF "Identify all flows". |
+| **Service Map** | Visual dependency model (React Flow). Each node = an Azure service, custom category, or third-party / on-prem component. | WAF "Identify all flows". |
 | **BIA** | Quantify impact dimensions × duration. | ISO 22301 8.2.2; NIST 800-34 Step 2. |
 | **Fault Tree (−BCDR)** | Top-down failure model **before** mitigations. | WAF "Run failure-mode analysis"; IEC 61025. |
 | **Gap Assessment** | Delta between current and target state. | ISO 22301 8.3.1. |
