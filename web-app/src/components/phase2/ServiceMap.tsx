@@ -250,23 +250,46 @@ export default function ServiceMap() {
     return { Source: (sn?.data.label as string) ?? '', 'Source Cat': (sn?.data.category as string) ?? '', Target: (tn?.data.label as string) ?? '', 'Target Cat': (tn?.data.category as string) ?? '', Label: (e.label as string) ?? '', Type: CONN_TYPES[(e.data?.connType as ConnType)]?.label ?? '', Direction: DIRS[(e.data?.direction as Dir)] ?? '\u2192' }
   })))
 
-  const exportPng = useCallback(() => {
-    const el = ref.current?.querySelector('.react-flow__viewport') as HTMLElement | null
+  const exportPng = useCallback(async () => {
+    const root = ref.current?.querySelector('.react-flow') as HTMLElement | null
+    const viewport = ref.current?.querySelector('.react-flow__viewport') as HTMLElement | null
+    const el = root ?? viewport
     if (!el) return
-    // Clone and fix foreignObject edge labels (cause black boxes in html-to-image)
-    toPng(el, {
-      backgroundColor: '#fafbfc',
-      pixelRatio: 2,
-      filter: (node) => {
-        // Keep everything except the react-flow attribution
-        if (node instanceof HTMLElement && node.classList?.contains('react-flow__attribution')) return false
-        return true
-      },
-      style: {
-        // Override foreignObject text rendering
-        color: '#1a202c',
-      },
-    }).then(url => { const a = document.createElement('a'); a.href = url; a.download = `service_map_${new Date().toISOString().slice(0, 10)}.png`; a.click() })
+    // Wait for fonts to load – html-to-image serializes SVG text using the
+    // computed font; if fonts aren't ready, SVG <text> renders as black blocks.
+    try { await (document as Document & { fonts?: { ready: Promise<unknown> } }).fonts?.ready } catch { /* noop */ }
+    // Inject an inline style sheet so the serialized SVG has guaranteed
+    // font + fill for edge labels and node text.
+    const styleEl = document.createElement('style')
+    styleEl.setAttribute('data-png-export', '1')
+    styleEl.textContent = `
+      .react-flow__edge-text { font: 500 11px Arial, Helvetica, sans-serif !important; fill: #1a202c !important; }
+      .react-flow__edge-textbg { fill: #ffffff !important; }
+      .react-flow__edge-textwrapper text { font-family: Arial, Helvetica, sans-serif !important; }
+    `
+    document.head.appendChild(styleEl)
+    try {
+      const url = await toPng(el, {
+        backgroundColor: '#fafbfc',
+        pixelRatio: 2,
+        cacheBust: true,
+        filter: (node) => {
+          if (node instanceof HTMLElement) {
+            if (node.classList?.contains('react-flow__attribution')) return false
+            if (node.classList?.contains('react-flow__minimap')) return false
+            if (node.classList?.contains('react-flow__controls')) return false
+            if (node.classList?.contains('react-flow__panel')) return false
+          }
+          return true
+        },
+      })
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `service_map_${new Date().toISOString().slice(0, 10)}.png`
+      a.click()
+    } finally {
+      styleEl.remove()
+    }
   }, [])
 
   return (

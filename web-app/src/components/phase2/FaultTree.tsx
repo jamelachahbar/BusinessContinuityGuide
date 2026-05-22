@@ -299,10 +299,41 @@ export default function FaultTree({ storageKey = 'phase2-fta', afterBcdr = false
 
   const exportCsv = () => downloadCsv('fault_tree_fmea.csv', objectsToCsvSheet('FTA_FMEA', fmeaRows as unknown as Record<string, unknown>[]))
 
-  const exportPng = useCallback(() => {
-    const el = ref.current?.querySelector('.react-flow__viewport') as HTMLElement | null
+  const exportPng = useCallback(async () => {
+    const root = ref.current?.querySelector('.react-flow') as HTMLElement | null
+    const viewport = ref.current?.querySelector('.react-flow__viewport') as HTMLElement | null
+    const el = root ?? viewport
     if (!el) return
-    toPng(el, { backgroundColor: '#fafbfc', pixelRatio: 2 }).then(url => { const a = document.createElement('a'); a.href = url; a.download = `fault_tree_${new Date().toISOString().slice(0,10)}.png`; a.click() })
+    try { await (document as Document & { fonts?: { ready: Promise<unknown> } }).fonts?.ready } catch { /* noop */ }
+    const styleEl = document.createElement('style')
+    styleEl.setAttribute('data-png-export', '1')
+    styleEl.textContent = `
+      .react-flow__edge-text { font: 500 11px Arial, Helvetica, sans-serif !important; fill: #1a202c !important; }
+      .react-flow__edge-textbg { fill: #ffffff !important; }
+    `
+    document.head.appendChild(styleEl)
+    try {
+      const url = await toPng(el, {
+        backgroundColor: '#fafbfc',
+        pixelRatio: 2,
+        cacheBust: true,
+        filter: (node) => {
+          if (node instanceof HTMLElement) {
+            if (node.classList?.contains('react-flow__attribution')) return false
+            if (node.classList?.contains('react-flow__minimap')) return false
+            if (node.classList?.contains('react-flow__controls')) return false
+            if (node.classList?.contains('react-flow__panel')) return false
+          }
+          return true
+        },
+      })
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `fault_tree_${new Date().toISOString().slice(0,10)}.png`
+      a.click()
+    } finally {
+      styleEl.remove()
+    }
   }, [])
 
   return (
