@@ -22,19 +22,21 @@
 
 ## Current Iteration
 
-- Iteration: 25
-- Working on: Task-022: Service map persistence, node editing, position tracking
+- Iteration: 26
+- Working on: Task-023: ISO 22301 compliance + optional sections picker
 - Status: Complete
 
 ## Last Completed
 
-- Task-022: Service map persistence, node editing, and position tracking
-- Tests: Build passes
+- Task-023: ISO 22301 compliance + optional sections picker (commit: 5e99c22)
+- Tests: Build passes (2,897 KB bundle, clean tsc)
 - Key decisions:
-  - Serialized nodes/edges stored via useWorkbenchData for localStorage persistence
-  - onNodeDragStop persists position changes
-  - Double-click node opens edit panel for name and category
-  - All mutations (add, remove, connect, update, delete, reset) persist changes
+  - Added Risk Register (ISO Clause 8.2.3) as mandatory section in PDF/DOCX
+  - Rewrote exportAllCsv to read real localStorage data (was hardcoded demo)
+  - Created BcpExportOptions with 8 toggles for Tier 2 optional sections
+  - Single Export toolbar button opens ExportDialog with format choice + checkboxes
+  - Lean default: Cost Analysis + Metric Comparison on; rest opt-in
+  - Optional appendices B-G auto-lettered in both PDF and DOCX
 
 ## Blockers
 
