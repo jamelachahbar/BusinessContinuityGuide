@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect, useRef } from 'react'
 import {
   makeStyles, shorthands, mergeClasses, tokens,
   Badge, Button,
+  Accordion, AccordionHeader, AccordionItem, AccordionPanel,
 } from '@fluentui/react-components'
 import {
   Checkmark16Filled,
@@ -276,11 +277,13 @@ export default function ImplementTab() {
   }
 
   return (
-    <div>
+    <Accordion collapsible multiple>
       {/* ──── 7. Response Plan by Scope (INTERACTIVE) ──── */}
-      <div className={s.section}>
+      <AccordionItem value="s7">
+        <AccordionHeader>7. Response Plan by Scope</AccordionHeader>
+        <AccordionPanel>
         <div className={s.sectionHeader}>
-          <h3 className={s.sectionTitle}>7. Response Plan by Scope</h3>
+          <div></div>
           <div style={{ display: 'flex', gap: '6px' }}>
             <Button icon={<Add20Regular />} size="small" onClick={() => setResponse([...response, { scope: '', availability: '', recoverability: '', resources: '', continuity: '', preparation: '' }])}>Add Scope</Button>
             <Button icon={<ArrowReset20Regular />} size="small" appearance="subtle" onClick={resetResp}>Reset</Button>
@@ -314,12 +317,15 @@ export default function ImplementTab() {
             </tbody>
           </table>
         </div>
-      </div>
+      </AccordionPanel>
+      </AccordionItem>
 
       {/* ──── 8. Architecture +BCDR (INTERACTIVE) ──── */}
-      <div className={s.section}>
+      <AccordionItem value="s8">
+        <AccordionHeader>8. Architecture | Continuity Design (+BCDR)</AccordionHeader>
+        <AccordionPanel>
         <div className={s.sectionHeader}>
-          <h3 className={s.sectionTitle}>8. Architecture | Continuity Design (+BCDR)</h3>
+          <div></div>
           <div style={{ display: 'flex', gap: '6px' }}>
             <Button icon={<Add20Regular />} size="small" onClick={() => setDesign([...design, { component: '', category: '', sla: '', ha: '', dr: '', remediation: '', status: 'new' }])}>Add</Button>
             <Button icon={<ArrowReset20Regular />} size="small" appearance="subtle" onClick={resetDesign}>Reset</Button>
@@ -354,12 +360,15 @@ export default function ImplementTab() {
             </tbody>
           </table>
         </div>
-      </div>
+      </AccordionPanel>
+      </AccordionItem>
 
       {/* ──── 9. Cost Comparison (INTERACTIVE) ──── */}
-      <div className={s.section}>
+      <AccordionItem value="s9">
+        <AccordionHeader>9. Cost Comparison (−BCDR vs. +BCDR)</AccordionHeader>
+        <AccordionPanel>
         <div className={s.sectionHeader}>
-          <h3 className={s.sectionTitle}>9. Cost Comparison (&minus;BCDR vs. +BCDR)</h3>
+          <div></div>
           <div style={{ display: 'flex', gap: '6px' }}>
             <Button icon={<Add20Regular />} size="small" onClick={() => setCost([...cost, { component: '', currentCost: 0, bcdrCost: 0 }])}>Add</Button>
             <Button icon={<ArrowReset20Regular />} size="small" appearance="subtle" onClick={resetCost}>Reset</Button>
@@ -396,12 +405,15 @@ export default function ImplementTab() {
             </tbody>
           </table>
         </div>
-      </div>
+      </AccordionPanel>
+      </AccordionItem>
 
       {/* ──── 10. Metric Comparison (INTERACTIVE) ──── */}
-      <div className={s.section}>
+      <AccordionItem value="s10">
+        <AccordionHeader>10. Metric Comparison (+BCDR)</AccordionHeader>
+        <AccordionPanel>
         <div className={s.sectionHeader}>
-          <h3 className={s.sectionTitle}>10. Metric Comparison (+BCDR)</h3>
+          <div></div>
           <div style={{ display: 'flex', gap: '6px' }}>
             <Button icon={<Add20Regular />} size="small" onClick={() => setMetrics([...metrics, { component: '', beforeAvail: '', afterAvail: '', beforeRel: '', afterRel: '', beforeSec: '', afterSec: '' }])}>Add</Button>
             <Button icon={<ArrowReset20Regular />} size="small" appearance="subtle" onClick={resetMetrics}>Reset</Button>
@@ -433,19 +445,24 @@ export default function ImplementTab() {
             </tbody>
           </table>
         </div>
-      </div>
+      </AccordionPanel>
+      </AccordionItem>
 
       {/* ──── 11. Fault Tree +BCDR (INTERACTIVE via FaultTree component) ──── */}
-      <div className={s.section}>
-        <h3 className={s.sectionTitle}>11. Fault Tree Analysis (+BCDR)</h3>
+      <AccordionItem value="s11">
+        <AccordionHeader>11. Fault Tree Analysis (+BCDR)</AccordionHeader>
+        <AccordionPanel>
         <p className={s.desc}>Build the post-remediation fault tree showing reduced failure probability. This uses a separate data set from the Assess fault tree so you can compare before vs. after.</p>
         <FaultTree storageKey="phase2-fta-after" afterBcdr />
-      </div>
+      </AccordionPanel>
+      </AccordionItem>
 
       {/* ──── 12. Contingency Plan (INTERACTIVE) ──── */}
-      <div className={s.section}>
+      <AccordionItem value="s12">
+        <AccordionHeader>12. Contingency Plan</AccordionHeader>
+        <AccordionPanel>
         <div className={s.sectionHeader}>
-          <h3 className={s.sectionTitle}>12. Contingency Plan</h3>
+          <div></div>
           <div style={{ display: 'flex', gap: '6px' }}>
             <Button icon={<Add20Regular />} size="small" onClick={() => setSteps([...steps, ''])}>Add Step</Button>
             <Button icon={<ArrowReset20Regular />} size="small" appearance="subtle" onClick={resetSteps}>Reset</Button>
@@ -468,12 +485,15 @@ export default function ImplementTab() {
             </div>
           </div>
         ))}
-      </div>
+      </AccordionPanel>
+      </AccordionItem>
 
       {/* ──── 13. Role Assignment (INTERACTIVE) ──── */}
-      <div className={s.section}>
+      <AccordionItem value="s13">
+        <AccordionHeader>13. Role Assignment</AccordionHeader>
+        <AccordionPanel>
         <div className={s.sectionHeader}>
-          <h3 className={s.sectionTitle}>13. Role Assignment</h3>
+          <div></div>
           <div style={{ display: 'flex', gap: '6px' }}>
             <Button icon={<Add20Regular />} size="small" onClick={() => setRoles([...roles, { role: '', name: '', team: '', responsibility: '', escalation: '' }])}>Add</Button>
             <Button icon={<ArrowReset20Regular />} size="small" appearance="subtle" onClick={resetRoles}>Reset</Button>
@@ -498,11 +518,13 @@ export default function ImplementTab() {
             </tbody>
           </table>
         </div>
-      </div>
+      </AccordionPanel>
+      </AccordionItem>
 
       {/* ──── 14. DR Runbook (Failover + Failback) — WAF aligned ──── */}
-      <div className={s.section}>
-        <h3 className={s.sectionTitle}>14. DR Runbook</h3>
+      <AccordionItem value="s14">
+        <AccordionHeader>14. DR Runbook</AccordionHeader>
+        <AccordionPanel>
         <p className={s.desc}>Step-by-step failover and failback procedures aligned to the Azure Well-Architected guidance. Each step has an owner and a validation criterion. Reorder steps with the arrows.</p>
 
         {/* Failover */}
@@ -579,12 +601,15 @@ export default function ImplementTab() {
           </table>
         </div>
         <div className={s.note}>Tip: treat the runbook like production code — version it in Git and keep an offline copy so it's reachable during an outage.</div>
-      </div>
+      </AccordionPanel>
+      </AccordionItem>
 
       {/* ──── 15. Escalation & Severity Matrix — WAF aligned ──── */}
-      <div className={s.section}>
+      <AccordionItem value="s15">
+        <AccordionHeader>15. Escalation &amp; Severity Matrix</AccordionHeader>
+        <AccordionPanel>
         <div className={s.sectionHeader}>
-          <h3 className={s.sectionTitle}>15. Escalation &amp; Severity Matrix</h3>
+          <div></div>
           <div style={{ display: 'flex', gap: '6px' }}>
             <Button icon={<Add20Regular />} size="small" onClick={() => setSeverity([...severity, { severity: '', description: '', example: '', declaration: '', stakeholders: '' }])}>Add</Button>
             <Button icon={<ArrowReset20Regular />} size="small" appearance="subtle" onClick={resetSeverity}>Reset</Button>
@@ -619,12 +644,15 @@ export default function ImplementTab() {
             </tbody>
           </table>
         </div>
-      </div>
+      </AccordionPanel>
+      </AccordionItem>
 
       {/* ──── 16. Communication Plan — WAF aligned ──── */}
-      <div className={s.section}>
+      <AccordionItem value="s16">
+        <AccordionHeader>16. Communication Plan</AccordionHeader>
+        <AccordionPanel>
         <div className={s.sectionHeader}>
-          <h3 className={s.sectionTitle}>16. Communication Plan</h3>
+          <div></div>
           <div style={{ display: 'flex', gap: '6px' }}>
             <Button icon={<Add20Regular />} size="small" onClick={() => setComms([...comms, { audience: '', channel: '', frequency: '', template: '', owner: '' }])}>Add</Button>
             <Button icon={<ArrowReset20Regular />} size="small" appearance="subtle" onClick={resetComms}>Reset</Button>
@@ -656,7 +684,8 @@ export default function ImplementTab() {
             </tbody>
           </table>
         </div>
-      </div>
-    </div>
+      </AccordionPanel>
+      </AccordionItem>
+    </Accordion>
   )
 }

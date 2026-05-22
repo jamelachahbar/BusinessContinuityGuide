@@ -7,6 +7,7 @@ import {
   Card,
   Badge,
   Button,
+  Accordion, AccordionHeader, AccordionItem, AccordionPanel,
 } from '@fluentui/react-components'
 import {
   Checkmark16Filled,
@@ -245,10 +246,11 @@ export default function TestTab() {
   }
 
   return (
-    <div>
+    <Accordion collapsible multiple>
       {/* ── 14. Test Summary (INTERACTIVE) ── */}
-      <div className={styles.section}>
-        <h3 className={styles.sectionTitle}>14. Test Summary</h3>
+      <AccordionItem value="s14">
+        <AccordionHeader>14. Test Summary</AccordionHeader>
+        <AccordionPanel>
         <p className={styles.subsectionDesc}>Track all testing activities and results. Click cells to edit, click status badges to cycle through Passed/Degraded/Failed.</p>
 
         <div className={styles.summaryGrid}>
@@ -308,11 +310,13 @@ export default function TestTab() {
             </tbody>
           </table>
         </div>
-      </div>
+      </AccordionPanel>
+      </AccordionItem>
 
       {/* ── 15. Continuity Drill (STATIC REFERENCE) ── */}
-      <div className={styles.section}>
-        <h3 className={styles.sectionTitle}>15. Continuity Drill (Failover Test)</h3>
+      <AccordionItem value="s15">
+        <AccordionHeader>15. Continuity Drill (Failover Test)</AccordionHeader>
+        <AccordionPanel>
         <p className={styles.subsectionDesc}>Documented failover and failback procedures.</p>
         <Card className={styles.card}>
           <div className={styles.cardTitle}>Failover Procedure</div>
@@ -336,11 +340,13 @@ export default function TestTab() {
             ))}
           </ol>
         </Card>
-      </div>
+      </AccordionPanel>
+      </AccordionItem>
 
       {/* ── 16. UAT Test Plan (INTERACTIVE) ── */}
-      <div className={styles.section}>
-        <h3 className={styles.sectionTitle}>16. Test Plan (UAT)</h3>
+      <AccordionItem value="s16">
+        <AccordionHeader>16. Test Plan (UAT)</AccordionHeader>
+        <AccordionPanel>
         <p className={styles.subsectionDesc}>User Acceptance Testing cases. Click cells to edit, click priority to cycle.</p>
         <div className={styles.sectionHeader}>
           <div style={{ display: 'flex', gap: '8px' }}>
@@ -376,12 +382,15 @@ export default function TestTab() {
             </tbody>
           </table>
         </div>
-      </div>
+      </AccordionPanel>
+      </AccordionItem>
 
       {/* ── 17. Outage Communication Plan (INTERACTIVE) ── */}
-      <div className={styles.section}>
+      <AccordionItem value="s17">
+        <AccordionHeader>17. Outage Communication Plan</AccordionHeader>
+        <AccordionPanel>
         <div className={styles.sectionHeader}>
-          <h3 className={styles.sectionTitle}>17. Outage Communication Plan</h3>
+          <div></div>
           <div style={{ display: 'flex', gap: '8px' }}>
             <Button icon={<Add20Regular />} size="small" onClick={addCommScope}>Add Scope</Button>
             <Button icon={<ArrowReset20Regular />} size="small" appearance="subtle" onClick={resetCommPlan}>Reset</Button>
@@ -441,11 +450,13 @@ export default function TestTab() {
             </div>
           </Card>
         ))}
-      </div>
+      </AccordionPanel>
+      </AccordionItem>
 
       {/* ── 18. Maintain Application Continuity (INTERACTIVE) ── */}
-      <div className={styles.section}>
-        <h3 className={styles.sectionTitle}>18. Maintain Application Continuity</h3>
+      <AccordionItem value="s18">
+        <AccordionHeader>18. Maintain Application Continuity</AccordionHeader>
+        <AccordionPanel>
         <p className={styles.subsectionDesc}>Maintenance schedule for all continuity documentation and artifacts. Click cells to edit.</p>
         <div className={styles.sectionHeader}>
           <div style={{ display: 'flex', gap: '8px' }}>
@@ -478,7 +489,8 @@ export default function TestTab() {
             </tbody>
           </table>
         </div>
-      </div>
-    </div>
+      </AccordionPanel>
+      </AccordionItem>
+    </Accordion>
   )
 }

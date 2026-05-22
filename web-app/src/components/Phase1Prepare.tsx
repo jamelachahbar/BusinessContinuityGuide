@@ -16,7 +16,6 @@ import {
   Tab,
   type SelectTabData,
   type SelectTabEvent,
-  Select,
 } from '@fluentui/react-components'
 import {
   Checkmark16Filled,
@@ -30,7 +29,7 @@ import {
 import { downloadCsv } from '../utils/csvExport'
 import { downloadRaciExcel, downloadExcel } from '../utils/excelExport'
 import { useWorkbenchData } from '../hooks/useWorkbenchData'
-import { buildCriticalityMap, DEFAULT_CRITICALITY_LEVELS, type ConfigurableCriticalityLevel } from '../utils/criticality'
+import { tiersFromCriticalityRows } from '../utils/criticality'
 import { isInScope, relevanceLabel, phase1TabRelevance } from '../utils/planFocus'
 import type { PlanFocus } from '../utils/planFocus'
 
@@ -323,6 +322,7 @@ interface CriticalityRow {
   tier: string
   criticality: string
   color: string
+  textColor: string
   businessView: string
   financial: string
   impacts: boolean[]
@@ -331,16 +331,16 @@ interface CriticalityRow {
 const defaultImpactColumns = ['Brand', 'Customer Trust', 'Customer Exp', 'Injury Risk', 'Employee Prod']
 
 const defaultCriticalityData: CriticalityRow[] = [
-  { tier: 'Tier 1', criticality: 'Mission Critical', color: '#dc3545', businessView: "Affects the company\u2019s mission and might noticeably affect corporate profit-and-loss statements", financial: 'n/a', impacts: [true, true, true, false, true] },
-  { tier: 'Tier 1', criticality: 'Business Critical', color: '#dc3545', businessView: 'Can lead to financial losses for the organization', financial: '> $250k', impacts: [true, true, true, false, true] },
-  { tier: 'Tier 1', criticality: 'Compliance Critical', color: '#dc3545', businessView: 'In heavily regulated industries, some applications might be critical as part of an effort to maintain compliance requirements', financial: 'n/a', impacts: [true, true, true, false, true] },
-  { tier: 'Tier 1', criticality: 'Safety Critical', color: '#dc3545', businessView: 'When lives or the physical safety of employees and customers is at risk during an outage', financial: 'n/a', impacts: [true, true, true, true, true] },
-  { tier: 'Tier 1', criticality: 'Security Critical', color: '#fd7e14', businessView: 'Some applications might not be mission critical, but outages could result in loss of data or unintended access', financial: 'n/a', impacts: [true, true, true, false, true] },
-  { tier: 'Tier 1', criticality: 'Unit Critical', color: '#fd7e14', businessView: 'Affects the mission of a specific business unit and its profit-and-loss statements', financial: '> $250k', impacts: [true, true, true, false, true] },
-  { tier: 'Tier 2', criticality: 'High', color: '#ffc107', businessView: 'Might not hinder the mission, but affects high-importance processes. Measurable losses can be quantified', financial: '< $250k', impacts: [false, true, true, false, true] },
-  { tier: 'Tier 3', criticality: 'Medium', color: '#28a745', businessView: 'Impact on processes is likely. Losses are low or immeasurable, but brand damage or upstream losses are likely', financial: '< $100k', impacts: [false, true, true, false, false] },
-  { tier: 'Tier 4', criticality: 'Low', color: '#28a745', businessView: "Impact on business processes isn\u2019t measurable. Neither brand damage nor upstream losses are likely. Localized impact on a single team", financial: '< $50k', impacts: [false, true, true, false, true] },
-  { tier: 'Tier 5', criticality: 'Unsupported', color: '#6c757d', businessView: "No business owner, team, or process that\u2019s associated with this application can justify any investment", financial: '$0', impacts: [false, false, false, false, true] },
+  { tier: 'Tier 1', criticality: 'Mission Critical', color: '#dc3545', textColor: '#ffffff', businessView: "Affects the company\u2019s mission and might noticeably affect corporate profit-and-loss statements", financial: 'n/a', impacts: [true, true, true, false, true] },
+  { tier: 'Tier 1', criticality: 'Business Critical', color: '#dc3545', textColor: '#ffffff', businessView: 'Can lead to financial losses for the organization', financial: '> $250k', impacts: [true, true, true, false, true] },
+  { tier: 'Tier 1', criticality: 'Compliance Critical', color: '#dc3545', textColor: '#ffffff', businessView: 'In heavily regulated industries, some applications might be critical as part of an effort to maintain compliance requirements', financial: 'n/a', impacts: [true, true, true, false, true] },
+  { tier: 'Tier 1', criticality: 'Safety Critical', color: '#dc3545', textColor: '#ffffff', businessView: 'When lives or the physical safety of employees and customers is at risk during an outage', financial: 'n/a', impacts: [true, true, true, true, true] },
+  { tier: 'Tier 1', criticality: 'Security Critical', color: '#fd7e14', textColor: '#ffffff', businessView: 'Some applications might not be mission critical, but outages could result in loss of data or unintended access', financial: 'n/a', impacts: [true, true, true, false, true] },
+  { tier: 'Tier 1', criticality: 'Unit Critical', color: '#fd7e14', textColor: '#ffffff', businessView: 'Affects the mission of a specific business unit and its profit-and-loss statements', financial: '> $250k', impacts: [true, true, true, false, true] },
+  { tier: 'Tier 2', criticality: 'High', color: '#ffc107', textColor: '#1a1a1a', businessView: 'Might not hinder the mission, but affects high-importance processes. Measurable losses can be quantified', financial: '< $250k', impacts: [false, true, true, false, true] },
+  { tier: 'Tier 3', criticality: 'Medium', color: '#28a745', textColor: '#ffffff', businessView: 'Impact on processes is likely. Losses are low or immeasurable, but brand damage or upstream losses are likely', financial: '< $100k', impacts: [false, true, true, false, false] },
+  { tier: 'Tier 4', criticality: 'Low', color: '#28a745', textColor: '#ffffff', businessView: "Impact on business processes isn\u2019t measurable. Neither brand damage nor upstream losses are likely. Localized impact on a single team", financial: '< $50k', impacts: [false, true, true, false, true] },
+  { tier: 'Tier 5', criticality: 'Unsupported', color: '#6c757d', textColor: '#ffffff', businessView: "No business owner, team, or process that\u2019s associated with this application can justify any investment", financial: '$0', impacts: [false, false, false, false, true] },
 ]
 
 /* ────────────────────────────────────────────────────
@@ -535,18 +535,31 @@ function BcmSection({ storageKey, defaultRows, description, sectionKey, tierHead
   const [rows, setRows, resetRows] = useWorkbenchData(storageKey, defaultRows)
   const [editingCell, setEditingCell] = useState<string | null>(null)
   const bcmHeaders = ['Requirement', ...tierHeaders]
+  const expectedLen = tierHeaders.length + 1
+
+  // Normalize rows so cell count matches current tier count (pad with
+  // 'as-required' or truncate). Display-only — underlying store is
+  // updated lazily on the next edit.
+  const normalizedRows = rows.map(row => {
+    if (row.length === expectedLen) return row
+    if (row.length < expectedLen) {
+      return [...row, ...Array(expectedLen - row.length).fill('as-required')]
+    }
+    return row.slice(0, expectedLen)
+  })
 
   const updateCell = (ri: number, ci: number, value: string) => {
-    const updated = rows.map((row, r) => r === ri ? row.map((cell, c) => c === ci ? value : cell) : row)
+    const updated = normalizedRows.map((row, r) => r === ri ? row.map((cell, c) => c === ci ? value : cell) : row)
     setRows(updated)
   }
 
   const addRow = () => {
-    setRows([...rows, ['', 'as-required', 'as-required', 'as-required', 'as-required', 'as-required']])
+    const newRow = ['', ...Array(tierHeaders.length).fill('as-required')]
+    setRows([...normalizedRows, newRow])
   }
 
   const deleteRow = (ri: number) => {
-    setRows(rows.filter((_, r) => r !== ri))
+    setRows(normalizedRows.filter((_, r) => r !== ri))
   }
 
   const handleCellClick = (ri: number, ci: number, value: string) => {
@@ -564,8 +577,8 @@ function BcmSection({ storageKey, defaultRows, description, sectionKey, tierHead
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <p className={styles.subsectionDesc}>{description}</p>
         <div className={styles.headerActions}>
-          <Button appearance="subtle" size="small" onClick={() => downloadCsv(`phase1-bcm-${sectionKey}.csv`, { name: 'BCM', headers: bcmHeaders, rows: rows.map(row => [row[0], ...row.slice(1).map(v => v === 'required' ? 'Required' : v === 'not-required' ? 'Not Required' : v === 'as-required' ? 'As Required' : v)]) })} icon={<ArrowDownload20Regular />}>Export CSV</Button>
-          <Button appearance="subtle" size="small" onClick={() => downloadExcel({ name: `BCM - ${sectionKey}`, headers: bcmHeaders, rows: rows.map(row => [row[0], ...row.slice(1).map(v => v === 'required' ? 'Required' : v === 'not-required' ? 'Not Required' : v === 'as-required' ? 'As Required' : v)]) }, `phase1-bcm-${sectionKey}.xlsx`)} icon={<ArrowDownload20Regular />}>Export Excel</Button>
+          <Button appearance="subtle" size="small" onClick={() => downloadCsv(`phase1-bcm-${sectionKey}.csv`, { name: 'BCM', headers: bcmHeaders, rows: normalizedRows.map(row => [row[0], ...row.slice(1).map(v => v === 'required' ? 'Required' : v === 'not-required' ? 'Not Required' : v === 'as-required' ? 'As Required' : v)]) })} icon={<ArrowDownload20Regular />}>Export CSV</Button>
+          <Button appearance="subtle" size="small" onClick={() => downloadExcel({ name: `BCM - ${sectionKey}`, headers: bcmHeaders, rows: normalizedRows.map(row => [row[0], ...row.slice(1).map(v => v === 'required' ? 'Required' : v === 'not-required' ? 'Not Required' : v === 'as-required' ? 'As Required' : v)]) }, `phase1-bcm-${sectionKey}.xlsx`)} icon={<ArrowDownload20Regular />}>Export Excel</Button>
           <Button appearance="subtle" size="small" onClick={resetRows} icon={<ArrowReset20Regular />}>Reset</Button>
         </div>
       </div>
@@ -580,7 +593,7 @@ function BcmSection({ storageKey, defaultRows, description, sectionKey, tierHead
             </tr>
           </thead>
           <tbody>
-            {rows.map((row, ri) => (
+            {normalizedRows.map((row, ri) => (
               <tr key={ri}>
                 {row.map((cell, ci) => {
                   const key = `${storageKey}-${ri}-${ci}`
@@ -632,17 +645,16 @@ function Phase1Prepare() {
   const [testPlans, setTestPlans, resetTestPlans] = useWorkbenchData('phase1_testPlans', defaultTestPlansData)
   const [faultRows, setFaultRows, resetFault] = useWorkbenchData('phase1_faultModel', defaultFaultModelData)
   const [settings] = useWorkbenchData<{ planFocus?: PlanFocus }>('settings', { planFocus: 'bcdr' })
-  const [critLevels] = useWorkbenchData<ConfigurableCriticalityLevel[]>('criticalityLevels', DEFAULT_CRITICALITY_LEVELS)
-  const getCriticalityColor = buildCriticalityMap(critLevels)
 
-  // Derive BCM tier headers from the Criticality Model (first 5 tiers)
-  const bcmTierHeaders = Array.from({ length: 5 }, (_, i) => {
-    const row = criticalityRows[i]
-    if (row && (row.tier || row.criticality)) {
-      return [row.tier, row.criticality].filter(Boolean).join(' ').trim() || defaultBcmTierHeaders[i]
-    }
-    return defaultBcmTierHeaders[i]
-  })
+  // Derive BCM tier headers from the Criticality Model (variable length).
+  // Each header combines tier + criticality name (e.g. "Tier 1 Mission Critical").
+  // If no criticality rows exist, fall back to defaults.
+  const bcmTierHeaders = criticalityRows.length > 0
+    ? criticalityRows.map((row, i) => {
+        const combined = [row.tier, row.criticality].filter(Boolean).join(' ').trim()
+        return combined || defaultBcmTierHeaders[i] || `Tier ${i + 1}`
+      })
+    : defaultBcmTierHeaders
 
   const [editingCell, setEditingCell] = useState<string | null>(null)
 
@@ -661,21 +673,17 @@ function Phase1Prepare() {
   }
 
   /* ── Criticality helpers ── */
-  const updateCritField = (idx: number, field: 'tier' | 'criticality' | 'businessView' | 'financial' | 'color', value: string) => {
+  const updateCritField = (idx: number, field: 'tier' | 'criticality' | 'businessView' | 'financial' | 'color' | 'textColor', value: string) => {
     setCriticalityRows(criticalityRows.map((row, i) => {
       if (i !== idx) return row
-      const updated = { ...row, [field]: value }
-      if (field === 'criticality') {
-        updated.color = getCriticalityColor(value).color
-      }
-      return updated
+      return { ...row, [field]: value }
     }))
   }
   const updateCritImpact = (rowIdx: number, colIdx: number, value: boolean) => {
     setCriticalityRows(criticalityRows.map((row, i) => i === rowIdx ? { ...row, impacts: row.impacts.map((v, j) => j === colIdx ? value : v) } : row))
   }
   const addCritRow = () => {
-    setCriticalityRows([...criticalityRows, { tier: '', criticality: '', color: '#6c757d', businessView: '', financial: '', impacts: impactColumns.map(() => false) }])
+    setCriticalityRows([...criticalityRows, { tier: '', criticality: '', color: '#6c757d', textColor: '#ffffff', businessView: '', financial: '', impacts: impactColumns.map(() => false) }])
   }
   const deleteCritRow = (idx: number) => {
     setCriticalityRows(criticalityRows.filter((_, i) => i !== idx))
@@ -928,6 +936,8 @@ function Phase1Prepare() {
                   <tr>
                     <th className={styles.th}>Tier</th>
                     <th className={styles.th}>Criticality</th>
+                    <th className={styles.thCenter} style={{ width: '60px' }}>Color</th>
+                    <th className={styles.thCenter} style={{ width: '60px' }}>Text</th>
                     <th className={styles.th} style={{ whiteSpace: 'normal' }}>Business View</th>
                     <th className={styles.thCenter}>Financial</th>
                     {impactColumns.map((col: string, ci: number) => {
@@ -956,52 +966,29 @@ function Phase1Prepare() {
                 </thead>
                 <tbody>
                   {criticalityRows.map((row, i) => {
-                    const badgeKey = `crit-${i}-badge`
-                    const isBadgeEditing = editingCell === badgeKey
+                    const rowColor = row.color || '#6c757d'
+                    const rowTextColor = row.textColor || '#ffffff'
                     return (
                       <tr key={i}>
                         {editCell(`crit-${i}-tier`, row.tier, (v) => updateCritField(i, 'tier', v), styles.td)}
-                        <td
-                          className={mergeClasses(styles.td, styles.editableCell)}
-                          onClick={() => !isBadgeEditing && setEditingCell(badgeKey)}
-                        >
-                          {isBadgeEditing ? (
-                            <Select
-                              autoFocus
-                              value={row.criticality}
-                              onChange={(_, d) => { updateCritField(i, 'criticality', d.value); setEditingCell(null) }}
-                              onBlur={() => setEditingCell(null)}
-                              size="small"
-                              style={{ minWidth: '160px' }}
-                            >
-                              <option value="">-- Select --</option>
-                              {critLevels.map(opt => (
-                                <option key={opt.name} value={opt.name}>{opt.name}</option>
-                              ))}
-                            </Select>
-                          ) : (
-                            (() => {
-                              const cc = getCriticalityColor(row.criticality)
-                              return (
-                                <Badge
-                                  appearance="filled"
-                                  style={{
-                                    backgroundColor: cc.color,
-                                    color: cc.textColor,
-                                    maxWidth: '100%',
-                                    height: 'auto',
-                                    minHeight: '20px',
-                                    padding: '2px 8px',
-                                    whiteSpace: 'normal',
-                                    lineHeight: '1.3',
-                                    textAlign: 'center',
-                                  }}
-                                >
-                                  {row.criticality || '\u00A0'}
-                                </Badge>
-                              )
-                            })()
-                          )}
+                        {editCell(`crit-${i}-name`, row.criticality, (v) => updateCritField(i, 'criticality', v), styles.td, { fontWeight: 600 })}
+                        <td className={styles.tdCenter}>
+                          <input
+                            type="color"
+                            aria-label="Criticality color"
+                            value={rowColor}
+                            onChange={(e) => updateCritField(i, 'color', e.target.value)}
+                            style={{ width: '32px', height: '24px', border: 'none', background: 'transparent', cursor: 'pointer', padding: 0 }}
+                          />
+                        </td>
+                        <td className={styles.tdCenter}>
+                          <input
+                            type="color"
+                            aria-label="Criticality text color"
+                            value={rowTextColor}
+                            onChange={(e) => updateCritField(i, 'textColor', e.target.value)}
+                            style={{ width: '32px', height: '24px', border: 'none', background: 'transparent', cursor: 'pointer', padding: 0 }}
+                          />
                         </td>
                         {editCell(`crit-${i}-bv`, row.businessView, (v) => updateCritField(i, 'businessView', v), styles.td)}
                         {editCell(`crit-${i}-fin`, row.financial, (v) => updateCritField(i, 'financial', v), styles.tdCenter)}
@@ -1052,7 +1039,16 @@ function Phase1Prepare() {
         )}
 
         {/* ── Fault Model & Resilience Strategies ── */}
-        {selectedTab === 'faultModel' && (
+        {selectedTab === 'faultModel' && (() => {
+          const allTiers = tiersFromCriticalityRows(criticalityRows)
+          // Fault Model has three strategy columns: Top tier, middle tier, lower tiers.
+          // Derive header labels from the live Criticality Model so renames propagate.
+          const tier1Label = allTiers[0] ? `${allTiers[0]} Strategy` : 'Tier 1 Strategy'
+          const tier2Label = allTiers[1] ? `${allTiers[1]} Strategy` : 'Tier 2 Strategy'
+          const tier3Label = allTiers.length > 2
+            ? `${allTiers.slice(2).join(', ')} Strategy`
+            : 'Tier 3\u20135 Strategy'
+          return (
           <div className={styles.section}>
             <div className={styles.sectionHeader}>
               <h2 className={styles.sectionHeaderTitle}>Fault Model &amp; Resilience Strategies</h2>
@@ -1073,9 +1069,9 @@ function Phase1Prepare() {
                   <tr>
                     <th className={styles.th}>Failure Type</th>
                     <th className={styles.th} style={{ whiteSpace: 'normal' }}>Description</th>
-                    <th className={styles.th} style={{ whiteSpace: 'normal' }}>Tier 1 Strategy</th>
-                    <th className={styles.th} style={{ whiteSpace: 'normal' }}>Tier 2 Strategy</th>
-                    <th className={styles.th} style={{ whiteSpace: 'normal' }}>Tier 3{'\u2013'}5 Strategy</th>
+                    <th className={styles.th} style={{ whiteSpace: 'normal' }}>{tier1Label}</th>
+                    <th className={styles.th} style={{ whiteSpace: 'normal' }}>{tier2Label}</th>
+                    <th className={styles.th} style={{ whiteSpace: 'normal' }}>{tier3Label}</th>
                     <th className={styles.thCenter} style={{ width: '40px' }}></th>
                   </tr>
                 </thead>
@@ -1097,7 +1093,8 @@ function Phase1Prepare() {
             </div>
             <Button appearance="subtle" size="small" className={styles.addRowButton} onClick={addFaultRow} icon={<Add20Regular />}>Add Row</Button>
           </div>
-        )}
+        )
+        })()}
 
         {/* ── RACI Matrix ── */}
         {selectedTab === 'raci' && (

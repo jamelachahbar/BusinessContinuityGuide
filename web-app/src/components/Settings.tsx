@@ -20,7 +20,32 @@ import {
 } from '@fluentui/react-icons'
 import { useWorkbenchData } from '../hooks/useWorkbenchData'
 import { useWorkbenchContext } from '../context/WorkbenchContext'
-import { DEFAULT_CRITICALITY_LEVELS, type ConfigurableCriticalityLevel } from '../utils/criticality'
+
+// Minimal Phase 1 Criticality Model row shape used by Settings. Other fields
+// (businessView, financial, impacts) are preserved on round-trip but only
+// the four columns below are edited here.
+interface CriticalityRowMinimal {
+  tier: string
+  criticality: string
+  color: string
+  textColor: string
+  businessView?: string
+  financial?: string
+  impacts?: boolean[]
+}
+
+const DEFAULT_CRITICALITY_ROWS: CriticalityRowMinimal[] = [
+  { tier: 'Tier 1', criticality: 'Mission Critical', color: '#dc3545', textColor: '#ffffff' },
+  { tier: 'Tier 1', criticality: 'Business Critical', color: '#dc3545', textColor: '#ffffff' },
+  { tier: 'Tier 1', criticality: 'Compliance Critical', color: '#dc3545', textColor: '#ffffff' },
+  { tier: 'Tier 1', criticality: 'Safety Critical', color: '#dc3545', textColor: '#ffffff' },
+  { tier: 'Tier 1', criticality: 'Security Critical', color: '#fd7e14', textColor: '#ffffff' },
+  { tier: 'Tier 1', criticality: 'Unit Critical', color: '#fd7e14', textColor: '#ffffff' },
+  { tier: 'Tier 2', criticality: 'High', color: '#ffc107', textColor: '#1a1a1a' },
+  { tier: 'Tier 3', criticality: 'Medium', color: '#28a745', textColor: '#ffffff' },
+  { tier: 'Tier 4', criticality: 'Low', color: '#28a745', textColor: '#ffffff' },
+  { tier: 'Tier 5', criticality: 'Unsupported', color: '#6c757d', textColor: '#ffffff' },
+]
 
 const useStyles = makeStyles({
   container: {
@@ -124,7 +149,7 @@ function Settings() {
   const styles = useStyles()
   const { storagePrefix } = useWorkbenchContext()
   const [settings, setSettings] = useWorkbenchData<AppSettings>('settings', DEFAULT_SETTINGS)
-  const [critLevels, setCritLevels, resetCritLevels] = useWorkbenchData<ConfigurableCriticalityLevel[]>('criticalityLevels', DEFAULT_CRITICALITY_LEVELS)
+  const [critRows, setCritRows, resetCritRows] = useWorkbenchData<CriticalityRowMinimal[]>('phase1_criticalityModel', DEFAULT_CRITICALITY_ROWS)
   const [focusedLevelName, setFocusedLevelName] = useState<string>('')
 
   const updateField = <K extends keyof AppSettings>(field: K, value: AppSettings[K]) => {
@@ -295,40 +320,51 @@ function Settings() {
           <div>
             <div className={styles.cardTitle}>Criticality Levels</div>
             <div className={styles.cardDesc}>
-              Define the criticality levels used throughout the workbench. Changes apply to all phases.
+              Define the tiers and criticality levels used throughout the workbench. These rows power the Phase 1 Criticality Model, Fault Model tier columns, Business Commitment Model headers, and the criticality dropdowns in Phase 3.
             </div>
           </div>
-          <Button appearance="subtle" size="small" onClick={resetCritLevels} icon={<ArrowReset20Regular />}>Reset</Button>
+          <Button appearance="subtle" size="small" onClick={resetCritRows} icon={<ArrowReset20Regular />}>Reset</Button>
         </div>
         <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '12px' }}>
           <thead>
             <tr>
-              <th style={{ textAlign: 'left', padding: '8px', borderBottom: '2px solid #e0e0e0', fontSize: '13px', fontWeight: 600 }}>Level Name</th>
+              <th style={{ textAlign: 'left', padding: '8px', borderBottom: '2px solid #e0e0e0', fontSize: '13px', fontWeight: 600, width: '120px' }}>Tier</th>
+              <th style={{ textAlign: 'left', padding: '8px', borderBottom: '2px solid #e0e0e0', fontSize: '13px', fontWeight: 600 }}>Criticality</th>
               <th style={{ textAlign: 'center', padding: '8px', borderBottom: '2px solid #e0e0e0', fontSize: '13px', fontWeight: 600, width: '80px' }}>Color</th>
               <th style={{ textAlign: 'center', padding: '8px', borderBottom: '2px solid #e0e0e0', fontSize: '13px', fontWeight: 600, width: '80px' }}>Text</th>
               <th style={{ textAlign: 'center', padding: '8px', borderBottom: '2px solid #e0e0e0', width: '40px' }}></th>
             </tr>
           </thead>
           <tbody>
-            {critLevels.map((level, i) => (
+            {critRows.map((row, i) => (
               <tr key={i}>
                 <td style={{ padding: '6px 8px', borderBottom: '1px solid #f0f0f0' }}>
-                  <Input size="small" value={level.name} onFocus={() => setFocusedLevelName(level.name)} onChange={(_, d) => setCritLevels(critLevels.map((l, j) => j === i ? { ...l, name: d.value } : l))} onBlur={() => { renameCriticalityInData(focusedLevelName, level.name); setFocusedLevelName('') }} style={{ width: '100%' }} />
+                  <Input size="small" value={row.tier} onChange={(_, d) => setCritRows(critRows.map((r, j) => j === i ? { ...r, tier: d.value } : r))} style={{ width: '100%' }} />
+                </td>
+                <td style={{ padding: '6px 8px', borderBottom: '1px solid #f0f0f0' }}>
+                  <Input
+                    size="small"
+                    value={row.criticality}
+                    onFocus={() => setFocusedLevelName(row.criticality)}
+                    onChange={(_, d) => setCritRows(critRows.map((r, j) => j === i ? { ...r, criticality: d.value } : r))}
+                    onBlur={() => { renameCriticalityInData(focusedLevelName, row.criticality); setFocusedLevelName('') }}
+                    style={{ width: '100%' }}
+                  />
                 </td>
                 <td style={{ padding: '6px 8px', borderBottom: '1px solid #f0f0f0', textAlign: 'center' }}>
-                  <input type="color" value={level.color} onChange={e => setCritLevels(critLevels.map((l, j) => j === i ? { ...l, color: e.target.value } : l))} style={{ width: '32px', height: '28px', border: 'none', cursor: 'pointer', borderRadius: '4px' }} />
+                  <input type="color" value={row.color || '#6c757d'} onChange={e => setCritRows(critRows.map((r, j) => j === i ? { ...r, color: e.target.value } : r))} style={{ width: '32px', height: '28px', border: 'none', cursor: 'pointer', borderRadius: '4px' }} />
                 </td>
                 <td style={{ padding: '6px 8px', borderBottom: '1px solid #f0f0f0', textAlign: 'center' }}>
-                  <input type="color" value={level.textColor} onChange={e => setCritLevels(critLevels.map((l, j) => j === i ? { ...l, textColor: e.target.value } : l))} style={{ width: '32px', height: '28px', border: 'none', cursor: 'pointer', borderRadius: '4px' }} />
+                  <input type="color" value={row.textColor || '#ffffff'} onChange={e => setCritRows(critRows.map((r, j) => j === i ? { ...r, textColor: e.target.value } : r))} style={{ width: '32px', height: '28px', border: 'none', cursor: 'pointer', borderRadius: '4px' }} />
                 </td>
                 <td style={{ padding: '6px 8px', borderBottom: '1px solid #f0f0f0', textAlign: 'center' }}>
-                  <Button appearance="subtle" size="small" icon={<Delete20Regular />} onClick={() => setCritLevels(critLevels.filter((_, j) => j !== i))} />
+                  <Button appearance="subtle" size="small" icon={<Delete20Regular />} onClick={() => setCritRows(critRows.filter((_, j) => j !== i))} />
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-        <Button appearance="subtle" size="small" icon={<Add20Regular />} onClick={() => setCritLevels([...critLevels, { name: 'New Level', color: '#6c757d', textColor: '#ffffff' }])} style={{ marginTop: '8px' }}>Add Level</Button>
+        <Button appearance="subtle" size="small" icon={<Add20Regular />} onClick={() => setCritRows([...critRows, { tier: '', criticality: 'New Level', color: '#6c757d', textColor: '#ffffff', businessView: '', financial: '', impacts: [] }])} style={{ marginTop: '8px' }}>Add Level</Button>
       </Card>
 
       <Card className={styles.card}>

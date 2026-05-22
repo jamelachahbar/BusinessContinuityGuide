@@ -86,3 +86,55 @@ export function buildCriticalityMap(levels: ConfigurableCriticalityLevel[]): (na
   }
   return (name: string) => map[name.trim().toLowerCase()] ?? { name, color: '#6c757d', textColor: '#ffffff' }
 }
+
+/**
+ * Shape of a row inside the Phase 1 Criticality Model — the single source of
+ * truth for tiers + criticality levels across the workbench. Optional fields
+ * are tolerated so consumers can pass partial data without crashing.
+ */
+export interface CriticalityModelRowLike {
+  tier?: string
+  criticality?: string
+  color?: string
+  textColor?: string
+}
+
+/**
+ * Derive the configurable criticality-level list (used for dropdowns, badges,
+ * color lookups) from the Phase 1 Criticality Model rows. Deduplicates by
+ * criticality name, preserves order, and falls back to gray when missing.
+ */
+export function levelsFromCriticalityRows(rows: CriticalityModelRowLike[]): ConfigurableCriticalityLevel[] {
+  const seen = new Set<string>()
+  const out: ConfigurableCriticalityLevel[] = []
+  for (const r of rows ?? []) {
+    const name = (r?.criticality ?? '').trim()
+    if (!name) continue
+    const key = name.toLowerCase()
+    if (seen.has(key)) continue
+    seen.add(key)
+    out.push({
+      name,
+      color: r.color || '#6c757d',
+      textColor: r.textColor || '#ffffff',
+    })
+  }
+  return out.length > 0 ? out : DEFAULT_CRITICALITY_LEVELS
+}
+
+/**
+ * Derive the unique tier labels (in order of first appearance) from the
+ * Phase 1 Criticality Model rows. Used for table column headers (Fault Model,
+ * BCM) so tier names propagate automatically when edited in one place.
+ */
+export function tiersFromCriticalityRows(rows: CriticalityModelRowLike[]): string[] {
+  const seen = new Set<string>()
+  const out: string[] = []
+  for (const r of rows ?? []) {
+    const tier = (r?.tier ?? '').trim()
+    if (!tier || seen.has(tier)) continue
+    seen.add(tier)
+    out.push(tier)
+  }
+  return out
+}

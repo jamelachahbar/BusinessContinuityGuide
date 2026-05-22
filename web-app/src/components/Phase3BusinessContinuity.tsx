@@ -10,7 +10,7 @@ import {
 } from '@fluentui/react-icons'
 import { useWorkbenchData } from '../hooks/useWorkbenchData'
 import { downloadCsv, objectsToCsvSheet } from '../utils/csvExport'
-import { buildCriticalityMap, DEFAULT_CRITICALITY_LEVELS, type ConfigurableCriticalityLevel } from '../utils/criticality'
+import { buildCriticalityMap, levelsFromCriticalityRows, type CriticalityModelRowLike } from '../utils/criticality'
 import type { PlanFocus } from '../utils/planFocus'
 import HelpIcon from './HelpIcon'
 
@@ -161,7 +161,9 @@ export default function Phase3BusinessContinuity() {
   const [maint, setMaint, resetMaint] = useWorkbenchData<MaintRow[]>('phase3-maintenance', defMaint)
   const [activity, setActivity, resetActivity] = useWorkbenchData<ActivityRow[]>('phase3-activity', defActivity)
   const [settings] = useWorkbenchData<{ planFocus?: PlanFocus }>('settings', { planFocus: 'bcdr' })
-  const [critLevels] = useWorkbenchData<ConfigurableCriticalityLevel[]>('criticalityLevels', DEFAULT_CRITICALITY_LEVELS)
+  // Derive criticality levels from the Phase 1 Criticality Model (single source of truth).
+  const [criticalityRows] = useWorkbenchData<CriticalityModelRowLike[]>('phase1_criticalityModel', [])
+  const critLevels = levelsFromCriticalityRows(criticalityRows)
   const getCriticalityColor = buildCriticalityMap(critLevels)
 
   const onTabSelect = (_: SelectTabEvent, d: SelectTabData) => setTab(d.value as string)
@@ -376,7 +378,17 @@ export default function Phase3BusinessContinuity() {
                           ) : (() => { const cc = getCriticalityColor(r.criticality); return <Badge appearance="filled" style={{ backgroundColor: cc.color, color: cc.textColor, maxWidth: '100%', height: 'auto', minHeight: '20px', padding: '2px 6px', whiteSpace: 'normal', lineHeight: '1.3', textAlign: 'center' }} size="small">{r.criticality}</Badge> })()}
                         </td>
                         {cell(`mb-${i}-w`, r.window, v => setMbco(mbco.map((x, j) => j === i ? { ...x, window: v } : x)), s.td)}
-                        <td className={s.tdC}><Badge appearance="outline" color={r.env === 'Azure' ? 'brand' : 'warning'} size="small" style={{ maxWidth: '100%', height: 'auto', minHeight: '20px', padding: '2px 6px', whiteSpace: 'normal', lineHeight: '1.3', textAlign: 'center' }}>{r.env}</Badge></td>
+                        <td className={mergeClasses(s.tdC, s.editC)} onClick={() => ec !== `mb-${i}-env` && setEc(`mb-${i}-env`)}>
+                          {ec === `mb-${i}-env` ? (
+                            <Select size="small" value={r.env} onChange={(_, d) => { setMbco(mbco.map((x, j) => j === i ? { ...x, env: d.value } : x)); setEc(null) }} onBlur={() => setEc(null)} style={{ minWidth: '120px' }}>
+                              <option value="Azure">Azure</option>
+                              <option value="On-premises">On-premises</option>
+                              <option value="Hybrid">Hybrid</option>
+                              <option value="Multi-cloud">Multi-cloud</option>
+                              <option value="Other">Other</option>
+                            </Select>
+                          ) : <Badge appearance="outline" color={r.env === 'Azure' ? 'brand' : r.env === 'On-premises' ? 'warning' : r.env === 'Hybrid' ? 'informative' : r.env === 'Multi-cloud' ? 'severe' : 'subtle'} size="small" style={{ maxWidth: '100%', height: 'auto', minHeight: '20px', padding: '2px 6px', whiteSpace: 'normal', lineHeight: '1.3', textAlign: 'center' }}>{r.env}</Badge>}
+                        </td>
                         {cell(`mb-${i}-loc`, r.location, v => setMbco(mbco.map((x, j) => j === i ? { ...x, location: v } : x)), s.td)}
                         {cell(`mb-${i}-up`, r.upstreamDeps, v => setMbco(mbco.map((x, j) => j === i ? { ...x, upstreamDeps: v } : x)), s.td)}
                         {cell(`mb-${i}-dn`, r.downstreamDeps, v => setMbco(mbco.map((x, j) => j === i ? { ...x, downstreamDeps: v } : x)), s.td)}
@@ -533,7 +545,7 @@ export default function Phase3BusinessContinuity() {
                       {cell(`mt-${i}-own`, r.owner, v => setMaint(maint.map((x, j) => j === i ? { ...x, owner: v } : x)), s.td)}
                       {cell(`mt-${i}-app`, r.approver, v => setMaint(maint.map((x, j) => j === i ? { ...x, approver: v } : x)), s.td)}
                       <td className={s.tdC} style={{ cursor: 'pointer' }} onClick={() => setMaint(maint.map((x, j) => j === i ? { ...x, status: statusValues[(statusValues.indexOf(x.status) + 1) % statusValues.length] } : x))}>
-                        <Badge appearance="filled" style={{ backgroundColor: statusColor(r.status), color: r.status === 'due-soon' ? '#1a1a1a' : '#fff', textAlign: 'center', justifyContent: 'center' }}>
+                        <Badge appearance="filled" style={{ backgroundColor: statusColor(r.status), color: r.status === 'due-soon' ? '#1a1a1a' : '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: '90px', textAlign: 'center' }}>
                           <StatusIcon s={r.status} />&nbsp;{statusLabel(r.status)}
                         </Badge>
                       </td>

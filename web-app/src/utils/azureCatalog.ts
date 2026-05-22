@@ -188,3 +188,141 @@ export const CATEGORY_COLORS: Record<string, { bg: string; accent: string }> = {
   'Third Party':           { bg: '#ffffff', accent: '#9e9e9e' },
   Custom:                  { bg: '#ffffff', accent: '#667eea' },
 }
+
+/**
+ * Curated Azure service SLA defaults (financially-backed availability
+ * percentages from Microsoft's published SLAs). Values reflect the most
+ * common / default SKU for each service — higher-tier or multi-zone
+ * deployments may exceed these. Keys are matched case-insensitively
+ * against the component name with simple normalization.
+ *
+ * Source: https://azure.microsoft.com/support/legal/sla/
+ * Last reviewed: 2025.
+ *
+ * For services with significantly different SLAs per tier, an entry is
+ * given for each common SKU (e.g. Redis Standard vs Premium).
+ */
+export const AZURE_SLA_DEFAULTS: Record<string, string> = {
+  // Identity
+  'microsoft entra id': '99.99%',
+  'microsoft entra id premium': '99.99%',
+  'azure ad b2c': '99.9%',
+  'managed identities': '99.99%',
+
+  // Networking
+  'azure front door': '99.99%',
+  'azure traffic manager': '99.99%',
+  'azure application gateway': '99.95%',
+  'azure load balancer': '99.99%',
+  'azure dns': '100%',
+  'azure cdn': '99.9%',
+  'azure firewall': '99.95%',
+  'azure virtual network': '99.9%',
+  'azure vpn gateway': '99.95%',
+  'azure expressroute': '99.95%',
+  'azure private link': '99.99%',
+  'azure ddos protection': '99.99%',
+  'azure bastion': '99.95%',
+  'azure nat gateway': '99.9%',
+
+  // Compute
+  'azure app service': '99.95%',
+  'app service': '99.95%',
+  'app service plan': '99.95%',
+  'azure functions': '99.95%',
+  'azure virtual machines': '99.9%',
+  'azure vm scale sets': '99.95%',
+  'azure static web apps': '99.95%',
+  'azure batch': '99.9%',
+  'azure spring apps': '99.95%',
+
+  // Containers
+  'azure kubernetes service (aks)': '99.95%',
+  'aks': '99.95%',
+  'azure container apps': '99.95%',
+  'azure container instances': '99.9%',
+  'azure container registry': '99.9%',
+  'azure red hat openshift': '99.95%',
+
+  // Databases
+  'azure sql database': '99.99%',
+  'azure sql managed instance': '99.99%',
+  'azure cosmos db': '99.99%',
+  'cosmos db': '99.99%',
+  'azure database for postgresql': '99.99%',
+  'azure database for mysql': '99.99%',
+  'azure database for mariadb': '99.99%',
+  'azure cache for redis': '99.9%',
+  'redis cache': '99.9%',
+  'azure managed instance for apache cassandra': '99.99%',
+
+  // Storage
+  'azure blob storage': '99.9%',
+  'blob storage': '99.9%',
+  'storage account': '99.9%',
+  'azure files': '99.9%',
+  'azure queue storage': '99.9%',
+  'azure table storage': '99.99%',
+  'azure data lake storage': '99.9%',
+  'azure managed disks': '99.9%',
+  'azure netapp files': '99.99%',
+
+  // Messaging
+  'azure service bus': '99.9%',
+  'service bus': '99.9%',
+  'azure event hubs': '99.95%',
+  'event hubs': '99.95%',
+  'azure event grid': '99.99%',
+  'event grid': '99.99%',
+  'azure notification hubs': '99.9%',
+  'azure signalr service': '99.9%',
+  'azure web pubsub': '99.9%',
+
+  // Security
+  'azure key vault': '99.99%',
+  'key vault': '99.99%',
+  'microsoft defender for cloud': '99.9%',
+  'azure sentinel (microsoft sentinel)': '99.9%',
+  'azure web application firewall': '99.95%',
+
+  // Monitoring
+  'azure monitor': '99.9%',
+  'application insights': '99.9%',
+  'log analytics': '99.9%',
+  'azure service health': '99.9%',
+
+  // AI + ML
+  'azure openai service': '99.9%',
+  'azure ai services': '99.9%',
+  'azure machine learning': '99.9%',
+  'azure ai search': '99.9%',
+  'azure bot service': '99.9%',
+
+  // Analytics
+  'azure synapse analytics': '99.9%',
+  'azure data factory': '99.9%',
+  'azure databricks': '99.95%',
+  'azure stream analytics': '99.9%',
+  'azure data explorer': '99.9%',
+
+  // Integration
+  'azure api management': '99.95%',
+  'api management': '99.95%',
+  'azure logic apps': '99.9%',
+
+  // Management
+  'azure site recovery': '99.9%',
+  'azure backup': '99.9%',
+  'azure automation': '99.9%',
+}
+
+/**
+ * Look up the published default SLA for an Azure service by name.
+ * Matching is case-insensitive and ignores leading/trailing whitespace.
+ * Returns undefined if no curated value exists.
+ */
+export function lookupSla(componentName: string): string | undefined {
+  if (!componentName) return undefined
+  const key = componentName.trim().toLowerCase()
+  return AZURE_SLA_DEFAULTS[key]
+}

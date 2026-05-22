@@ -27,6 +27,7 @@ import {
 } from 'recharts'
 import { useWorkbenchData } from '../../hooks/useWorkbenchData'
 import { downloadCsv, objectsToCsvSheet } from '../../utils/csvExport'
+import { lookupSla } from '../../utils/azureCatalog'
 import ServiceMap from './ServiceMap'
 import FaultTree from './FaultTree'
 import HelpIcon from '../HelpIcon'
@@ -163,14 +164,27 @@ interface MetricRow {
   composite: string
 }
 
-const defaultMetricAnalysis: MetricRow[] = [
-  { component: 'App Service', availability: '99.95%', reliability: '95%', security: '80%', composite: '91.7%' },
-  { component: 'Azure SQL', availability: '99.99%', reliability: '98%', security: '90%', composite: '96.0%' },
-  { component: 'Redis Cache', availability: '99.9%', reliability: '90%', security: '75%', composite: '88.3%' },
-  { component: 'Service Bus', availability: '99.9%', reliability: '92%', security: '85%', composite: '92.3%' },
-  { component: 'Storage Account', availability: '99.9%', reliability: '95%', security: '80%', composite: '91.6%' },
-  { component: 'Azure Functions', availability: '99.95%', reliability: '93%', security: '82%', composite: '91.7%' },
-]
+// Per-component reliability/security score overrides, keyed by component name.
+// Availability is always derived from the Gap Assessment SLA so the two tables
+// stay in sync.
+interface MetricScore {
+  reliability: string
+  security: string
+}
+type MetricScoreMap = Record<string, MetricScore>
+
+// Heuristic defaults derived from the Gap Assessment status when a component
+// has no explicit score override yet.
+function defaultScoresForGap(gap: GapStatus): MetricScore {
+  if (gap === 'met') return { reliability: '95%', security: '90%' }
+  if (gap === 'partial') return { reliability: '85%', security: '80%' }
+  return { reliability: '70%', security: '65%' }
+}
+
+function parsePct(value: string): number | null {
+  const n = parseFloat(value)
+  return isNaN(n) ? null : n
+}
 
 /* ────────────────────────────────────────────────────
    Helpers
@@ -220,6 +234,7 @@ export default function AssessTab() {
   const [biaMetrics, setBiaMetrics, resetBia] = useWorkbenchData<BiaMetricRow[]>('phase2-bia-metrics', defaultBiaMetrics)
   const [biaDeps, setBiaDeps] = useWorkbenchData<BiaDependencyGroup[]>('phase2-bia-deps', defaultBiaDeps)
   const [gapData, setGapData, resetGap] = useWorkbenchData<GapRow[]>('phase2-gap-assessment', defaultGapData)
+  const [metricScores, setMetricScores, resetMetricScores] = useWorkbenchData<MetricScoreMap>('phase2-metric-scores', {})
   const [editingCell, setEditingCell] = useState<string | null>(null)
   const [categoryFilter, setCategoryFilter] = useState<string>('All')
 
@@ -272,6 +287,21 @@ export default function AssessTab() {
   const updateGap = <K extends keyof GapRow>(idx: number, field: K, value: GapRow[K]) => {
     setGapData(gapData.map((r, i) => i === idx ? { ...r, [field]: value } : r))
   }
+  const addGapRow = () => setGapData([...gapData, { component: '', category: '', sla: '', ha: '', dr: '', gap: 'gap' }])
+  const deleteGapRow = (idx: number) => setGapData(gapData.filter((_, i) => i !== idx))
+  /** Auto-fill SLA for any rows whose component matches a curated Azure
+   * service. Only fills empty SLA cells — manually-set values are preserved. */
+  const autoFillSlas = () => {
+    let filled = 0
+    const next = gapData.map(r => {
+      if (r.sla && r.sla.trim() !== '' && r.sla !== '—') return r
+      const sla = lookupSla(r.component)
+      if (!sla) return r
+      filled++
+      return { ...r, sla }
+    })
+    if (filled > 0) setGapData(next)
+  }
   const gapChartData = useMemo(() => {
     const counts = { met: 0, partial: 0, gap: 0 }
     gapData.forEach(r => counts[r.gap]++)
@@ -282,15 +312,43 @@ export default function AssessTab() {
     ].filter(d => d.value > 0)
   }, [gapData])
 
+  /* ── Metric Analysis (derived from Gap Assessment) ── */
+  const metricRows: MetricRow[] = useMemo(() => gapData.map(g => {
+    const fallback = defaultScoresForGap(g.gap)
+    const override = metricScores[g.component]
+    const reliability = override?.reliability ?? fallback.reliability
+    const security = override?.security ?? fallback.security
+    const a = parsePct(g.sla)
+    const r = parsePct(reliability)
+    const s = parsePct(security)
+    const parts = [a, r, s].filter((v): v is number => v !== null)
+    const composite = parts.length > 0
+      ? (parts.reduce((acc, v) => acc + v, 0) / parts.length).toFixed(2) + '%'
+      : '—'
+    return {
+      component: g.component,
+      availability: g.sla || '—',
+      reliability,
+      security,
+      composite,
+    }
+  }), [gapData, metricScores])
+
+  const updateMetricScore = (component: string, field: keyof MetricScore, value: string) => {
+    const fallback = defaultScoresForGap(gapData.find(g => g.component === component)?.gap ?? 'gap')
+    const current = metricScores[component] ?? fallback
+    setMetricScores({ ...metricScores, [component]: { ...current, [field]: value } })
+  }
+
   /* ── Metric Analysis radar data ── */
   const radarData = useMemo(() =>
-    defaultMetricAnalysis.map(r => ({
+    metricRows.map(r => ({
       component: r.component,
-      availability: parseFloat(r.availability),
-      reliability: parseFloat(r.reliability),
-      security: parseFloat(r.security),
+      availability: parsePct(r.availability) ?? 0,
+      reliability: parsePct(r.reliability) ?? 0,
+      security: parsePct(r.security) ?? 0,
     })),
-  [])
+  [metricRows])
 
   /* ── Composite SLA calculation (serial chain per Microsoft WAF) ── */
   const compositeSla = useMemo(() => {
@@ -309,7 +367,7 @@ export default function AssessTab() {
   const exportReqs = () => downloadCsv('phase2_requirements.csv', objectsToCsvSheet('Requirements', requirements as unknown as Record<string, unknown>[]))
   const exportBia = () => downloadCsv('phase2_bia_metrics.csv', objectsToCsvSheet('BIA', biaMetrics as unknown as Record<string, unknown>[]))
   const exportGap = () => downloadCsv('phase2_gap_assessment.csv', objectsToCsvSheet('GapAssessment', gapData as unknown as Record<string, unknown>[]))
-  const exportMetrics = () => downloadCsv('phase2_metric_analysis.csv', objectsToCsvSheet('MetricAnalysis', defaultMetricAnalysis as unknown as Record<string, unknown>[]))
+  const exportMetrics = () => downloadCsv('phase2_metric_analysis.csv', objectsToCsvSheet('MetricAnalysis', metricRows as unknown as Record<string, unknown>[]))
 
   return (
     <Accordion collapsible multiple>
@@ -569,6 +627,7 @@ export default function AssessTab() {
 
           <div className={styles.sectionHeader}>
             <div style={{ display: 'flex', gap: '8px' }}>
+              <Button size="small" appearance="primary" onClick={autoFillSlas}>Auto-fill SLAs from Azure catalog</Button>
               <Button icon={<ArrowReset20Regular />} size="small" appearance="subtle" onClick={resetGap}>Reset</Button>
               <Button icon={<ArrowDownload20Regular />} size="small" appearance="subtle" onClick={exportGap}>Export CSV</Button>
             </div>
@@ -584,6 +643,7 @@ export default function AssessTab() {
                   <th className={styles.thWrap}>HA Configuration</th>
                   <th className={styles.thWrap}>DR Configuration</th>
                   <th className={styles.thCenter}>Gap Status</th>
+                  <th className={styles.thCenter} style={{ width: '40px' }}></th>
                 </tr>
               </thead>
               <tbody>
@@ -597,11 +657,15 @@ export default function AssessTab() {
                     <td className={styles.tdCenter}>
                       <GapStatusBadge gap={row.gap} onClick={() => updateGap(i, 'gap', cycleGapStatus(row.gap))} />
                     </td>
+                    <td className={styles.tdCenter}>
+                      <Button appearance="subtle" size="small" icon={<Delete20Regular />} onClick={() => deleteGapRow(i)} aria-label="Delete row" />
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
+          <Button appearance="subtle" size="small" icon={<Add20Regular />} onClick={addGapRow} style={{ marginTop: '8px' }}>Add Row</Button>
         </AccordionPanel>
       </AccordionItem>
 
@@ -611,6 +675,9 @@ export default function AssessTab() {
         <AccordionPanel>
           <p className={styles.subsectionDesc}>
             Baseline reliability and security scores per component before BCDR implementation.
+            <strong> Components and availability are derived from section 5 (Gap Assessment)</strong> so
+            the two views stay in sync. Reliability and security are editable per component;
+            the composite score is the average of the three.
           </p>
 
           {/* Radar chart */}
@@ -633,33 +700,40 @@ export default function AssessTab() {
           <div className={styles.sectionHeader}>
             <div style={{ display: 'flex', gap: '8px' }}>
               <Button icon={<ArrowDownload20Regular />} size="small" appearance="subtle" onClick={exportMetrics}>Export CSV</Button>
+              <Button icon={<ArrowReset20Regular />} size="small" appearance="subtle" onClick={resetMetricScores}>Reset Scores</Button>
             </div>
           </div>
 
-          <div className={styles.tableWrap}>
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th className={styles.th}>Component</th>
-                  <th className={styles.thCenter}>Availability</th>
-                  <th className={styles.thCenter}>Reliability</th>
-                  <th className={styles.thCenter}>Security</th>
-                  <th className={styles.thCenter}>Composite Score</th>
-                </tr>
-              </thead>
-              <tbody>
-                {defaultMetricAnalysis.map((row, i) => (
-                  <tr key={i}>
-                    <td className={styles.td} style={{ fontWeight: 600 }}>{row.component}</td>
-                    <td className={styles.tdCenter}>{row.availability}</td>
-                    <td className={styles.tdCenter}>{row.reliability}</td>
-                    <td className={styles.tdCenter}>{row.security}</td>
-                    <td className={styles.tdCenter}><strong>{row.composite}</strong></td>
+          {metricRows.length === 0 ? (
+            <p className={styles.subsectionDesc}>
+              No components yet. Add rows to the Gap Assessment (section 5) to populate this table.
+            </p>
+          ) : (
+            <div className={styles.tableWrap}>
+              <table className={styles.table}>
+                <thead>
+                  <tr>
+                    <th className={styles.th}>Component</th>
+                    <th className={styles.thCenter}>Availability (from §5)</th>
+                    <th className={styles.thCenter}>Reliability</th>
+                    <th className={styles.thCenter}>Security</th>
+                    <th className={styles.thCenter}>Composite Score</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {metricRows.map((row, i) => (
+                    <tr key={`${row.component}-${i}`}>
+                      <td className={styles.td} style={{ fontWeight: 600 }}>{row.component}</td>
+                      <td className={styles.tdCenter}>{row.availability}</td>
+                      {editCell(`metric-${i}-rel`, row.reliability, (v) => updateMetricScore(row.component, 'reliability', v), styles.tdCenter)}
+                      {editCell(`metric-${i}-sec`, row.security, (v) => updateMetricScore(row.component, 'security', v), styles.tdCenter)}
+                      <td className={styles.tdCenter}><strong>{row.composite}</strong></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </AccordionPanel>
       </AccordionItem>
     </Accordion>
