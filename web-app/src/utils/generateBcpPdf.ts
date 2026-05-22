@@ -6,6 +6,7 @@
  */
 
 import type { AppSettings } from '../components/Settings'
+import { type BcpExportOptions, defaultExportOptions } from './exportOptions'
 
 function getAppPrefix(): string {
   const currentAppId = localStorage.getItem('abcg_current-app') ?? 'default'
@@ -206,7 +207,7 @@ const defMaintenance = [
    Generate
    ═══════════════════════════════════════════════════════ */
 
-export function generateBcpPdf(): void {
+export function generateBcpPdf(options: BcpExportOptions = defaultExportOptions): void {
   const s = ld<AppSettings>('settings', { organizationName: '', guideName: 'Azure Business Continuity Guide', primaryContact: '', primaryContactEmail: '', workloadDescription: '', dateFormat: 'YYYY-MM-DD', currency: 'USD', notes: '', planFocus: 'bcdr' })
   const org = s.organizationName || 'Organization'
   const appName = getAppName()
@@ -309,6 +310,22 @@ export function generateBcpPdf(): void {
   sec.push(tbl(['Metric', 'Value', 'Notes'],
     biaMetrics.map((m: { metric: string; value: string; notes: string }) => [`<strong>${e(m.metric)}</strong>`, e(m.value), e(m.notes)]), { centerCols: [1] }))
 
+  // 6.1 Risk Register (ISO §8.2.3) — mandatory
+  type RiskRow = { category: string; description: string; impact: number; probability: number }
+  const risks = ld<RiskRow[]>('phase3-risk-scenarios', [])
+  if (risks.length > 0) {
+    sec.push(`<h2>6.1 Risk Register (ISO 22301 Clause 8.2.3)</h2>`)
+    sec.push(`<p>Identified risk scenarios with impact (1–5), probability (1–5), score, and qualitative level.</p>`)
+    sec.push(tbl(['Risk Category', 'Description', 'Impact', 'Probability', 'Score', 'Level'],
+      risks.map((r: RiskRow) => {
+        const score = r.impact * r.probability
+        const level = score >= 20 ? 'Critical' : score >= 15 ? 'High' : score >= 8 ? 'Medium' : 'Low'
+        const color = score >= 20 ? '#dc3545' : score >= 15 ? '#fd7e14' : score >= 8 ? '#ffc107' : '#28a745'
+        const txt = level === 'Medium' ? '#1a1a1a' : '#fff'
+        return [e(r.category), e(r.description), String(r.impact), String(r.probability), String(score), badge(level, color, txt)]
+      }), { centerCols: [2, 3, 4, 5] }))
+  }
+
   // 7. Gap Assessment
   sec.push(`<h1>7. Architecture &amp; Gap Assessment</h1>`)
   sec.push(tbl(['Component', 'Category', 'SLA', 'HA Config', 'DR Config', 'Status'],
@@ -322,21 +339,23 @@ export function generateBcpPdf(): void {
     design.map((r: { component: string; category: string; sla: string; ha: string; dr: string; remediation: string; status: string }) => [e(r.component), e(r.category), r.sla, e(r.ha), e(r.dr), e(r.remediation),
       r.status === 'met' ? badge('Met', '#28a745') : badge('NEW', '#0078d4')]),
     { centerCols: [2, 6] }))
-  // Metric comparison
-  if (metricComp.length > 0) {
+  // Metric comparison (optional)
+  if (options.metricComparison && metricComp.length > 0) {
     sec.push(`<h2>8.1 Metric Comparison (+BCDR)</h2>`)
     sec.push(tbl(['Component', 'Before Avail', 'After Avail', 'Before Rel', 'After Rel', 'Before Sec', 'After Sec'],
       metricComp.map((r: { component: string; beforeAvail: string; afterAvail: string; beforeRel: string; afterRel: string; beforeSec: string; afterSec: string }) => [e(r.component), r.beforeAvail, `<strong style="color:#28a745">${r.afterAvail}</strong>`, r.beforeRel, `<strong style="color:#28a745">${r.afterRel}</strong>`, r.beforeSec, `<strong style="color:#28a745">${r.afterSec}</strong>`]),
       { centerCols: [1, 2, 3, 4, 5, 6] }))
   }
 
-  // 9. Cost
-  sec.push(`<h1>9. Cost Analysis</h1>`)
-  sec.push(`<div class="metric-row"><div class="metric-box"><div class="metric-val">$${totB.toLocaleString()}</div><div class="metric-lbl">Current</div></div><div class="metric-box"><div class="metric-val">$${totA.toLocaleString()}</div><div class="metric-lbl">+BCDR</div></div><div class="metric-box"><div class="metric-val" style="color:#dc3545">+$${(totA - totB).toLocaleString()}</div><div class="metric-lbl">Investment</div></div></div>`)
-  sec.push(tbl(['Component', 'Current ($)', '+BCDR ($)', 'Diff ($)'],
-    [...cost.map((r: { component: string; currentCost: number; bcdrCost: number }) => [e(r.component), r.currentCost.toLocaleString(), r.bcdrCost.toLocaleString(), `${r.bcdrCost > r.currentCost ? '+' : ''}${(r.bcdrCost - r.currentCost).toLocaleString()}`]),
-     [`<strong>TOTAL</strong>`, `$${totB.toLocaleString()}`, `$${totA.toLocaleString()}`, `<strong>+$${(totA - totB).toLocaleString()}</strong>`]],
-    { centerCols: [1, 2, 3] }))
+  // 9. Cost (optional)
+  if (options.costAnalysis) {
+    sec.push(`<h1>9. Cost Analysis</h1>`)
+    sec.push(`<div class="metric-row"><div class="metric-box"><div class="metric-val">$${totB.toLocaleString()}</div><div class="metric-lbl">Current</div></div><div class="metric-box"><div class="metric-val">$${totA.toLocaleString()}</div><div class="metric-lbl">+BCDR</div></div><div class="metric-box"><div class="metric-val" style="color:#dc3545">+$${(totA - totB).toLocaleString()}</div><div class="metric-lbl">Investment</div></div></div>`)
+    sec.push(tbl(['Component', 'Current ($)', '+BCDR ($)', 'Diff ($)'],
+      [...cost.map((r: { component: string; currentCost: number; bcdrCost: number }) => [e(r.component), r.currentCost.toLocaleString(), r.bcdrCost.toLocaleString(), `${r.bcdrCost > r.currentCost ? '+' : ''}${(r.bcdrCost - r.currentCost).toLocaleString()}`]),
+       [`<strong>TOTAL</strong>`, `$${totB.toLocaleString()}`, `$${totA.toLocaleString()}`, `<strong>+$${(totA - totB).toLocaleString()}</strong>`]],
+      { centerCols: [1, 2, 3] }))
+  }
 
   // 10. Response Plan
   sec.push(`<h1>10. Response Plan by Scope</h1>`)
@@ -399,10 +418,154 @@ export function generateBcpPdf(): void {
     maintenance.map((m: { document: string; frequency: string; nextReview: string; owner: string; approver: string }) => [e(m.document), e(m.frequency), e(m.nextReview), e(m.owner), e(m.approver)]),
     { centerCols: [1, 2] }))
 
-  // Appendix: Criticality
+  // Appendix A: Criticality Model (mandatory)
   sec.push(`<h1>Appendix A: Criticality Model</h1>`)
   sec.push(tbl(['Tier', 'Criticality', 'Business View', 'Financial'],
     criticality.map((r: { tier: string; criticality: string; color: string; businessView: string; financial: string }) => [e(r.tier), badge(e(r.criticality), r.color), e(r.businessView), e(r.financial)])))
+
+  let appLetter = 'B'.charCodeAt(0)
+  const nextApp = () => String.fromCharCode(appLetter++)
+
+  // Appendix B: Fault Model (optional)
+  if (options.faultModel) {
+    type FaultRow = { type: string; desc: string; t1: string; t2: string; t3: string }
+    const fm = ld<FaultRow[]>('phase1_faultModel', [])
+    if (fm.length > 0) {
+      sec.push(`<h1>Appendix ${nextApp()}: Fault Model (FMEA)</h1>`)
+      sec.push(`<p>Failure modes analyzed against criticality tiers (Microsoft WAF Reliability pillar).</p>`)
+      sec.push(tbl(['Fault Type', 'Description', 'Tier 1', 'Tier 2', 'Tier 3'],
+        fm.map((r: FaultRow) => [`<strong>${e(r.type)}</strong>`, e(r.desc), e(r.t1), e(r.t2), e(r.t3)])))
+    }
+  }
+
+  // Appendix C: RACI (optional)
+  if (options.raci) {
+    type RaciState = { roles: string[]; tasks: { task: string; raci: string[] }[] }
+    const raci = ld<RaciState>('phase1_raci', { roles: [], tasks: [] })
+    if (raci.tasks.length > 0) {
+      sec.push(`<h1>Appendix ${nextApp()}: RACI Matrix</h1>`)
+      sec.push(tbl(['Task', ...raci.roles],
+        raci.tasks.map(t => [`<strong>${e(t.task)}</strong>`, ...raci.roles.map((_, i) => {
+          const v = t.raci[i] ?? ''
+          if (!v) return ''
+          const c = v === 'R' ? '#003366' : v === 'A' ? '#336699' : v === 'C' ? '#6699CC' : '#99CCFF'
+          const tx = v === 'I' ? '#1a1a1a' : '#fff'
+          return badge(v, c, tx)
+        })]),
+        { centerCols: raci.roles.map((_, i) => i + 1) }))
+    }
+  }
+
+  // Appendix D: BCM Tier Requirements (optional)
+  if (options.bcmTierRequirements) {
+    const tierHeaders = criticality.map((r: { tier: string; criticality: string }) =>
+      `${r.tier ?? ''} ${r.criticality ?? ''}`.trim() || 'Tier')
+    const bcmSections: { key: string; title: string }[] = [
+      { key: 'phase1_bcm_general', title: 'General' },
+      { key: 'phase1_bcm_availability', title: 'Availability' },
+      { key: 'phase1_bcm_recoverability', title: 'Recoverability' },
+      { key: 'phase1_bcm_deployment', title: 'Deployment' },
+      { key: 'phase1_bcm_monitoring', title: 'Monitoring' },
+      { key: 'phase1_bcm_security', title: 'Security' },
+      { key: 'phase1_bcm_testing', title: 'Testing' },
+    ]
+    let any = false
+    const blocks: string[] = []
+    bcmSections.forEach(({ key, title }) => {
+      const rows = ld<string[][]>(key, [])
+      if (rows.length === 0) return
+      any = true
+      blocks.push(`<h2>${title} Requirements</h2>`)
+      blocks.push(tbl(['Requirement', ...tierHeaders],
+        rows.map(row => [e(row[0] ?? ''), ...tierHeaders.map((_, i) => {
+          const v = row[i + 1] ?? ''
+          return v === 'required' ? badge('Required', '#28a745')
+            : v === 'not-required' ? badge('Not Req', '#dc3545')
+            : v === 'as-required' ? badge('As Required', '#6c757d')
+            : e(v)
+        })])))
+    })
+    if (any) {
+      sec.push(`<h1>Appendix ${nextApp()}: BCM Tier Requirements</h1>`)
+      sec.push(`<p>Detailed continuity requirements per criticality tier.</p>`)
+      blocks.forEach(b => sec.push(b))
+    }
+  }
+
+  // Appendix E: Application Requirements catalog (optional)
+  if (options.appRequirements) {
+    const reqs = ld<[string, string, string][]>('phase1_appRequirements', [])
+    if (reqs.length > 0) {
+      sec.push(`<h1>Appendix ${nextApp()}: Application Requirements Catalog</h1>`)
+      sec.push(tbl(['Category', 'Requirement', 'Priority'],
+        reqs.map(r => {
+          const p = r[2] === 'danger' ? badge('High', '#dc3545')
+            : r[2] === 'warning' ? badge('Medium', '#ffc107', '#1a1a1a')
+            : badge('Low', '#28a745')
+          return [e(r[0] ?? ''), e(r[1] ?? ''), p]
+        }), { centerCols: [2] }))
+    }
+  }
+
+  // Appendix F: Test Plans catalog (optional)
+  if (options.testPlansCatalog) {
+    const plans = ld<string[][]>('phase1_testPlans', [])
+    if (plans.length > 0) {
+      sec.push(`<h1>Appendix ${nextApp()}: Test Plans Catalog</h1>`)
+      sec.push(tbl(['Test Type', 'Description', 'Frequency'],
+        plans.map(r => [`<strong>${e(r[0] ?? '')}</strong>`, e(r[1] ?? ''), e(r[2] ?? '')])))
+    }
+  }
+
+  // Appendix G: Programme-level (optional)
+  if (options.programmeLevel) {
+    type MbcoRow = { order: number; application: string; businessFunction: string; criticality: string; window: string; env: string; location: string; upstreamDeps: string; downstreamDeps: string; recovery: string }
+    type BiaPortRow = { application: string; criticality: string; slo: string; rto: string; rpo: string; mtd: string; impactCost: string; lastReview: string }
+    type CalRow = { month: string; function_name: string; applications: string; notes: string }
+    type Maint3Row = { document: string; frequency: string; nextReview: string; owner: string; approver: string; status: string }
+    type ActRow = { date: string; event: string; application: string; notes: string }
+    const mbco = ld<MbcoRow[]>('phase3-mbco', [])
+    const bia = ld<BiaPortRow[]>('phase3-bia-portfolio', [])
+    const cal = ld<CalRow[]>('phase3-calendar', [])
+    const maint3 = ld<Maint3Row[]>('phase3-maintenance', [])
+    const act = ld<ActRow[]>('phase3-activity', [])
+    if (mbco.length + bia.length + cal.length + maint3.length + act.length > 0) {
+      sec.push(`<h1>Appendix ${nextApp()}: Programme-level Continuity</h1>`)
+      sec.push(`<p>Organization-wide continuity artifacts spanning multiple applications.</p>`)
+      if (mbco.length > 0) {
+        sec.push(`<h2>MBCO Recovery Order</h2>`)
+        sec.push(tbl(['Order', 'Application', 'Function', 'Criticality', 'Window', 'Env', 'Location', 'Upstream', 'Downstream', 'Recovery'],
+          mbco.map(r => [String(r.order), e(r.application), e(r.businessFunction), e(r.criticality), e(r.window), e(r.env), e(r.location), e(r.upstreamDeps), e(r.downstreamDeps), e(r.recovery)]),
+          { centerCols: [0] }))
+      }
+      if (bia.length > 0) {
+        sec.push(`<h2>BIA Portfolio</h2>`)
+        sec.push(tbl(['Application', 'Criticality', 'SLO', 'RTO', 'RPO', 'MTD', 'Impact $/hr', 'Last Review'],
+          bia.map(r => [e(r.application), e(r.criticality), e(r.slo), e(r.rto), e(r.rpo), e(r.mtd), e(r.impactCost), e(r.lastReview)]),
+          { centerCols: [2, 3, 4, 5] }))
+      }
+      if (cal.length > 0) {
+        sec.push(`<h2>Critical Function Calendar</h2>`)
+        sec.push(tbl(['Month', 'Business Function', 'Applications', 'Notes'],
+          cal.map(r => [`<strong>${e(r.month)}</strong>`, e(r.function_name), e(r.applications), e(r.notes)])))
+      }
+      if (maint3.length > 0) {
+        sec.push(`<h2>Programme Maintenance Schedule</h2>`)
+        sec.push(tbl(['Document', 'Frequency', 'Next Review', 'Owner', 'Approver', 'Status'],
+          maint3.map(r => {
+            const c = r.status === 'current' ? '#28a745' : r.status === 'overdue' ? '#dc3545' : '#ffc107'
+            const tx = r.status === 'due-soon' ? '#1a1a1a' : '#fff'
+            const label = r.status === 'current' ? 'Current' : r.status === 'overdue' ? 'Overdue' : 'Due Soon'
+            return [e(r.document), e(r.frequency), e(r.nextReview), e(r.owner), e(r.approver), badge(label, c, tx)]
+          }), { centerCols: [5] }))
+      }
+      if (act.length > 0) {
+        sec.push(`<h2>Activity Log</h2>`)
+        sec.push(tbl(['Date', 'Event', 'Application', 'Notes'],
+          act.map(r => [e(r.date), `<strong>${e(r.event)}</strong>`, e(r.application), e(r.notes)])))
+      }
+    }
+  }
 
   sec.push(`<div class="info"><strong>End of Document.</strong> This BCP is a living document. Review and update per the maintenance schedule.</div>`)
 

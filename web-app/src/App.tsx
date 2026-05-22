@@ -27,10 +27,8 @@ import {
   ChevronRight16Regular,
   ArrowDownload24Regular,
   ArrowUpload24Regular,
-  Print24Regular,
   Delete24Regular,
   Settings24Regular,
-  TableSimple24Regular,
   PanelLeftContract24Regular,
   Lightbulb20Regular,
 } from '@fluentui/react-icons'
@@ -46,9 +44,7 @@ import References from './components/References'
 import Settings from './components/Settings'
 import AppSelector from './components/AppSelector'
 import GuidedTour from './components/GuidedTour'
-import { exportAllPhasesToCsv } from './utils/exportAllCsv'
-import { generateBcpPdf } from './utils/generateBcpPdf'
-import { generateBcpDocx } from './utils/generateBcpDocx'
+import { ExportDialog } from './components/ExportDialog'
 import { isInScope, relevanceLabel, navRelevance } from './utils/planFocus'
 import type { PlanFocus } from './utils/planFocus'
 import { useWorkbenchData } from './hooks/useWorkbenchData'
@@ -434,6 +430,7 @@ function AppContent() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [clearDialogOpen, setClearDialogOpen] = useState(false)
+  const [exportDialogOpen, setExportDialogOpen] = useState(false)
   const [tourRun, setTourRun] = useState(() => localStorage.getItem('abcg_tour-seen') !== '1')
   const mainContentRef = useRef<HTMLElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -605,9 +602,7 @@ function AppContent() {
           </div>
           <div className={styles.toolbarActions} data-tour="toolbar">
             <Button appearance="subtle" size="small" icon={<Lightbulb20Regular />} onClick={() => setTourRun(true)}>Tour</Button>
-            <Button appearance="subtle" size="small" icon={<TableSimple24Regular />} onClick={exportAllPhasesToCsv}>CSV</Button>
-            <Button appearance="subtle" size="small" icon={<Print24Regular />} onClick={generateBcpPdf}>PDF</Button>
-            <Button appearance="subtle" size="small" icon={<ArrowDownload24Regular />} onClick={generateBcpDocx}>DOCX</Button>
+            <Button appearance="primary" size="small" icon={<ArrowDownload24Regular />} onClick={() => setExportDialogOpen(true)}>Export</Button>
             <Button appearance="subtle" size="small" icon={<ArrowDownload24Regular />} onClick={exportJSON} disabled={!hasData}>JSON</Button>
             <Button appearance="subtle" size="small" icon={<ArrowUpload24Regular />} onClick={() => fileInputRef.current?.click()}>Import</Button>
             <input ref={fileInputRef} type="file" accept=".json" className={styles.hiddenInput} onChange={handleImport} />
@@ -644,6 +639,7 @@ function AppContent() {
 
       {/* Guided tour overlay */}
       <GuidedTour run={tourRun} onFinish={() => setTourRun(false)} />
+      <ExportDialog open={exportDialogOpen} onOpenChange={setExportDialogOpen} />
     </div>
   )
 }
