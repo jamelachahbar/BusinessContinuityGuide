@@ -15,7 +15,7 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react'
 import ReactFlow, {
   Controls, Background, Handle, Position, MarkerType,
-  useNodesState, useEdgesState, addEdge,
+  useNodesState, useEdgesState, addEdge, ConnectionMode,
   type Connection, type NodeProps, type Node, type Edge,
 } from 'reactflow'
 import 'reactflow/dist/style.css'
@@ -410,7 +410,7 @@ export default function FaultTree({ storageKey = 'phase2-fta', afterBcdr = false
 
       {/* Canvas */}
       <div className={st.canvas} ref={ref}>
-        <ReactFlow nodes={nodes} edges={edges} onNodesChange={onNC} onEdgesChange={onEC} onConnect={onConnect} onNodeDragStop={onNodeDragStop} onNodeDoubleClick={onNodeDoubleClick} onEdgeClick={onEdgeClick} nodeTypes={nodeTypes} fitView snapToGrid snapGrid={[16, 16]} connectionRadius={28} defaultEdgeOptions={{ style: { strokeWidth: 2, stroke: '#718096' }, markerEnd: { type: MarkerType.ArrowClosed, color: '#718096' } }} attributionPosition="bottom-left">
+        <ReactFlow nodes={nodes} edges={edges} onNodesChange={onNC} onEdgesChange={onEC} onConnect={onConnect} onNodeDragStop={onNodeDragStop} onNodeDoubleClick={onNodeDoubleClick} onEdgeClick={onEdgeClick} nodeTypes={nodeTypes} fitView snapToGrid snapGrid={[16, 16]} connectionRadius={28} connectionMode={ConnectionMode.Loose} defaultEdgeOptions={{ style: { strokeWidth: 2, stroke: '#718096' }, markerEnd: { type: MarkerType.ArrowClosed, color: '#718096' } }} attributionPosition="bottom-left">
           <Controls />
           <Background gap={16} size={1} color="#e2e8f0" />
         </ReactFlow>

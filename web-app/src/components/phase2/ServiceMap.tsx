@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo, useRef } from 'react'
 import ReactFlow, {
   Controls, Background, MiniMap, Handle, Position, MarkerType,
-  useNodesState, useEdgesState, addEdge,
+  useNodesState, useEdgesState, addEdge, ConnectionMode,
   type Connection, type NodeProps, type Node, type Edge,
 } from 'reactflow'
 import 'reactflow/dist/style.css'
@@ -448,7 +448,7 @@ export default function ServiceMap() {
 
       {/* 4. Canvas */}
       <div className={s.canvas} ref={ref}>
-        <ReactFlow nodes={nodes} edges={edges} onNodesChange={onNC} onEdgesChange={onEC} onConnect={onConnect} onEdgeClick={onEdgeClick} onNodeDragStop={onNodeDragStop} onNodeDoubleClick={onNodeDoubleClick} nodeTypes={nodeTypes} fitView snapToGrid snapGrid={[16, 16]} connectionRadius={28} connectionLineStyle={{ strokeWidth: 2, stroke: CONN_TYPES[ct].color }} attributionPosition="bottom-left">
+        <ReactFlow nodes={nodes} edges={edges} onNodesChange={onNC} onEdgesChange={onEC} onConnect={onConnect} onEdgeClick={onEdgeClick} onNodeDragStop={onNodeDragStop} onNodeDoubleClick={onNodeDoubleClick} nodeTypes={nodeTypes} fitView snapToGrid snapGrid={[16, 16]} connectionRadius={28} connectionMode={ConnectionMode.Loose} connectionLineStyle={{ strokeWidth: 2, stroke: CONN_TYPES[ct].color }} attributionPosition="bottom-left">
           <Controls />
           <Background gap={16} size={1} color="#e2e8f0" />
           <MiniMap nodeColor={n => CATEGORY_COLORS[(n.data?.category as string)]?.accent ?? '#667eea'} maskColor="rgba(248,249,250,0.85)" style={{ borderRadius: 6, border: '1px solid #e2e8f0' }} />
